@@ -1,0 +1,76 @@
+{
+    "test": "Valid Login",
+    "timestamp": "2025-10-23 02:19:29",
+    "response": {
+        "data": {
+            "status": "success",
+            "message": "Login successful",
+            "data": {
+                "user": {
+                    "id": "user_1761185968_e2f3c2",
+                    "email": "test_1761185968@example.com",
+                    "name": "Test User",
+                    "avatar_url": null,
+                    "is_active": 1,
+                    "email_verified": 0,
+                    "token_version": 0,
+                    "last_login_at": null,
+                    "created_at": "2025-10-23 09:19:28",
+                    "updated_at": "2025-10-23 09:19:28"
+                },
+                "tokens": {
+                    "access_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJHQVNTQVBJIiwiYXVkIjoibG9jYWxob3N0IiwiaWF0IjoxNzYxMTg1OTY5LCJleHAiOjE3NjExODY4NjksInN1YiI6InVzZXJfMTc2MTE4NTk2OF9lMmYzYzIiLCJlbWFpbCI6InRlc3RfMTc2MTE4NTk2OEBleGFtcGxlLmNvbSIsInR5cGUiOiJhY2Nlc3MiLCJ2ZXJzaW9uIjowfQ.tspvVExKMrhmsTXZvnqbnUWGmf9aRUC4ofw0_afGiOA",
+                    "refresh_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJHQVNTQVBJIiwiYXVkIjoibG9jYWxob3N0IiwiaWF0IjoxNzYxMTg1OTY5LCJleHAiOjE3NjE3OTA3NjksInN1YiI6InVzZXJfMTc2MTE4NTk2OF9lMmYzYzIiLCJ0eXBlIjoicmVmcmVzaCIsInZlcnNpb24iOjB9.iGvp-3YPVpXFEj5AjnZ80ysJ7EDI6r8AdQqMVbAaKLA",
+                    "token_type": "Bearer",
+                    "expires_in": 900
+                }
+            },
+            "timestamp": "2025-10-23 09:19:29"
+        },
+        "status": 200,
+        "info": {
+            "url": "http:\/\/localhost:8080\/gassapi\/backend-php\/?act=login",
+            "content_type": "application\/json",
+            "http_code": 200,
+            "header_size": 345,
+            "request_size": 213,
+            "filetime": -1,
+            "ssl_verify_result": 0,
+            "redirect_count": 0,
+            "total_time": 0.428923,
+            "namelookup_time": 0.000118,
+            "connect_time": 0.000575,
+            "pretransfer_time": 0.000646,
+            "size_upload": 64,
+            "size_download": 991,
+            "speed_download": 2310,
+            "speed_upload": 149,
+            "download_content_length": 991,
+            "upload_content_length": 64,
+            "starttransfer_time": 0.428899,
+            "redirect_time": 0,
+            "redirect_url": "",
+            "primary_ip": "::1",
+            "certinfo": [],
+            "primary_port": 8080,
+            "local_ip": "::1",
+            "local_port": 55259,
+            "http_version": 2,
+            "protocol": 1,
+            "ssl_verifyresult": 0,
+            "scheme": "http",
+            "appconnect_time_us": 0,
+            "connect_time_us": 575,
+            "namelookup_time_us": 118,
+            "pretransfer_time_us": 646,
+            "redirect_time_us": 0,
+            "starttransfer_time_us": 428899,
+            "posttransfer_time_us": 645,
+            "total_time_us": 428923,
+            "effective_method": "POST",
+            "capath": "",
+            "cainfo": ""
+        },
+        "raw": "{\"status\":\"success\",\"message\":\"Login successful\",\"data\":{\"user\":{\"id\":\"user_1761185968_e2f3c2\",\"email\":\"test_1761185968@example.com\",\"name\":\"Test User\",\"avatar_url\":null,\"is_active\":1,\"email_verified\":0,\"token_version\":0,\"last_login_at\":null,\"created_at\":\"2025-10-23 09:19:28\",\"updated_at\":\"2025-10-23 09:19:28\"},\"tokens\":{\"access_token\":\"eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJHQVNTQVBJIiwiYXVkIjoibG9jYWxob3N0IiwiaWF0IjoxNzYxMTg1OTY5LCJleHAiOjE3NjExODY4NjksInN1YiI6InVzZXJfMTc2MTE4NTk2OF9lMmYzYzIiLCJlbWFpbCI6InRlc3RfMTc2MTE4NTk2OEBleGFtcGxlLmNvbSIsInR5cGUiOiJhY2Nlc3MiLCJ2ZXJzaW9uIjowfQ.tspvVExKMrhmsTXZvnqbnUWGmf9aRUC4ofw0_afGiOA\",\"refresh_token\":\"eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJHQVNTQVBJIiwiYXVkIjoibG9jYWxob3N0IiwiaWF0IjoxNzYxMTg1OTY5LCJleHAiOjE3NjE3OTA3NjksInN1YiI6InVzZXJfMTc2MTE4NTk2OF9lMmYzYzIiLCJ0eXBlIjoicmVmcmVzaCIsInZlcnNpb24iOjB9.iGvp-3YPVpXFEj5AjnZ80ysJ7EDI6r8AdQqMVbAaKLA\",\"token_type\":\"Bearer\",\"expires_in\":900}},\"timestamp\":\"2025-10-23 09:19:29\"}"
+    }
+}

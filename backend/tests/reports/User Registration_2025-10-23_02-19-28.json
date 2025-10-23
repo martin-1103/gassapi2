@@ -1,0 +1,60 @@
+{
+    "test": "User Registration",
+    "timestamp": "2025-10-23 02:19:28",
+    "response": {
+        "data": {
+            "status": "success",
+            "message": "User registered successfully",
+            "data": {
+                "user": null,
+                "message": "User registered successfully"
+            },
+            "timestamp": "2025-10-23 09:19:28"
+        },
+        "status": 201,
+        "info": {
+            "url": "http:\/\/localhost:8080\/gassapi\/backend-php\/?act=register",
+            "content_type": "application\/json",
+            "http_code": 201,
+            "header_size": 350,
+            "request_size": 235,
+            "filetime": -1,
+            "ssl_verify_result": 0,
+            "redirect_count": 0,
+            "total_time": 0.304497,
+            "namelookup_time": 9.3e-5,
+            "connect_time": 0.001249,
+            "pretransfer_time": 0.001361,
+            "size_upload": 83,
+            "size_download": 157,
+            "speed_download": 515,
+            "speed_upload": 272,
+            "download_content_length": 157,
+            "upload_content_length": 83,
+            "starttransfer_time": 0.304464,
+            "redirect_time": 0,
+            "redirect_url": "",
+            "primary_ip": "::1",
+            "certinfo": [],
+            "primary_port": 8080,
+            "local_ip": "::1",
+            "local_port": 55257,
+            "http_version": 2,
+            "protocol": 1,
+            "ssl_verifyresult": 0,
+            "scheme": "http",
+            "appconnect_time_us": 0,
+            "connect_time_us": 1249,
+            "namelookup_time_us": 93,
+            "pretransfer_time_us": 1361,
+            "redirect_time_us": 0,
+            "starttransfer_time_us": 304464,
+            "posttransfer_time_us": 1360,
+            "total_time_us": 304497,
+            "effective_method": "POST",
+            "capath": "",
+            "cainfo": ""
+        },
+        "raw": "{\"status\":\"success\",\"message\":\"User registered successfully\",\"data\":{\"user\":null,\"message\":\"User registered successfully\"},\"timestamp\":\"2025-10-23 09:19:28\"}"
+    }
+}

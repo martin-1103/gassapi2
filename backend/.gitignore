@@ -1,0 +1,39 @@
+# Composer
+/vendor/
+composer.lock
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Uploads
+uploads/
+files/
+temp/
+
+# Cache
+cache/
+tmp/
+
+# Test coverage
+coverage/
+
+# Backup files
+*.bak
+*.backup
