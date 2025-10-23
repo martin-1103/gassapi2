@@ -446,4 +446,108 @@ describe('EnvironmentTools', () => {
         .rejects.toThrow('Unknown environment tool: unknown_tool');
     });
   });
+
+  describe('Additional coverage tests', () => {
+    it('harus handle set variable dengan boolean value', async () => {
+      const mockConfig = {
+        project: { id: 'proj-1', name: 'Test Project' },
+        mcpClient: { token: 'token', serverURL: 'https://api.test.com' }
+      };
+
+      mockConfigLoader.detectProjectConfig.mockResolvedValue(mockConfig as any);
+      mockConfigLoader.getMcpToken.mockReturnValue('token');
+      mockConfigLoader.getServerURL.mockReturnValue('https://api.test.com');
+
+      mockBackendClient.setEnvironmentVariable.mockResolvedValue({
+        success: true,
+        data: {
+          id: 'var-1',
+          key: 'BOOL_VAR',
+          value: 'true',
+          enabled: true
+        }
+      } as any);
+
+      const result = await environmentTools.setEnvironmentVariable({
+        environmentId: 'aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee',
+        key: 'BOOL_VAR',
+        value: 'true'
+      });
+
+      expect(result.content[0].text).toContain('✅ Environment Variable Set');
+    });
+
+    it('harus handle set variable dengan numeric value', async () => {
+      const mockConfig = {
+        project: { id: 'proj-1', name: 'Test Project' },
+        mcpClient: { token: 'token', serverURL: 'https://api.test.com' }
+      };
+
+      mockConfigLoader.detectProjectConfig.mockResolvedValue(mockConfig as any);
+      mockConfigLoader.getMcpToken.mockReturnValue('token');
+      mockConfigLoader.getServerURL.mockReturnValue('https://api.test.com');
+
+      mockBackendClient.setEnvironmentVariable.mockResolvedValue({
+        success: true,
+        data: {
+          id: 'var-1',
+          key: 'NUM_VAR',
+          value: '123',
+          enabled: true
+        }
+      } as any);
+
+      const result = await environmentTools.setEnvironmentVariable({
+        environmentId: 'aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee',
+        key: 'NUM_VAR',
+        value: '123'
+      });
+
+      expect(result.content[0].text).toContain('✅ Environment Variable Set');
+    });
+
+    it('harus handle export environment dengan invalid response', async () => {
+      const mockConfig = {
+        project: { id: 'proj-1', name: 'Test Project' },
+        mcpClient: { token: 'token', serverURL: 'https://api.test.com' }
+      };
+
+      mockConfigLoader.detectProjectConfig.mockResolvedValue(mockConfig as any);
+      mockConfigLoader.getMcpToken.mockReturnValue('token');
+      mockConfigLoader.getServerURL.mockReturnValue('https://api.test.com');
+
+      // Invalid response - missing variables
+      mockBackendClient.getEnvironmentVariables.mockResolvedValue({} as any);
+
+      const result = await environmentTools.exportEnvironment({
+        environmentId: 'aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee'
+      });
+
+      expect(result.isError).toBe(true);
+      expect(result.content[0].text).toContain('❌ Failed to Export Environment');
+    });
+
+    it('harus handle import environment dengan network error', async () => {
+      const mockConfig = {
+        project: { id: 'proj-1', name: 'Test Project' },
+        mcpClient: { token: 'token', serverURL: 'https://api.test.com' }
+      };
+
+      mockConfigLoader.detectProjectConfig.mockResolvedValue(mockConfig as any);
+      mockConfigLoader.getMcpToken.mockReturnValue('token');
+      mockConfigLoader.getServerURL.mockReturnValue('https://api.test.com');
+
+      mockBackendClient.importEnvironment.mockRejectedValue(
+        new Error('Network timeout during import')
+      );
+
+      const result = await environmentTools.importEnvironment({
+        environmentId: 'aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee',
+        variables: [{ key: 'TEST_VAR', value: 'test_value', enabled: true }]
+      });
+
+      expect(result.isError).toBe(true);
+      expect(result.content[0].text).toContain('❌ Failed to Import Environment');
+    });
+  });
 });

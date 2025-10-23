@@ -445,4 +445,293 @@ describe('EndpointTools', () => {
       expect(result.content[0].text).toContain('test');
     });
   });
+
+  describe('Additional coverage tests', () => {
+    it('harus handle create endpoint dengan valid data', async () => {
+      const mockConfig = {
+        project: { id: 'proj-1', name: 'Test Project' },
+        mcpClient: { token: 'token', serverURL: 'https://api.test.com' }
+      };
+
+      mockConfigLoader.detectProjectConfig.mockResolvedValue(mockConfig as any);
+      mockConfigLoader.getMcpToken.mockReturnValue('token');
+      mockConfigLoader.getServerURL.mockReturnValue('https://api.test.com');
+
+      mockBackendClient.createEndpoint.mockResolvedValue({
+        id: 'ep-new',
+        name: 'New Endpoint',
+        method: 'POST',
+        url: '/api/new'
+      } as any);
+
+      const result = await endpointTools.createEndpoint({
+        name: 'New Endpoint',
+        method: 'POST',
+        url: '/api/new',
+        collectionId: 'aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee'
+      });
+
+      expect(result.content[0].text).toContain('✅ Endpoint Berhasil Dibuat');
+    });
+
+    it('harus handle update endpoint dengan valid data', async () => {
+      const mockConfig = {
+        project: { id: 'proj-1', name: 'Test Project' },
+        mcpClient: { token: 'token', serverURL: 'https://api.test.com' }
+      };
+
+      mockConfigLoader.detectProjectConfig.mockResolvedValue(mockConfig as any);
+      mockConfigLoader.getMcpToken.mockReturnValue('token');
+      mockConfigLoader.getServerURL.mockReturnValue('https://api.test.com');
+
+      mockBackendClient.updateEndpoint.mockResolvedValue({
+        id: 'ep-1',
+        name: 'Updated Name',
+        url: '/api/updated'
+      } as any);
+
+      const result = await endpointTools.updateEndpoint({
+        endpointId: 'aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee',
+        name: 'Updated Name',
+        url: '/api/updated'
+      });
+
+      expect(result.content[0].text).toContain('✅ Endpoint Berhasil Diupdate');
+    });
+
+    it('harus handle move endpoint dengan valid data', async () => {
+      const mockConfig = {
+        project: { id: 'proj-1', name: 'Test Project' },
+        mcpClient: { token: 'token', serverURL: 'https://api.test.com' }
+      };
+
+      mockConfigLoader.detectProjectConfig.mockResolvedValue(mockConfig as any);
+      mockConfigLoader.getMcpToken.mockReturnValue('token');
+      mockConfigLoader.getServerURL.mockReturnValue('https://api.test.com');
+
+      mockBackendClient.moveEndpoint.mockResolvedValue({
+        success: true
+      } as any);
+
+      const result = await endpointTools.moveEndpoint({
+        endpointId: 'aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee',
+        newCollectionId: 'bbbbbbbb-cccc-4ddd-9eee-ffffffffffff'
+      });
+
+      expect(result.content[0].text).toContain('✅ Endpoint Berhasil Dipindah');
+    });
+
+    it('harus handle endpoint details dengan collection info', async () => {
+      const mockConfig = {
+        project: { id: 'proj-1', name: 'Test Project' },
+        mcpClient: { token: 'token', serverURL: 'https://api.test.com' }
+      };
+
+      mockConfigLoader.detectProjectConfig.mockResolvedValue(mockConfig as any);
+      mockConfigLoader.getMcpToken.mockReturnValue('token');
+      mockConfigLoader.getServerURL.mockReturnValue('https://api.test.com');
+
+      mockBackendClient.getEndpointDetails.mockResolvedValue({
+        id: 'ep-1',
+        name: 'Test Endpoint',
+        method: 'GET',
+        url: '/test',
+        collection: {
+          id: 'col-1',
+          name: 'Test Collection'
+        },
+        created_at: '2025-10-23T00:00:00Z',
+        updated_at: '2025-10-23T00:00:00Z'
+      } as any);
+
+      const result = await endpointTools.getEndpointDetails({
+        endpointId: 'aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee'
+      });
+
+      expect(result.content[0].text).toContain('Test Collection');
+    });
+
+    it('harus handle create endpoint dengan array body', async () => {
+      const mockConfig = {
+        project: { id: 'proj-1', name: 'Test Project' },
+        mcpClient: { token: 'token', serverURL: 'https://api.test.com' }
+      };
+
+      mockConfigLoader.detectProjectConfig.mockResolvedValue(mockConfig as any);
+      mockConfigLoader.getMcpToken.mockReturnValue('token');
+      mockConfigLoader.getServerURL.mockReturnValue('https://api.test.com');
+
+      mockBackendClient.createEndpoint.mockResolvedValue({
+        id: 'ep-array',
+        name: 'Array Body Endpoint',
+        method: 'POST',
+        url: '/api/array'
+      } as any);
+
+      const result = await endpointTools.createEndpoint({
+        name: 'Array Body Endpoint',
+        method: 'POST',
+        url: '/api/array',
+        collectionId: 'aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee',
+        body: ['item1', 'item2', 'item3']
+      });
+
+      expect(result.content[0].text).toContain('✅ Endpoint Berhasil Dibuat');
+    });
+
+    it('harus handle create endpoint dengan string body', async () => {
+      const mockConfig = {
+        project: { id: 'proj-1', name: 'Test Project' },
+        mcpClient: { token: 'token', serverURL: 'https://api.test.com' }
+      };
+
+      mockConfigLoader.detectProjectConfig.mockResolvedValue(mockConfig as any);
+      mockConfigLoader.getMcpToken.mockReturnValue('token');
+      mockConfigLoader.getServerURL.mockReturnValue('https://api.test.com');
+
+      mockBackendClient.createEndpoint.mockResolvedValue({
+        id: 'ep-string',
+        name: 'String Body Endpoint',
+        method: 'POST',
+        url: '/api/string'
+      } as any);
+
+      const result = await endpointTools.createEndpoint({
+        name: 'String Body Endpoint',
+        method: 'POST',
+        url: '/api/string',
+        collectionId: 'aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee',
+        body: 'plain text body'
+      });
+
+      expect(result.content[0].text).toContain('✅ Endpoint Berhasil Dibuat');
+    });
+
+    it('harus handle create endpoint dengan null body', async () => {
+      const mockConfig = {
+        project: { id: 'proj-1', name: 'Test Project' },
+        mcpClient: { token: 'token', serverURL: 'https://api.test.com' }
+      };
+
+      mockConfigLoader.detectProjectConfig.mockResolvedValue(mockConfig as any);
+      mockConfigLoader.getMcpToken.mockReturnValue('token');
+      mockConfigLoader.getServerURL.mockReturnValue('https://api.test.com');
+
+      mockBackendClient.createEndpoint.mockResolvedValue({
+        id: 'ep-null',
+        name: 'Null Body Endpoint',
+        method: 'GET',
+        url: '/api/null'
+      } as any);
+
+      const result = await endpointTools.createEndpoint({
+        name: 'Null Body Endpoint',
+        method: 'GET',
+        url: '/api/null',
+        collectionId: 'aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee',
+        body: null
+      });
+
+      expect(result.content[0].text).toContain('✅ Endpoint Berhasil Dibuat');
+    });
+
+    it('harus handle update endpoint dengan body update', async () => {
+      const mockConfig = {
+        project: { id: 'proj-1', name: 'Test Project' },
+        mcpClient: { token: 'token', serverURL: 'https://api.test.com' }
+      };
+
+      mockConfigLoader.detectProjectConfig.mockResolvedValue(mockConfig as any);
+      mockConfigLoader.getMcpToken.mockReturnValue('token');
+      mockConfigLoader.getServerURL.mockReturnValue('https://api.test.com');
+
+      mockBackendClient.updateEndpoint.mockResolvedValue({
+        id: 'ep-1',
+        name: 'Updated with Body',
+        url: '/api/updated',
+        body: { new: 'body' }
+      } as any);
+
+      const result = await endpointTools.updateEndpoint({
+        endpointId: 'aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee',
+        body: { new: 'body' }
+      });
+
+      expect(result.content[0].text).toContain('✅ Endpoint Berhasil Diupdate');
+    });
+
+    it('harus handle update endpoint dengan headers update', async () => {
+      const mockConfig = {
+        project: { id: 'proj-1', name: 'Test Project' },
+        mcpClient: { token: 'token', serverURL: 'https://api.test.com' }
+      };
+
+      mockConfigLoader.detectProjectConfig.mockResolvedValue(mockConfig as any);
+      mockConfigLoader.getMcpToken.mockReturnValue('token');
+      mockConfigLoader.getServerURL.mockReturnValue('https://api.test.com');
+
+      mockBackendClient.updateEndpoint.mockResolvedValue({
+        id: 'ep-1',
+        name: 'Updated with Headers',
+        headers: { 'X-New-Header': 'value' }
+      } as any);
+
+      const result = await endpointTools.updateEndpoint({
+        endpointId: 'aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee',
+        headers: { 'X-New-Header': 'value' }
+      });
+
+      expect(result.content[0].text).toContain('✅ Endpoint Berhasil Diupdate');
+    });
+
+    it('harus handle listEndpoints dengan collection filter', async () => {
+      const mockConfig = {
+        project: { id: 'proj-1', name: 'Test Project' },
+        mcpClient: { token: 'token', serverURL: 'https://api.test.com' }
+      };
+
+      mockConfigLoader.detectProjectConfig.mockResolvedValue(mockConfig as any);
+      mockConfigLoader.getMcpToken.mockReturnValue('token');
+      mockConfigLoader.getServerURL.mockReturnValue('https://api.test.com');
+
+      mockBackendClient.getEndpoints.mockResolvedValue({
+        endpoints: [{
+          id: 'ep-1',
+          name: 'Filtered Endpoint',
+          method: 'GET',
+          url: '/api/filtered'
+        }]
+      } as any);
+
+      const result = await endpointTools.listEndpoints({
+        collectionId: 'aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee'
+      });
+
+      expect(result.content[0].text).toContain('🔌 Endpoint');
+      expect(result.content[0].text).toContain('Filtered Endpoint');
+    });
+
+    it('harus handle handleToolCall untuk update_endpoint', async () => {
+      const mockConfig = {
+        project: { id: 'proj-1', name: 'Test Project' },
+        mcpClient: { token: 'token', serverURL: 'https://api.test.com' }
+      };
+
+      mockConfigLoader.detectProjectConfig.mockResolvedValue(mockConfig as any);
+      mockConfigLoader.getMcpToken.mockReturnValue('token');
+      mockConfigLoader.getServerURL.mockReturnValue('https://api.test.com');
+
+      mockBackendClient.updateEndpoint.mockResolvedValue({
+        id: 'ep-1',
+        name: 'Tool Call Update'
+      } as any);
+
+      const result = await endpointTools.handleToolCall('update_endpoint', {
+        endpointId: 'aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee',
+        name: 'Tool Call Update'
+      });
+
+      expect(result).toBeDefined();
+    });
+  });
 });

@@ -293,4 +293,199 @@ describe('CollectionTools', () => {
         .rejects.toThrow('Unknown collection tool: unknown_tool');
     });
   });
+
+  describe('Additional coverage tests', () => {
+    it('harus handle create collection dengan valid data', async () => {
+      const mockConfig = {
+        project: { id: 'proj-1', name: 'Test Project' },
+        mcpClient: { token: 'token', serverURL: 'https://api.test.com' }
+      };
+
+      mockConfigLoader.detectProjectConfig.mockResolvedValue(mockConfig as any);
+      mockConfigLoader.getMcpToken.mockReturnValue('token');
+      mockConfigLoader.getServerURL.mockReturnValue('https://api.test.com');
+
+      mockBackendClient.createCollection.mockResolvedValue({
+        id: 'col-new',
+        name: 'New Collection',
+        project_id: 'proj-1'
+      } as any);
+
+      const result = await collectionTools.createCollection({
+        name: 'New Collection',
+        projectId: 'proj-1',
+        description: 'Test description'
+      });
+
+      expect(result.content[0].text).toContain('✅ Koleksi Berhasil Dibuat');
+    });
+
+    it('harus handle move collection dengan valid data', async () => {
+      const mockConfig = {
+        project: { id: 'proj-1', name: 'Test Project' },
+        mcpClient: { token: 'token', serverURL: 'https://api.test.com' }
+      };
+
+      mockConfigLoader.detectProjectConfig.mockResolvedValue(mockConfig as any);
+      mockConfigLoader.getMcpToken.mockReturnValue('token');
+      mockConfigLoader.getServerURL.mockReturnValue('https://api.test.com');
+
+      mockBackendClient.moveCollection.mockResolvedValue({
+        success: true
+      } as any);
+
+      const result = await collectionTools.moveCollection({
+        collectionId: 'aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee',
+        newParentId: 'bbbbbbbb-cccc-4ddd-9eee-ffffffffffff'
+      });
+
+      expect(result.content[0].text).toContain('✅ Koleksi Dipindahkan');
+    });
+
+    it('harus handle safety check untuk collection dengan endpoints', async () => {
+      const mockConfig = {
+        project: { id: 'proj-1', name: 'Test Project' },
+        mcpClient: { token: 'token', serverURL: 'https://api.test.com' }
+      };
+
+      mockConfigLoader.detectProjectConfig.mockResolvedValue(mockConfig as any);
+      mockConfigLoader.getMcpToken.mockReturnValue('token');
+      mockConfigLoader.getServerURL.mockReturnValue('https://api.test.com');
+
+      // Mock collection dengan endpoints
+      mockBackendClient.getCollections.mockResolvedValue({
+        collections: [{
+          id: 'aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee',
+          name: 'Collection with endpoints',
+          endpoint_count: 5
+        }]
+      } as any);
+
+      const result = await collectionTools.deleteCollection({
+        collectionId: 'aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee'
+      });
+
+      expect(result.content[0].text).toContain('⚠️ Peringatan Hapus Koleksi');
+      expect(result.content[0].text).toContain('5 endpoint');
+    });
+
+    it('harus handle safety check error', async () => {
+      const mockConfig = {
+        project: { id: 'proj-1', name: 'Test Project' },
+        mcpClient: { token: 'token', serverURL: 'https://api.test.com' }
+      };
+
+      mockConfigLoader.detectProjectConfig.mockResolvedValue(mockConfig as any);
+      mockConfigLoader.getMcpToken.mockReturnValue('token');
+      mockConfigLoader.getServerURL.mockReturnValue('https://api.test.com');
+
+      mockBackendClient.getCollections.mockRejectedValue(
+        new Error('Safety check failed')
+      );
+
+      const result = await collectionTools.deleteCollection({
+        collectionId: 'aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee'
+      });
+
+      expect(result.content[0].text).toContain('✅ Koleksi Berhasil Dihapus');
+    });
+
+    it('harus handle force delete tanpa safety check', async () => {
+      const mockConfig = {
+        project: { id: 'proj-1', name: 'Test Project' },
+        mcpClient: { token: 'token', serverURL: 'https://api.test.com' }
+      };
+
+      mockConfigLoader.detectProjectConfig.mockResolvedValue(mockConfig as any);
+      mockConfigLoader.getMcpToken.mockReturnValue('token');
+      mockConfigLoader.getServerURL.mockReturnValue('https://api.test.com');
+
+      mockBackendClient.deleteCollection.mockResolvedValue({
+        success: true
+      } as any);
+
+      const result = await collectionTools.deleteCollection({
+        collectionId: 'aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee',
+        force: true
+      });
+
+      expect(result.content[0].text).toContain('✅ Koleksi Berhasil Dihapus');
+    });
+
+    it('harus handle collection dengan parent ID', async () => {
+      const mockConfig = {
+        project: { id: 'proj-1', name: 'Test Project' },
+        mcpClient: { token: 'token', serverURL: 'https://api.test.com' }
+      };
+
+      mockConfigLoader.detectProjectConfig.mockResolvedValue(mockConfig as any);
+      mockConfigLoader.getMcpToken.mockReturnValue('token');
+      mockConfigLoader.getServerURL.mockReturnValue('https://api.test.com');
+
+      mockBackendClient.createCollection.mockResolvedValue({
+        id: 'col-child',
+        name: 'Child Collection',
+        project_id: 'proj-1',
+        parent_id: 'col-parent'
+      } as any);
+
+      const result = await collectionTools.createCollection({
+        name: 'Child Collection',
+        projectId: 'proj-1',
+        parentId: 'col-parent',
+        description: 'Nested collection'
+      });
+
+      expect(result.content[0].text).toContain('✅ Koleksi Berhasil Dibuat');
+    });
+
+    it('harus handle getCollections dengan pagination options', async () => {
+      const mockConfig = {
+        project: { id: 'proj-1', name: 'Test Project' },
+        mcpClient: { token: 'token', serverURL: 'https://api.test.com' }
+      };
+
+      mockConfigLoader.detectProjectConfig.mockResolvedValue(mockConfig as any);
+      mockConfigLoader.getMcpToken.mockReturnValue('token');
+      mockConfigLoader.getServerURL.mockReturnValue('https://api.test.com');
+
+      mockBackendClient.getCollections.mockResolvedValue({
+        collections: [{
+          id: 'col-1',
+          name: 'Collection 1',
+          endpoint_count: 5
+        }]
+      } as any);
+
+      const result = await collectionTools.getCollections({
+        projectId: 'proj-1',
+        includeEndpointCount: true,
+        flatten: true
+      });
+
+      expect(result.content[0].text).toContain('📚 Koleksi');
+    });
+
+    it('harus handle handleToolCall untuk move_collection', async () => {
+      const mockConfig = {
+        project: { id: 'proj-1', name: 'Test Project' },
+        mcpClient: { token: 'token', serverURL: 'https://api.test.com' }
+      };
+
+      mockConfigLoader.detectProjectConfig.mockResolvedValue(mockConfig as any);
+      mockConfigLoader.getMcpToken.mockReturnValue('token');
+      mockConfigLoader.getServerURL.mockReturnValue('https://api.test.com');
+
+      mockBackendClient.moveCollection.mockResolvedValue({
+        success: true
+      } as any);
+
+      const result = await collectionTools.handleToolCall('move_collection', {
+        collectionId: 'aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee',
+        newParentId: 'bbbbbbbb-cccc-4ddd-9eee-ffffffffffff'
+      });
+
+      expect(result).toBeDefined();
+    });
+  });
 });

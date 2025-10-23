@@ -635,8 +635,8 @@ Untuk test endpoint:
         const client = await this.getBackendClient();
         const endpoints = await client.getEndpoints(firstCollection.id);
 
-        if (endpoints && Array.isArray(endpoints) && endpoints.length > 0) {
-          const firstEndpoint = endpoints[0];
+        if (endpoints && endpoints.endpoints && Array.isArray(endpoints.endpoints) && endpoints.endpoints.length > 0) {
+          const firstEndpoint = endpoints.endpoints[0];
           const firstEnvironment = projectContext.environments && Array.isArray(projectContext.environments)
             ? (projectContext.environments.find((env: any) => env.is_default) || projectContext.environments[0])
             : null;
