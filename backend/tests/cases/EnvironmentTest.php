@@ -62,7 +62,7 @@ class EnvironmentTest extends BaseTest {
         return false;
     }
 
-    protected function testListDefaultEnvironment() {
+    protected function testZListDefaultEnvironment() {
         if (!$this->projectId) {
             return $this->skip("List Environments - No project ID available");
         }
@@ -168,7 +168,9 @@ class EnvironmentTest extends BaseTest {
         }
         
         return $success;
-    }        /**
+    }
+
+    /**
      * Test get environment details
      */
     protected function testZZZGetEnvironmentDetails() {
@@ -284,7 +286,7 @@ class EnvironmentTest extends BaseTest {
     /**
      * Test environment permissions (access other user's environment)
      */
-    protected function testEnvironmentPermission() {
+    protected function testZZZYEnvironmentPermission() {
         if (!$this->envId) {
             return $this->skip("Environment Permission - No environment ID available");
         }

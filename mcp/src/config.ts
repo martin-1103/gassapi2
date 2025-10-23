@@ -1,6 +1,6 @@
 import { promises as fs } from 'fs';
 import { ConfigLoader } from './discovery/ConfigLoader';
-import { CacheConfig, McpServerConfig, ExecutionConfig } from './types/config.types';
+import { CacheConfig, McpServerConfig, ExecutionConfig, GassapiConfig } from './types/config.types';
 
 /**
  * GASSAPI MCP Client Configuration
@@ -18,7 +18,7 @@ const DEFAULT_CONFIG = {
 export class Config {
   private static instance: Config;
   private configLoader: ConfigLoader;
-  private _projectConfig: any = null;
+  private _projectConfig: GassapiConfig | null = null;
 
   private constructor() {
     this.configLoader = new ConfigLoader();
@@ -202,21 +202,21 @@ export class Config {
     // Check required fields
     const config = this._projectConfig;
 
-    if (!config.project?.id) {
+    if (!config?.project?.id) {
       errors.push('Missing project ID');
     }
 
-    if (!config.project?.name) {
+    if (!config?.project?.name) {
       errors.push('Missing project name');
     }
 
-    if (!config.mcpClient?.token) {
+    if (!config?.mcpClient?.token) {
       errors.push('Missing MCP token');
     } else if (config.mcpClient.token.length < 10) {
       warnings.push('MCP token seems too short');
     }
 
-    if (!config.mcpClient?.serverURL) {
+    if (!config?.mcpClient?.serverURL) {
       errors.push('Missing server URL');
     } else {
       try {

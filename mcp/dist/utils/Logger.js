@@ -1,63 +1,22 @@
-"use strict";
 /**
  * Logger Utility for MCP Client
  *
  * A centralized logging system that replaces console.log statements
  * with proper logging infrastructure for production readiness.
  */
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || (function () {
-    var ownKeys = function(o) {
-        ownKeys = Object.getOwnPropertyNames || function (o) {
-            var ar = [];
-            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
-            return ar;
-        };
-        return ownKeys(o);
-    };
-    return function (mod) {
-        if (mod && mod.__esModule) return mod;
-        var result = {};
-        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
-        __setModuleDefault(result, mod);
-        return result;
-    };
-})();
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.logger = exports.ChildLogger = exports.Logger = exports.LogLevel = void 0;
-exports.configureLoggerFromEnv = configureLoggerFromEnv;
-exports.initializeLogger = initializeLogger;
-const fs = __importStar(require("fs"));
-const path = __importStar(require("path"));
-var LogLevel;
+import * as fs from 'fs';
+import * as path from 'path';
+export var LogLevel;
 (function (LogLevel) {
     LogLevel[LogLevel["DEBUG"] = 0] = "DEBUG";
     LogLevel[LogLevel["INFO"] = 1] = "INFO";
     LogLevel[LogLevel["WARN"] = 2] = "WARN";
     LogLevel[LogLevel["ERROR"] = 3] = "ERROR";
-})(LogLevel || (exports.LogLevel = LogLevel = {}));
+})(LogLevel || (LogLevel = {}));
 /**
  * Centralized logger class with multiple output formats and log levels
  */
-class Logger {
-    static instance;
-    config;
-    logFile;
+export class Logger {
     constructor(config) {
         this.config = {
             level: LogLevel.INFO,
@@ -199,7 +158,6 @@ class Logger {
      * CLI-specific logging (user-friendly output)
      */
     cli(message, type = 'info') {
-        const timestamp = new Date().toISOString().split('T')[1].substring(0, 8);
         switch (type) {
             case 'success':
                 console.log(`✅ ${message}`);
@@ -260,13 +218,10 @@ class Logger {
         return new ChildLogger(this, moduleName);
     }
 }
-exports.Logger = Logger;
 /**
  * Child logger with predefined module name
  */
-class ChildLogger {
-    parent;
-    moduleName;
+export class ChildLogger {
     constructor(parent, moduleName) {
         this.parent = parent;
         this.moduleName = moduleName;
@@ -287,33 +242,32 @@ class ChildLogger {
         this.parent.cli(message, type);
     }
 }
-exports.ChildLogger = ChildLogger;
 /**
  * Default logger instance
  */
-exports.logger = Logger.getInstance();
+export const logger = Logger.getInstance();
 /**
  * Configure logger from environment variables
  */
-function configureLoggerFromEnv() {
+export function configureLoggerFromEnv() {
     const logLevel = process.env.GASSAPI_LOG_LEVEL || 'INFO';
     const enableFileLogging = process.env.GASSAPI_LOG_FILE === 'true';
     const logDirectory = process.env.GASSAPI_LOG_DIR;
     const enableStructuredOutput = process.env.GASSAPI_LOG_STRUCTURED === 'true';
     const enableConsoleLogging = process.env.GASSAPI_LOG_CONSOLE !== 'false';
-    exports.logger.updateConfig({
+    logger.updateConfig({
         level: LogLevel.INFO, // Will be set by setLevelFromString
         enableFileLogging,
         logDirectory,
         enableStructuredOutput,
         enableConsoleLogging,
     });
-    exports.logger.setLevelFromString(logLevel);
+    logger.setLevelFromString(logLevel);
 }
 /**
  * Initialize logger with default configuration for MCP client
  */
-function initializeLogger() {
+export function initializeLogger() {
     // Configure from environment if available
     if (process.env.GASSAPI_LOG_LEVEL || process.env.GASSAPI_LOG_FILE) {
         configureLoggerFromEnv();
@@ -321,14 +275,14 @@ function initializeLogger() {
     }
     // Default configuration for development
     const isDevelopment = process.env.NODE_ENV !== 'production';
-    exports.logger.updateConfig({
+    logger.updateConfig({
         level: isDevelopment ? LogLevel.DEBUG : LogLevel.INFO,
         enableFileLogging: !isDevelopment,
         enableConsoleLogging: true,
         enableStructuredOutput: false,
     });
     if (isDevelopment) {
-        exports.logger.debug('Logger initialized in development mode', { isDevelopment }, 'Logger');
+        logger.debug('Logger initialized in development mode', { isDevelopment }, 'Logger');
     }
 }
 //# sourceMappingURL=Logger.js.map

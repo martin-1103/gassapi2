@@ -256,17 +256,16 @@ class AuthService {
             ResponseHelper::error('Current password is incorrect', 400);
         }
 
-        // Remove same password validation to match test expectations
-        // Allow changing password to same password (no-op change)
-        /*
+        // Check if new password is same as current password
         if (password_verify($newPassword, $user['password_hash'])) {
-            ResponseHelper::error('New password must be different from current password', 400);
+            // Password is same, no need to update or invalidate tokens
+            return [
+                'message' => 'Password changed successfully',
+                'requires_reauth' => false,
+                'password_changed' => false
+            ];
         }
-        */
 
-        // Remove password strength validation for change password to match test expectations
-        // Allow any password for change password (strength validation only applies to registration)
-        /*
         // Validate new password strength (basic validation)
         if (strlen($newPassword) < 8) {
             ResponseHelper::error('New password must be at least 8 characters', 400);
@@ -280,7 +279,6 @@ class AuthService {
         if (!$hasUpper || !$hasLower || !$hasNumber) {
             ResponseHelper::error('New password must contain uppercase, lowercase, and numbers', 400);
         }
-        */
 
         // Update password first
         $this->userRepository->updatePassword($userId, $newPassword);
@@ -298,6 +296,7 @@ class AuthService {
         return [
             'message' => 'Password changed successfully',
             'requires_reauth' => true,
+            'password_changed' => true,
             'old_token_version' => $currentTokenVersion,
             'new_token_version' => $currentTokenVersion + 1
         ];

@@ -1,6 +1,5 @@
-"use strict";
 /**
  * API Response Type Definitions
  */
-Object.defineProperty(exports, "__esModule", { value: true });
+export {};
 //# sourceMappingURL=api.types.js.map

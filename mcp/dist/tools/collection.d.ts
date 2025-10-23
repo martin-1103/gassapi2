@@ -74,7 +74,7 @@ export declare class CollectionTools {
     /**
      * Handle tool calls
      */
-    handleToolCall(toolName: string, args: any): Promise<any>;
+    handleToolCall(toolName: string, args: Record<string, unknown>): Promise<unknown>;
 }
 export declare const collectionTools: CollectionTools;
 export declare const COLLECTION_TOOLS: McpTool[];

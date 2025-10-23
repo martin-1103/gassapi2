@@ -1,8 +1,5 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.ENVIRONMENT_TOOLS = exports.environmentTools = exports.EnvironmentTools = void 0;
-const ConfigLoader_1 = require("../discovery/ConfigLoader");
-const BackendClient_1 = require("../client/BackendClient");
+import { ConfigLoader } from '../discovery/ConfigLoader';
+import { BackendClient } from '../client/BackendClient';
 /**
  * Environment Management MCP Tools
  * Handles environment variables and configuration operations
@@ -109,7 +106,16 @@ const import_environment = {
             variables: {
                 type: 'array',
                 description: 'Array of variables to import',
-                enum: ['dev', 'prod', 'staging']
+                items: {
+                    type: 'object',
+                    properties: {
+                        key: { type: 'string', description: 'Variable key' },
+                        value: { type: 'string', description: 'Variable value' },
+                        enabled: { type: 'boolean', description: 'Whether variable is enabled', default: true },
+                        description: { type: 'string', description: 'Variable description' }
+                    },
+                    required: ['key', 'value']
+                }
             },
             overwrite: {
                 type: 'boolean',
@@ -120,11 +126,10 @@ const import_environment = {
         required: ['environmentId', 'variables']
     }
 };
-class EnvironmentTools {
-    configLoader;
-    backendClient = null;
+export class EnvironmentTools {
     constructor() {
-        this.configLoader = new ConfigLoader_1.ConfigLoader();
+        this.backendClient = null;
+        this.configLoader = new ConfigLoader();
     }
     async getBackendClient() {
         if (this.backendClient) {
@@ -134,7 +139,7 @@ class EnvironmentTools {
         if (!config) {
             throw new Error('No GASSAPI configuration found. Please create gassapi.json in your project root.');
         }
-        this.backendClient = new BackendClient_1.BackendClient(this.configLoader.getServerURL(config), this.configLoader.getMcpToken(config));
+        this.backendClient = new BackendClient(this.configLoader.getServerURL(config), this.configLoader.getMcpToken(config));
         return this.backendClient;
     }
     /**
@@ -460,10 +465,9 @@ Please check:
         }
     }
 }
-exports.EnvironmentTools = EnvironmentTools;
 // Export for MCP server registration
-exports.environmentTools = new EnvironmentTools();
-exports.ENVIRONMENT_TOOLS = [
+export const environmentTools = new EnvironmentTools();
+export const ENVIRONMENT_TOOLS = [
     list_environments,
     get_environment_variables,
     set_environment_variable,

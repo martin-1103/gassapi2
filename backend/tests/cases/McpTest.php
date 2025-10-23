@@ -55,14 +55,14 @@ class McpTest extends BaseTest {
         return false;
     }
 
-    protected function testGenerateConfig() {
+    protected function testZGenerateConfig() {
         if (!$this->projectId) {
             return $this->skip("Generate MCP Config - No project ID available");
         }
         
         $this->printHeader('Generate MCP Config');
         $res = $this->testHelper->post('mcp_generate_config', null, [], $this->projectId);
-        $ok = $this->testHelper->printResult('Generate MCP Config', $res);
+        $ok = $this->testHelper->printResult('Generate MCP Config', $res, 201);
         
         if (($res['status'] === 201 || $res['status'] === 200) && isset($res['data']['token'])) {
             $this->mcpToken = $res['data']['token'];
@@ -76,30 +76,33 @@ class McpTest extends BaseTest {
         return $res['status'] === 404 || $res['status'] === 201 || $res['status'] === 200;
     }
 
-    protected function testValidateToken() {
+    protected function testZZValidateToken() {
         if (!$this->mcpToken) {
             return $this->skip("Validate MCP Token - No MCP token available");
         }
-        
+
         $this->printHeader('Validate MCP Token');
-        // Use direct request to include custom Authorization header
-        $helper = new TestHelper();
-        $result = $helper->get('mcp_validate', [ 'Authorization: Bearer ' . $this->mcpToken ]);
+
+        // Clear JWT auth token to avoid conflict with MCP token
+        $this->testHelper->clearAuthToken();
+
+        // Use the existing test helper with Authorization header
+        $result = $this->testHelper->get('mcp_validate', [ 'Authorization: Bearer ' . $this->mcpToken ]);
         $success = $this->testHelper->printResult('Validate MCP Token', $result, 200);
-        
+
         // Accept 404 if endpoint not implemented
         if ($result['status'] === 404) {
             echo "[INFO] MCP validate endpoint not found\n";
             return true;
         }
-        
+
         return $success || $result['status'] === 404;
     }
 
     /**
      * Test generate config with invalid project ID
      */
-    protected function testGenerateConfigInvalidProject() {
+    protected function testZZGenerateConfigInvalidProject() {
         $this->printHeader('Generate MCP Config Invalid Project');
 
         // Test with non-existent project ID
@@ -121,7 +124,7 @@ class McpTest extends BaseTest {
     /**
      * Test generate config without authentication
      */
-    protected function testGenerateConfigUnauthorized() {
+    protected function testZZGenerateConfigUnauthorized() {
         $this->printHeader('Generate MCP Config Without Authentication');
 
         // Clear token for unauthorized test
@@ -242,7 +245,7 @@ class McpTest extends BaseTest {
     /**
      * Test MCP token permissions (access other project's token)
      */
-    protected function testMcpTokenPermission() {
+    protected function testZZMcpTokenPermission() {
         if (!$this->mcpToken) {
             return $this->skip("MCP Token Permission - No MCP token available");
         }
@@ -275,7 +278,7 @@ class McpTest extends BaseTest {
     /**
      * Test multiple MCP config generations
      */
-    protected function testMultipleConfigGenerations() {
+    protected function testZZMultipleConfigGenerations() {
         if (!$this->projectId) {
             return $this->skip("Multiple MCP Config - No project ID available");
         }
@@ -313,7 +316,7 @@ class McpTest extends BaseTest {
     /**
      * Test MCP config generation with project member vs owner
      */
-    protected function testMcpConfigMemberPermission() {
+    protected function testZZMcpConfigMemberPermission() {
         if (!$this->projectId) {
             return $this->skip("MCP Config Member Permission - No project ID available");
         }

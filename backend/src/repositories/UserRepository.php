@@ -103,8 +103,8 @@ class UserRepository extends BaseRepository {
         $hashedPassword = password_hash($newPassword, PASSWORD_BCRYPT, ['cost' => 12]);
 
         return parent::update($id, [
-            'password_hash' => $hashedPassword,
-            'token_version' => $this->getTokenVersion($id) + 1 // Invalidate all tokens
+            'password_hash' => $hashedPassword
+            // Token version increment handled in service layer
         ]);
     }
 

@@ -1,8 +1,5 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.config = exports.Config = void 0;
-const fs_1 = require("fs");
-const ConfigLoader_1 = require("./discovery/ConfigLoader");
+import { promises as fs } from 'fs';
+import { ConfigLoader } from './discovery/ConfigLoader';
 /**
  * GASSAPI MCP Client Configuration
  * Central configuration management for the MCP client
@@ -14,12 +11,10 @@ const DEFAULT_CONFIG = {
     token: 'default-token',
     environmentActive: 'development'
 };
-class Config {
-    static instance;
-    configLoader;
-    _projectConfig = null;
+export class Config {
     constructor() {
-        this.configLoader = new ConfigLoader_1.ConfigLoader();
+        this._projectConfig = null;
+        this.configLoader = new ConfigLoader();
     }
     /**
      * Get singleton instance
@@ -155,7 +150,7 @@ class Config {
     async createSampleConfig(projectName, projectId) {
         try {
             const projectDir = process.cwd();
-            await ConfigLoader_1.ConfigLoader.createSampleConfig(projectDir, projectId, projectName);
+            await ConfigLoader.createSampleConfig(projectDir, projectId, projectName);
             console.log(`📝 Sample configuration created: ${projectDir}/gassapi.json`);
             console.log('Please edit the file with your actual project details and MCP token.');
         }
@@ -270,7 +265,7 @@ class Config {
             // Save to file
             const projectDir = process.cwd();
             const configPath = `${projectDir}/gassapi.json`;
-            await fs_1.promises.writeFile(configPath, JSON.stringify(config, null, 2));
+            await fs.writeFile(configPath, JSON.stringify(config, null, 2));
             // Reload
             this._projectConfig = null;
             await this.loadProjectConfig();
@@ -282,7 +277,6 @@ class Config {
         }
     }
 }
-exports.Config = Config;
 // Export singleton getter
-exports.config = Config.getInstance();
+export const config = Config.getInstance();
 //# sourceMappingURL=config.js.map

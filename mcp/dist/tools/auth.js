@@ -1,8 +1,5 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.AUTH_TOOLS = exports.authTools = exports.AuthTools = void 0;
-const ConfigLoader_1 = require("../discovery/ConfigLoader");
-const BackendClient_1 = require("../client/BackendClient");
+import { ConfigLoader } from '../discovery/ConfigLoader';
+import { BackendClient } from '../client/BackendClient';
 /**
  * Authentication MCP Tools
  * Handles token validation and authentication operations
@@ -21,11 +18,10 @@ const validate_mcp_token = {
         required: []
     }
 };
-class AuthTools {
-    configLoader;
-    backendClient = null;
+export class AuthTools {
     constructor() {
-        this.configLoader = new ConfigLoader_1.ConfigLoader();
+        this.backendClient = null;
+        this.configLoader = new ConfigLoader();
     }
     async getBackendClient(token) {
         if (this.backendClient) {
@@ -53,7 +49,7 @@ class AuthTools {
             throw new Error('No GASSAPI configuration found');
         }
         const serverURL = this.configLoader.getServerURL(config);
-        this.backendClient = new BackendClient_1.BackendClient(serverURL, mcpToken);
+        this.backendClient = new BackendClient(serverURL, mcpToken);
         return this.backendClient;
     }
     /**
@@ -317,8 +313,7 @@ Authentication refresh failed!`
         }
     }
 }
-exports.AuthTools = AuthTools;
 // Export for MCP server registration
-exports.authTools = new AuthTools();
-exports.AUTH_TOOLS = [validate_mcp_token];
+export const authTools = new AuthTools();
+export const AUTH_TOOLS = [validate_mcp_token];
 //# sourceMappingURL=auth.js.map

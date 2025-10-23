@@ -138,6 +138,13 @@ class TestHelper {
     }
 
     /**
+     * Get current auth token
+     */
+    public function getAuthToken() {
+        return $this->authToken;
+    }
+
+    /**
      * Get last response
      */
     public function getLastResponse() {

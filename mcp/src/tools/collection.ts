@@ -1,4 +1,4 @@
-import { McpTool } from '../types/mcp.types';
+import { McpTool, GassapiCollection, GassapiEndpoint, CollectionTreeNode, McpToolHandler } from '../types/mcp.types';
 import { ConfigLoader } from '../discovery/ConfigLoader';
 import { BackendClient } from '../client/BackendClient';
 
@@ -191,7 +191,7 @@ Use collectionId for specific operations. Root collections have no parent.`
       }
 
       // Flattened list
-      const collectionList = collections.map((col: any) =>
+      const collectionList = collections.map((col: GassapiCollection) =>
         `📁 ${col.name} (ID: ${col.id})${col.parent_id ? ` (Parent: ${col.parent_id})` : ''}${includeEndpointCount && col.endpoint_count ? ` [${col.endpoint_count} endpoints]` : ''}`
       ).join('\n');
 
@@ -447,8 +447,8 @@ Please check:
   /**
    * Build collection hierarchy tree
    */
-  private buildCollectionTree(collections: any[]): any[] {
-    const tree: any[] = [];
+  private buildCollectionTree(collections: GassapiCollection[]): CollectionTreeNode[] {
+    const tree: CollectionTreeNode[] = [];
     const map = new Map();
 
     // Create map of all collections
@@ -471,7 +471,7 @@ Please check:
   /**
    * Format collection tree as text
    */
-  private formatCollectionTree(tree: any[], includeEndpointCount: boolean, indent = 0): string {
+  private formatCollectionTree(tree: CollectionTreeNode[], includeEndpointCount: boolean, indent = 0): string {
     const indentStr = '  '.repeat(indent);
     let result = '';
 
@@ -505,7 +505,7 @@ Please check:
   /**
    * Handle tool calls
    */
-  async handleToolCall(toolName: string, args: any): Promise<any> {
+  async handleToolCall(toolName: string, args: Record<string, unknown>): Promise<unknown> {
     switch (toolName) {
       case 'get_collections':
         return this.getCollections(args);

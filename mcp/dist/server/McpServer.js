@@ -1,23 +1,19 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.McpServer = void 0;
-const stdio_1 = require("@modelcontextprotocol/sdk/server/stdio");
-const index_js_1 = require("@modelcontextprotocol/sdk/server/index.js");
-const auth_1 = require("../tools/auth");
-const environment_1 = require("../tools/environment");
-const collection_1 = require("../tools/collection");
-const endpoint_1 = require("../tools/endpoint");
-const testing_1 = require("../tools/testing");
+import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio';
+import { Server } from '@modelcontextprotocol/sdk/server/index.js';
+import { authTools, AUTH_TOOLS } from '../tools/auth';
+import { environmentTools, ENVIRONMENT_TOOLS } from '../tools/environment';
+import { collectionTools, COLLECTION_TOOLS } from '../tools/collection';
+import { endpointTools, ENDPOINT_TOOLS } from '../tools/endpoint';
+import { testingTools, TESTING_TOOLS } from '../tools/testing';
 /**
  * GASSAPI MCP Server
  * Implements Model Context Protocol for Claude Desktop integration
  */
-class McpServer {
-    server;
-    tools = new Map();
-    config = null;
+export class McpServer {
     constructor() {
-        this.server = new index_js_1.Server({
+        this.tools = new Map();
+        this.config = null;
+        this.server = new Server({
             name: 'GASSAPI MCP Client',
             version: '1.0.0'
         }, {
@@ -32,23 +28,23 @@ class McpServer {
      */
     registerAllTools() {
         // Register authentication tools
-        auth_1.AUTH_TOOLS.forEach(tool => {
+        AUTH_TOOLS.forEach(tool => {
             this.tools.set(tool.name, tool);
         });
         // Register environment tools
-        environment_1.ENVIRONMENT_TOOLS.forEach(tool => {
+        ENVIRONMENT_TOOLS.forEach(tool => {
             this.tools.set(tool.name, tool);
         });
         // Register collection tools
-        collection_1.COLLECTION_TOOLS.forEach(tool => {
+        COLLECTION_TOOLS.forEach(tool => {
             this.tools.set(tool.name, tool);
         });
         // Register endpoint tools
-        endpoint_1.ENDPOINT_TOOLS.forEach(tool => {
+        ENDPOINT_TOOLS.forEach(tool => {
             this.tools.set(tool.name, tool);
         });
         // Register testing tools
-        testing_1.TESTING_TOOLS.forEach(tool => {
+        TESTING_TOOLS.forEach(tool => {
             this.tools.set(tool.name, tool);
         });
         console.log(`Registered ${this.tools.size} MCP tools for GASSAPI operations`);
@@ -61,7 +57,7 @@ class McpServer {
             // Setup request handlers - simplified version
             // Note: MCP server implementation needs proper handler setup
             // Create stdio transport
-            const transport = new stdio_1.StdioServerTransport();
+            const transport = new StdioServerTransport();
             console.log('🤖 GASSAPI MCP Server starting...');
             console.log('📡 Server capabilities: tools available');
             console.log(`🔧 ${this.tools.size} tools registered`);
@@ -136,20 +132,20 @@ class McpServer {
             const tool = this.tools.get(name);
             // Route to appropriate tool handler
             let result;
-            if (auth_1.AUTH_TOOLS.some(t => t.name === name)) {
-                result = await auth_1.authTools.handleToolCall(name, args);
+            if (AUTH_TOOLS.some(t => t.name === name)) {
+                result = await authTools.handleToolCall(name, args);
             }
-            else if (environment_1.ENVIRONMENT_TOOLS.some(t => t.name === name)) {
-                result = await environment_1.environmentTools.handleToolCall(name, args);
+            else if (ENVIRONMENT_TOOLS.some(t => t.name === name)) {
+                result = await environmentTools.handleToolCall(name, args);
             }
-            else if (collection_1.COLLECTION_TOOLS.some(t => t.name === name)) {
-                result = await collection_1.collectionTools.handleToolCall(name, args);
+            else if (COLLECTION_TOOLS.some(t => t.name === name)) {
+                result = await collectionTools.handleToolCall(name, args);
             }
-            else if (endpoint_1.ENDPOINT_TOOLS.some(t => t.name === name)) {
-                result = await endpoint_1.endpointTools.handleToolCall(name, args);
+            else if (ENDPOINT_TOOLS.some(t => t.name === name)) {
+                result = await endpointTools.handleToolCall(name, args);
             }
-            else if (testing_1.TESTING_TOOLS.some(t => t.name === name)) {
-                result = await testing_1.testingTools.handleToolCall(name, args);
+            else if (TESTING_TOOLS.some(t => t.name === name)) {
+                result = await testingTools.handleToolCall(name, args);
             }
             else {
                 throw new Error(`No handler found for tool: ${name}`);
@@ -197,11 +193,11 @@ class McpServer {
      */
     getToolsByCategory() {
         return {
-            authentication: auth_1.AUTH_TOOLS,
-            environment: environment_1.ENVIRONMENT_TOOLS,
-            collection: collection_1.COLLECTION_TOOLS,
-            endpoint: endpoint_1.ENDPOINT_TOOLS,
-            testing: testing_1.TESTING_TOOLS
+            authentication: AUTH_TOOLS,
+            environment: ENVIRONMENT_TOOLS,
+            collection: COLLECTION_TOOLS,
+            endpoint: ENDPOINT_TOOLS,
+            testing: TESTING_TOOLS
         };
     }
     /**
@@ -280,5 +276,4 @@ class McpServer {
         };
     }
 }
-exports.McpServer = McpServer;
 //# sourceMappingURL=McpServer.js.map

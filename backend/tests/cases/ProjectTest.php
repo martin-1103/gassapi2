@@ -194,6 +194,9 @@ class ProjectTest extends BaseTest {
     protected function testProjectUnauthorized() {
         $this->printHeader('Project Operations Without Authentication');
 
+        // Store current token for restoration
+        $currentToken = $this->testHelper->getAuthToken();
+
         // Clear token for unauthorized test
         $this->testHelper->clearAuthToken();
 
@@ -213,8 +216,10 @@ class ProjectTest extends BaseTest {
             $results[] = $this->testHelper->printResult('Project Detail Without Auth', $res3, 401);
         }
 
-        // Restore token for other tests if available
-        // Note: We don't restore token here since it will be set up again in next test
+        // Restore token for other tests if it was available
+        if ($currentToken) {
+            $this->testHelper->setAuthToken($currentToken);
+        }
 
         return !in_array(false, $results);
     }

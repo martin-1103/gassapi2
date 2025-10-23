@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "AI-powered API testing with Claude Desktop integration",
   "main": "dist/index.js",
+  "type": "module",
   "bin": {
     "gassapi-mcp": "bin/gassapi-mcp"
   },
@@ -87,29 +88,6 @@
     ],
     "preset": "ts-jest"
   },
-  "eslintConfig": {
-    "extends": [
-      "@typescript-eslint/recommended"
-    ],
-    "parser": "@typescript-eslint/parser",
-    "parserOptions": {
-      "ecmaVersion": 2020,
-      "sourceType": "module"
-    },
-    "rules": {
-      "no-console": "warn",
-      "prefer-const": "error",
-      "@typescript-eslint/no-explicit-any": "warn",
-      "@typescript-eslint/no-unused-vars": "error"
-    },
-    "ignorePatterns": [
-      "dist/",
-      "node_modules/",
-      "coverage/"
-    ]
-  },
-  "publishConfig": {
+    "publishConfig": {
     "access": "public",
-    "registry": "https://registry.npmjs.org/"
-  }
-}
+    "registry": "https://registry.

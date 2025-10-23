@@ -1,46 +1,7 @@
-"use strict";
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || (function () {
-    var ownKeys = function(o) {
-        ownKeys = Object.getOwnPropertyNames || function (o) {
-            var ar = [];
-            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
-            return ar;
-        };
-        return ownKeys(o);
-    };
-    return function (mod) {
-        if (mod && mod.__esModule) return mod;
-        var result = {};
-        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
-        __setModuleDefault(result, mod);
-        return result;
-    };
-})();
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.SimpleMcpClient = void 0;
 // Simple MCP client for testing
-const node_fetch_1 = __importDefault(require("node-fetch"));
-const fs = __importStar(require("fs"));
-const path = __importStar(require("path"));
+import fetch from 'node-fetch';
+import * as fs from 'fs';
+import * as path from 'path';
 /**
  * Type guards for configuration validation
  */
@@ -95,9 +56,9 @@ function isValidConfig(config) {
 /**
  * Simple MCP client for testing
  */
-class SimpleMcpClient {
-    config = null;
+export class SimpleMcpClient {
     constructor() {
+        this.config = null;
         this.loadConfig();
     }
     /**
@@ -191,7 +152,7 @@ class SimpleMcpClient {
                 console.log('🌐 Testing HTTP request ke:', this.config.mcpClient.serverURL);
                 const startTime = Date.now();
                 // Gunakan node-fetch untuk HTTP client yang lebih baik
-                const response = await (0, node_fetch_1.default)(this.config.mcpClient.serverURL + '/health', {
+                const response = await fetch(this.config.mcpClient.serverURL + '/health', {
                     method: 'GET',
                     headers: {
                         'User-Agent': 'gassapi-mcp-client/1.0.0',
@@ -330,7 +291,6 @@ class SimpleMcpClient {
         };
     }
 }
-exports.SimpleMcpClient = SimpleMcpClient;
 // Export untuk simple testing tanpa MCP server penuh
 // SimpleMcpClient sudah diexport di deklarasi class
 //# sourceMappingURL=simple.js.map

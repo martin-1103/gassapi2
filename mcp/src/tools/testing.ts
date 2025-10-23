@@ -1,4 +1,4 @@
-import { McpTool } from '../types/mcp.types';
+import { McpTool, GassapiEndpoint, GassapiEnvironment, GassapiTestExecution, GassapiEnvironmentVariable, McpToolHandler } from '../types/mcp.types';
 import { ConfigLoader } from '../discovery/ConfigLoader';
 import { BackendClient } from '../client/BackendClient';
 import { logger } from '../utils/Logger';
@@ -109,7 +109,7 @@ export class TestingTools {
   /**
    * Safely transform environment variables array to Record
    */
-  private transformEnvironmentVariables(environmentVariables: any[]): Record<string, string> {
+  private transformEnvironmentVariables(environmentVariables: GassapiEnvironmentVariable[]): Record<string, string> {
     try {
       if (!Array.isArray(environmentVariables)) {
         throw new Error('Environment variables harus berupa array');
@@ -341,7 +341,7 @@ Coba lagi atau hubungi admin kalau error terus berlanjut!`
   /**
    * Format test result for display
    */
-  private formatTestResult(testResult: any, endpointDetails: any, variables: Record<string, string>): string {
+  private formatTestResult(testResult: GassapiTestExecution, endpointDetails: GassapiEndpoint, variables: Record<string, string>): string {
     try {
       // Validate test result structure
       if (!testResult || typeof testResult !== 'object') {
@@ -532,7 +532,7 @@ Untuk test endpoint:
         if (firstCollection && firstCollection.endpoints && Array.isArray(firstCollection.endpoints) && firstCollection.endpoints.length > 0) {
           const firstEndpoint = firstCollection.endpoints[0];
           const firstEnvironment = projectContext.environments && Array.isArray(projectContext.environments)
-            ? projectContext.environments.find((env: any) => env.is_default) || projectContext.environments[0]
+            ? projectContext.environments.find((env: GassapiEnvironment) => env.is_default) || projectContext.environments[0]
             : null;
 
           if (firstEnvironment && firstEndpoint) {
@@ -811,7 +811,7 @@ Batch test failed! Coba lagi ya!`
   /**
    * Handle tool calls
    */
-  async handleToolCall(toolName: string, args: any): Promise<any> {
+  async handleToolCall(toolName: string, args: Record<string, unknown>): Promise<unknown> {
     try {
       // Validate tool name
       if (!toolName || typeof toolName !== 'string') {

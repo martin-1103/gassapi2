@@ -25,7 +25,7 @@ export declare class EndpointTools {
         method: string;
         url: string;
         headers?: Record<string, string>;
-        body?: any;
+        body?: Record<string, unknown> | unknown[] | string | null;
         collectionId: string;
         description?: string;
     }): Promise<{
@@ -44,7 +44,7 @@ export declare class EndpointTools {
         method?: string;
         url?: string;
         headers?: Record<string, string>;
-        body?: any;
+        body?: Record<string, unknown> | unknown[] | string | null;
         description?: string;
     }): Promise<{
         content: Array<{
@@ -86,7 +86,7 @@ export declare class EndpointTools {
     /**
      * Handle tool calls
      */
-    handleToolCall(toolName: string, args: any): Promise<any>;
+    handleToolCall(toolName: string, args: Record<string, unknown>): Promise<unknown>;
 }
 export declare const endpointTools: EndpointTools;
 export declare const ENDPOINT_TOOLS: McpTool[];

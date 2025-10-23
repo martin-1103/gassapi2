@@ -63,7 +63,9 @@ class TestConfig {
         // Collections API
         'collection_create' => '?act=collection_create&id=',
         'collection_list' => '?act=collection_list&id=',
-        'collection_get' => '?act=collection_get&id=',
+        'collections_list' => '?act=collections_list&id=',
+        'collection_get' => '?act=collection_detail&id=',
+        'collection_detail' => '?act=collection_detail&id=',
         'collection_update' => '?act=collection_update&id=',
         'collection_delete' => '?act=collection_delete&id=',
 
@@ -142,7 +144,7 @@ class TestConfig {
             }
 
             // Collection endpoints
-            if (in_array($endpoint, ['collection_create', 'collection_list', 'collection_get', 'collection_update', 'collection_delete'])) {
+            if (in_array($endpoint, ['collection_create', 'collection_list', 'collections_list', 'collection_get', 'collection_detail', 'collection_update', 'collection_delete'])) {
                 $url .= $id;
             }
 

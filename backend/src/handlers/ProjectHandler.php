@@ -119,7 +119,14 @@ class ProjectHandler {
 
         $input = ValidationHelper::getJsonInput();
         $data = [];
-        if (isset($input['name'])) { $data['name'] = ValidationHelper::sanitize($input['name']); }
+        if (isset($input['name'])) {
+            $name = ValidationHelper::sanitize($input['name']);
+            // Validate that name is not empty after sanitization
+            if (empty(trim($name))) {
+                ResponseHelper::error('Project name cannot be empty', 400);
+            }
+            $data['name'] = $name;
+        }
         if (isset($input['description'])) { $data['description'] = ValidationHelper::sanitize($input['description']); }
         if (isset($input['is_public'])) { $data['is_public'] = (int)!!$input['is_public']; }
 
@@ -155,7 +162,7 @@ class ProjectHandler {
 
         try {
             $this->projects->delete($id);
-            ResponseHelper::success(['id' => $id], 'Project deleted');
+            ResponseHelper::success(['id' => $id], 'Project deleted successfully');
         } catch (\Exception $e) {
             error_log('Project delete error: ' . $e->getMessage());
             ResponseHelper::error('Failed to delete project', 500);

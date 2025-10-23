@@ -103,7 +103,7 @@ export interface McpServerInfo {
 }
 export interface McpToolCallRequest {
     name: string;
-    arguments?: Record<string, any>;
+    arguments?: Record<string, unknown>;
 }
 export interface McpToolResponse {
     content: McpContent[];
@@ -161,10 +161,13 @@ export interface GassapiEnvironment {
 }
 export interface GassapiCollection {
     id: string;
-    project_id: string;
+    project_id?: string;
     parent_id?: string;
     name: string;
     description?: string;
+    endpoint_count?: number;
+    endpoints?: GassapiEndpoint[];
+    children?: string[];
     created_at: string;
     updated_at: string;
 }
@@ -188,6 +191,11 @@ export interface GassapiEndpoint {
     body?: Record<string, unknown> | unknown[] | string | null;
     /** Optional description of endpoint purpose */
     description?: string;
+    /** Collection reference (for API responses) */
+    collection?: {
+        id: string;
+        name: string;
+    };
     /** ISO timestamp when endpoint was created */
     created_at: string;
     /** ISO timestamp when endpoint was last updated */
@@ -254,5 +262,88 @@ export interface McpToolCallContext {
     requestId?: string;
     /** Additional context metadata */
     metadata?: Record<string, unknown>;
+}
+/**
+ * Generic tool handler function signature
+ */
+export interface McpToolHandler {
+    (toolName: string, args: Record<string, unknown>): Promise<unknown>;
+}
+/**
+ * Environment variable structure from GASSAPI API
+ */
+export interface GassapiEnvironmentVariable {
+    id?: string;
+    environment_id?: string;
+    key: string;
+    value: string;
+    enabled: boolean;
+    description?: string;
+    created_at?: string;
+    updated_at?: string;
+}
+/**
+ * Environment variable import structure for bulk operations
+ */
+export interface GassapiEnvironmentVariableImport {
+    key: string;
+    value: string;
+    enabled?: boolean;
+    description?: string;
+}
+/**
+ * Test result structure for API testing
+ */
+export interface GassapiTestExecution {
+    id: string;
+    endpoint_id: string;
+    environment_id: string;
+    status: number;
+    response_time: number;
+    response_body?: Record<string, unknown> | unknown[] | string | number | null;
+    response_headers?: Record<string, string>;
+    error?: string;
+    created_at: string;
+    executed_by?: string;
+}
+/**
+ * Project configuration data
+ */
+export interface GassapiProjectConfig {
+    id: string;
+    name: string;
+    description?: string;
+    settings: {
+        timeout?: number;
+        retries?: number;
+        environment?: string;
+    };
+    created_at: string;
+    updated_at: string;
+}
+/**
+ * Log metadata structure for consistent typing
+ */
+export interface LogMetadata {
+    [key: string]: unknown;
+    /** Optional timestamp override */
+    timestamp?: number;
+    /** Optional source identifier */
+    source?: string;
+    /** Optional correlation ID for request tracking */
+    correlationId?: string;
+    /** Optional user context */
+    userId?: string;
+    /** Optional session context */
+    sessionId?: string;
+}
+/**
+ * Collection tree node for hierarchical collection display
+ */
+export interface CollectionTreeNode {
+    collection: GassapiCollection;
+    children: CollectionTreeNode[];
+    endpointCount?: number;
+    endpoint_count?: number;
 }
 //# sourceMappingURL=mcp.types.d.ts.map

@@ -65,7 +65,15 @@ class McpHandler {
      */
     public function validateToken() {
         // Accept token from Authorization header or query/body
-        $authHeader = $_SERVER['HTTP_AUTHORIZATION'] ?? null;
+        $authHeader = $_SERVER['HTTP_AUTHORIZATION'] ??
+                     $_SERVER['REDIRECT_HTTP_AUTHORIZATION'] ?? null;
+
+        // Fallback to getallheaders() if available (PHP CLI/built-in server)
+        if (!$authHeader && function_exists('getallheaders')) {
+            $headers = getallheaders();
+            $authHeader = $headers['Authorization'] ?? $headers['authorization'] ?? null;
+        }
+
         $plain = null;
         if ($authHeader && preg_match('/Bearer\s+(.*)$/i', $authHeader, $m)) {
             $plain = trim($m[1]);

@@ -56,6 +56,17 @@ class CollectionHandler {
         $variables = $input['variables'] ?? new \stdClass();
         $isDefault = isset($input['is_default']) ? (int)!!$input['is_default'] : 0;
 
+        // Validate parent collection if provided
+        if ($parentId) {
+            $parentCollection = $this->collections->findById($parentId);
+            if (!$parentCollection) {
+                ResponseHelper::error('Parent collection not found', 400);
+            }
+            if ($parentCollection['project_id'] !== $projectId) {
+                ResponseHelper::error('Parent collection must belong to the same project', 400);
+            }
+        }
+
         try {
             // If setting as default, unset other defaults
             if ($isDefault) {
@@ -149,7 +160,7 @@ class CollectionHandler {
 
             $this->collections->updateCollection($id, $data);
             $updated = $this->collections->findById($id);
-            ResponseHelper::success($updated, 'Collection updated');
+            ResponseHelper::success($updated, 'Collection updated successfully');
         } catch (\Exception $e) {
             error_log('Collection update error: ' . $e->getMessage());
             ResponseHelper::error('Failed to update collection', 500);
@@ -176,7 +187,7 @@ class CollectionHandler {
 
         try {
             $this->collections->delete($id);
-            ResponseHelper::success(['id' => $id], 'Collection deleted');
+            ResponseHelper::success(['id' => $id], 'Collection deleted successfully');
         } catch (\Exception $e) {
             error_log('Collection delete error: ' . $e->getMessage());
             ResponseHelper::error('Failed to delete collection', 500);

@@ -1,20 +1,13 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.BackendClient = void 0;
-const CacheManager_1 = require("../cache/CacheManager");
+import { CacheManager } from '../cache/CacheManager';
 /**
  * Backend API Client with integrated caching
  * Handles all communication with GASSAPI backend
  */
-class BackendClient {
-    baseUrl;
-    token;
-    cacheManager;
-    defaultHeaders;
+export class BackendClient {
     constructor(baseUrl, token) {
         this.baseUrl = baseUrl.replace(/\/$/, ''); // Remove trailing slash
         this.token = token;
-        this.cacheManager = new CacheManager_1.CacheManager();
+        this.cacheManager = new CacheManager();
         this.defaultHeaders = {
             'Authorization': `Bearer ${this.token}`,
             'Content-Type': 'application/json',
@@ -474,7 +467,7 @@ class BackendClient {
                 method: 'GET',
                 timeout: 5000 // 5 seconds
             });
-            const result = await response.json();
+            await response.json();
             return {
                 status: 'ok',
                 timestamp: Date.now()
@@ -489,5 +482,4 @@ class BackendClient {
         }
     }
 }
-exports.BackendClient = BackendClient;
 //# sourceMappingURL=BackendClient_old.js.map

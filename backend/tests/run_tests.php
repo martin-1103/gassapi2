@@ -284,6 +284,12 @@ class TestRunner {
         $result = $test->run();
         $testResults = $test->getResults();
         
+        // Debug: check what run() returned
+        if ($this->debug) {
+            echo "[DEBUG] runTest: $className->run() returned " . ($result ? 'true' : 'false') . "\n";
+            echo "[DEBUG] runTest: passed={$testResults['passed']}, total={$testResults['total']}\n";
+        }
+        
         // Save to cache
         $this->cacheManager->saveResult($testName, $testResults['passed'], $testResults['total']);
         
@@ -439,9 +445,17 @@ class TestRunner {
 
         echo "Total execution time: {$totalDuration}ms\n";
 
-        $this->printSummary();
+        $summarySuccess = $this->printSummary();
 
-        return $success;
+        // Debug: show final success status
+        if ($this->debug) {
+            echo "\n[DEBUG] Test execution success: " . ($success ? 'true' : 'false') . "\n";
+            echo "[DEBUG] Summary success: " . ($summarySuccess ? 'true' : 'false') . "\n";
+            echo "[DEBUG] Final result: " . (($success && $summarySuccess) ? 'true' : 'false') . "\n";
+        }
+
+        // Return true only if both test execution and summary agree all tests passed
+        return $success && $summarySuccess;
     }
 }
 

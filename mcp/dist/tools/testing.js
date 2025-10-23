@@ -1,9 +1,6 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.TESTING_TOOLS = exports.testingTools = exports.TestingTools = void 0;
-const ConfigLoader_1 = require("../discovery/ConfigLoader");
-const BackendClient_1 = require("../client/BackendClient");
-const Logger_1 = require("../utils/Logger");
+import { ConfigLoader } from '../discovery/ConfigLoader';
+import { BackendClient } from '../client/BackendClient';
+import { logger } from '../utils/Logger';
 /**
  * Testing MCP Tools
  * Handles endpoint testing and execution operations
@@ -36,11 +33,10 @@ const test_endpoint = {
         required: ['endpointId', 'environmentId']
     }
 };
-class TestingTools {
-    configLoader;
-    backendClient = null;
+export class TestingTools {
     constructor() {
-        this.configLoader = new ConfigLoader_1.ConfigLoader();
+        this.backendClient = null;
+        this.configLoader = new ConfigLoader();
     }
     /**
      * Validate UUID format
@@ -102,16 +98,16 @@ class TestingTools {
                 const variable = environmentVariables[i];
                 // Validate variable structure
                 if (!variable || typeof variable !== 'object') {
-                    Logger_1.logger.warn(`Variable di index ${i} tidak valid, dilewati`, { index: i }, 'TestingTools');
+                    logger.warn(`Variable di index ${i} tidak valid, dilewati`, { index: i }, 'TestingTools');
                     continue;
                 }
                 // Check required fields
                 if (!variable.key || typeof variable.key !== 'string') {
-                    Logger_1.logger.warn(`Variable di index ${i} tidak memiliki key yang valid, dilewati`, { index: i }, 'TestingTools');
+                    logger.warn(`Variable di index ${i} tidak memiliki key yang valid, dilewati`, { index: i }, 'TestingTools');
                     continue;
                 }
                 if (variable.key.trim() === '') {
-                    Logger_1.logger.warn(`Variable di index ${i} memiliki key kosong, dilewati`, { index: i }, 'TestingTools');
+                    logger.warn(`Variable di index ${i} memiliki key kosong, dilewati`, { index: i }, 'TestingTools');
                     continue;
                 }
                 // Only include enabled variables
@@ -121,17 +117,17 @@ class TestingTools {
                 // Validate and clean key
                 const cleanKey = variable.key.trim();
                 if (cleanKey.length > 255) {
-                    Logger_1.logger.warn(`Variable "${cleanKey}" terlalu panjang, dilewati`, { key: cleanKey }, 'TestingTools');
+                    logger.warn(`Variable "${cleanKey}" terlalu panjang, dilewati`, { key: cleanKey }, 'TestingTools');
                     continue;
                 }
                 // Validate value
                 if (variable.value === undefined || variable.value === null) {
-                    Logger_1.logger.warn(`Variable "${cleanKey}" tidak memiliki nilai, dilewati`, { key: cleanKey }, 'TestingTools');
+                    logger.warn(`Variable "${cleanKey}" tidak memiliki nilai, dilewati`, { key: cleanKey }, 'TestingTools');
                     continue;
                 }
                 const stringValue = String(variable.value);
                 if (stringValue.length > 10000) {
-                    Logger_1.logger.warn(`Nilai variable "${cleanKey}" terlalu panjang, dilewati`, { key: cleanKey }, 'TestingTools');
+                    logger.warn(`Nilai variable "${cleanKey}" terlalu panjang, dilewati`, { key: cleanKey }, 'TestingTools');
                     continue;
                 }
                 variables[cleanKey] = stringValue;
@@ -195,7 +191,7 @@ class TestingTools {
             if (!config.mcpClient || !config.mcpClient.token) {
                 throw new Error('Konfigurasi MCP client tidak valid - MCP token dibutuhkan');
             }
-            this.backendClient = new BackendClient_1.BackendClient(this.configLoader.getServerURL(config), this.configLoader.getMcpToken(config));
+            this.backendClient = new BackendClient(this.configLoader.getServerURL(config), this.configLoader.getMcpToken(config));
             return this.backendClient;
         }
         catch (error) {
@@ -290,7 +286,7 @@ Coba lagi atau hubungi admin kalau error terus berlanjut!`
             const statusText = testResult.status >= 200 && testResult.status < 300 ? 'Success' : 'Failed';
             // Safe status validation
             if (typeof testResult.status !== 'number') {
-                Logger_1.logger.warn('Status test tidak valid, menggunakan default 500', { status: testResult.status }, 'TestingTools');
+                logger.warn('Status test tidak valid, menggunakan default 500', { status: testResult.status }, 'TestingTools');
                 testResult.status = 500;
             }
             // Safe response time handling
@@ -304,7 +300,7 @@ Coba lagi atau hubungi admin kalau error terus berlanjut!`
                     timestamp = new Date(testResult.created_at).toLocaleString('id-ID');
                 }
                 catch (e) {
-                    Logger_1.logger.warn('Format timestamp error', { error: e }, 'TestingTools');
+                    logger.warn('Format timestamp error', { error: e }, 'TestingTools');
                     timestamp = String(testResult.created_at);
                 }
             }
@@ -346,7 +342,7 @@ ${status} Status: ${testResult.status} (${statusText})
                     });
                 }
                 catch (e) {
-                    Logger_1.logger.warn('Error formatting response headers', { error: e }, 'TestingTools');
+                    logger.warn('Error formatting response headers', { error: e }, 'TestingTools');
                     result += '\n- Error menampilkan headers';
                 }
             }
@@ -365,7 +361,7 @@ ${status} Status: ${testResult.status} (${statusText})
                     }
                 }
                 catch (e) {
-                    Logger_1.logger.warn('Error formatting response body', { error: e }, 'TestingTools');
+                    logger.warn('Error formatting response body', { error: e }, 'TestingTools');
                     result += '\n\n📄 Response Body: Error formatting data';
                 }
             }
@@ -378,7 +374,7 @@ ${status} Status: ${testResult.status} (${statusText})
         }
         catch (error) {
             const errorMessage = error instanceof Error ? error.message : 'Unknown formatting error';
-            Logger_1.logger.warn('Error formatting test result', { error: errorMessage }, 'TestingTools');
+            logger.warn('Error formatting test result', { error: errorMessage }, 'TestingTools');
             return `🧪 Hasil Test (Error Formatting)
 
 Maaf, ada error saat memformat hasil test:
@@ -480,7 +476,7 @@ ${result.content[0].text}`
                 }
             }
             catch (endpointError) {
-                Logger_1.logger.warn('Error selecting endpoint for quick test', { error: endpointError }, 'TestingTools');
+                logger.warn('Error selecting endpoint for quick test', { error: endpointError }, 'TestingTools');
             }
             return {
                 content: [
@@ -719,8 +715,7 @@ Batch test failed! Coba lagi ya!`
         }
     }
 }
-exports.TestingTools = TestingTools;
 // Export for MCP server registration
-exports.testingTools = new TestingTools();
-exports.TESTING_TOOLS = [test_endpoint];
+export const testingTools = new TestingTools();
+export const TESTING_TOOLS = [test_endpoint];
 //# sourceMappingURL=testing.js.map

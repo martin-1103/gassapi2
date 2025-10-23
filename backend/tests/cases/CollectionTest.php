@@ -61,8 +61,8 @@ class CollectionTest extends BaseTest {
         ];
 
         $result = $this->testHelper->post('projects', $projectData);
-        if ($result['status'] === 201 && isset($result['data']['data']['id'])) {
-            $this->projectId = $result['data']['data']['id'];
+        if ($result['status'] === 201 && isset($result['data']['id'])) {
+            $this->projectId = $result['data']['id'];
         }
     }
 
@@ -94,9 +94,9 @@ class CollectionTest extends BaseTest {
         $result = $this->testHelper->post('collection_create', $collectionData, [], $this->projectId);
         $success = $this->testHelper->printResult("Create Collection", $result, 201);
 
-        if ($success && isset($result['data']['data']['id'])) {
+        if ($success && isset($result['data']['id'])) {
             $this->testCollections[] = [
-                'id' => $result['data']['data']['id'],
+                'id' => $result['data']['id'],
                 'project_id' => $this->projectId
             ];
         }
@@ -115,7 +115,7 @@ class CollectionTest extends BaseTest {
             
         }
 
-        $result = $this->testHelper->get('collection_list', [], $this->projectId);
+        $result = $this->testHelper->get('collections_list', [], $this->projectId);
         $success = $this->testHelper->printResult("List Collections", $result, 200);
 
         if ($success) {
@@ -215,9 +215,9 @@ class CollectionTest extends BaseTest {
         $result = $this->testHelper->post('collection_create', $nestedData, [], $this->projectId);
         $success = $this->testHelper->printResult("Create Nested Collection", $result, 201);
 
-        if ($success && isset($result['data']['data']['id'])) {
+        if ($success && isset($result['data']['id'])) {
             $this->testCollections[] = [
-                'id' => $result['data']['data']['id'],
+                'id' => $result['data']['id'],
                 'project_id' => $this->projectId,
                 'parent_id' => $parentCollection['id']
             ];
@@ -310,7 +310,7 @@ class CollectionTest extends BaseTest {
         $results[] = $this->testHelper->printResult("Create Collection Without Auth", $result1, 401);
 
         // Test list collections without auth
-        $result2 = $this->testHelper->get('collection_list', [], $this->projectId);
+        $result2 = $this->testHelper->get('collections_list', [], $this->projectId);
         $results[] = $this->testHelper->printResult("List Collections Without Auth", $result2, 401);
 
         // Test get collection without auth
@@ -354,8 +354,8 @@ class CollectionTest extends BaseTest {
         $result = $this->testHelper->post('collection_create', $collectionData, [], $this->projectId);
         $success = $this->testHelper->printResult("Create Collection with Headers", $result, 201);
 
-        if ($success && isset($result['data']['data']['id'])) {
-            $collectionId = $result['data']['data']['id'];
+        if ($success && isset($result['data']['id'])) {
+            $collectionId = $result['data']['id'];
             $this->testCollections[] = ['id' => $collectionId, 'project_id' => $this->projectId];
 
             // Verify headers are stored correctly
@@ -397,8 +397,8 @@ class CollectionTest extends BaseTest {
         $result = $this->testHelper->post('collection_create', $collectionData, [], $this->projectId);
         $success = $this->testHelper->printResult("Create Collection with Variables", $result, 201);
 
-        if ($success && isset($result['data']['data']['id'])) {
-            $collectionId = $result['data']['data']['id'];
+        if ($success && isset($result['data']['id'])) {
+            $collectionId = $result['data']['id'];
             $this->testCollections[] = ['id' => $collectionId, 'project_id' => $this->projectId];
 
             // Verify variables are stored correctly

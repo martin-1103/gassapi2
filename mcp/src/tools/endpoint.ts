@@ -7,6 +7,18 @@ import { BackendClient } from '../client/BackendClient';
  * Handles API endpoint configuration operations
  */
 
+/**
+ * Endpoint update data structure
+ */
+interface GassapiEndpointUpdate {
+  name?: string;
+  method?: string;
+  url?: string;
+  headers?: Record<string, string>;
+  body?: Record<string, unknown> | unknown[] | string | null;
+  description?: string;
+}
+
 const get_endpoint_details: McpTool = {
   name: 'get_endpoint_details',
   description: 'Get detailed endpoint configuration with collection information',
@@ -354,7 +366,7 @@ Please check:
   }> {
     try {
       const client = await this.getBackendClient();
-      const updateData: any = {};
+      const updateData: GassapiEndpointUpdate = {};
 
       // Only include fields that are being updated
       if (args.name !== undefined) updateData.name = args.name;
@@ -502,7 +514,7 @@ To add endpoints:
         };
       }
 
-      const endpointList = result.endpoints.map((endpoint: any, index) =>
+      const endpointList = result.endpoints.map((endpoint: GassapiEndpoint, index) =>
         `${index + 1}. ${endpoint.method} ${endpoint.url} (${endpoint.name}) - Collection: ${endpoint.collection?.name || 'N/A'}`
       ).join('\n');
 
@@ -559,7 +571,7 @@ Please check:
   /**
    * Handle tool calls
    */
-  async handleToolCall(toolName: string, args: any): Promise<any> {
+  async handleToolCall(toolName: string, args: Record<string, unknown>): Promise<unknown> {
     switch (toolName) {
       case 'get_endpoint_details':
         return this.getEndpointDetails(args);

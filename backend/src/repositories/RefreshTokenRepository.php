@@ -211,8 +211,11 @@ class RefreshTokenRepository extends BaseRepository {
             return false;
         }
 
-        // Should only contain alphanumeric characters
-        return ctype_alnum($token);
+        // Import JwtHelper for JWT validation
+        require_once __DIR__ . '/../Helpers/JwtHelper.php';
+
+        // Use JwtHelper to validate JWT format instead of alphanumeric only
+        return \App\Helpers\JwtHelper::isValidTokenFormat($token);
     }
 
     /**

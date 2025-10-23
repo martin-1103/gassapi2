@@ -78,7 +78,7 @@ export declare class TestingTools {
     /**
      * Handle tool calls
      */
-    handleToolCall(toolName: string, args: any): Promise<any>;
+    handleToolCall(toolName: string, args: Record<string, unknown>): Promise<unknown>;
 }
 export declare const testingTools: TestingTools;
 export declare const TESTING_TOOLS: McpTool[];

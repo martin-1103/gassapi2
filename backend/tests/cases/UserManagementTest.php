@@ -243,7 +243,7 @@ class UserManagementTest extends BaseTest {
         ];
 
         $result = $this->testHelper->put('user', $invalidData, [], $testUser['id']);
-        $success = $this->testHelper->printResult("Update User Invalid Email", $result);
+        $success = $this->testHelper->printResult("Update User Invalid Email", $result, 400);
 
         // Accept 400 (validation error) atau 403 (not admin)
         if ($result['status'] === 400) {
@@ -343,7 +343,7 @@ class UserManagementTest extends BaseTest {
         }
 
         $result = $this->testHelper->delete('user_delete', [], 99999);
-        $success = $this->testHelper->printResult("Delete Non-existent User", $result);
+        $success = $this->testHelper->printResult("Delete Non-existent User", $result, 404);
 
         // Accept 404 (not found) atau 403 (not admin)
         if ($result['status'] === 404) {

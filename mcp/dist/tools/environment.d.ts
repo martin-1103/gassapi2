@@ -85,7 +85,7 @@ export declare class EnvironmentTools {
     /**
      * Handle tool calls
      */
-    handleToolCall(toolName: string, args: any): Promise<any>;
+    handleToolCall(toolName: string, args: Record<string, unknown>): Promise<unknown>;
 }
 export declare const environmentTools: EnvironmentTools;
 export declare const ENVIRONMENT_TOOLS: McpTool[];

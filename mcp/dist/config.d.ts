@@ -1,4 +1,4 @@
-import { CacheConfig, McpServerConfig, ExecutionConfig } from './types/config.types';
+import { CacheConfig, McpServerConfig, ExecutionConfig, GassapiConfig } from './types/config.types';
 export declare class Config {
     private static instance;
     private configLoader;
@@ -15,7 +15,7 @@ export declare class Config {
     /**
      * Get current project configuration
      */
-    getProjectConfig(): any;
+    getProjectConfig(): GassapiConfig | null;
     /**
      * Check if project is configured
      */

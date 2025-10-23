@@ -1,12 +1,5 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.ENDPOINT_TOOLS = exports.endpointTools = exports.EndpointTools = void 0;
-const ConfigLoader_1 = require("../discovery/ConfigLoader");
-const BackendClient_1 = require("../client/BackendClient");
-/**
- * Endpoint Management MCP Tools
- * Handles API endpoint configuration operations
- */
+import { ConfigLoader } from '../discovery/ConfigLoader';
+import { BackendClient } from '../client/BackendClient';
 const get_endpoint_details = {
     name: 'get_endpoint_details',
     description: 'Get detailed endpoint configuration with collection information',
@@ -123,11 +116,10 @@ const move_endpoint = {
         required: ['endpointId', 'newCollectionId']
     }
 };
-class EndpointTools {
-    configLoader;
-    backendClient = null;
+export class EndpointTools {
     constructor() {
-        this.configLoader = new ConfigLoader_1.ConfigLoader();
+        this.backendClient = null;
+        this.configLoader = new ConfigLoader();
     }
     async getBackendClient() {
         if (this.backendClient) {
@@ -137,7 +129,7 @@ class EndpointTools {
         if (!config) {
             throw new Error('No GASSAPI configuration found. Please create gassapi.json in your project root.');
         }
-        this.backendClient = new BackendClient_1.BackendClient(this.configLoader.getServerURL(config), this.configLoader.getMcpToken(config));
+        this.backendClient = new BackendClient(this.configLoader.getServerURL(config), this.configLoader.getMcpToken(config));
         return this.backendClient;
     }
     /**
@@ -501,10 +493,9 @@ Please check:
         }
     }
 }
-exports.EndpointTools = EndpointTools;
 // Export for MCP server registration
-exports.endpointTools = new EndpointTools();
-exports.ENDPOINT_TOOLS = [
+export const endpointTools = new EndpointTools();
+export const ENDPOINT_TOOLS = [
     get_endpoint_details,
     create_endpoint,
     update_endpoint,

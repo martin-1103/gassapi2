@@ -14,13 +14,15 @@ class PasswordTest extends BaseTest {
 
     protected function setUp() {
         parent::setUp();
-        $this->testEmail = 'passtest_' . time() . '@example.com';
+        // Email unik per test agar tidak saling mengganggu
+        $this->testEmail = 'passtest_' . uniqid() . '_' . mt_rand(1000,9999) . '@example.com';
         $this->testPassword = 'PassTest123456';
         $this->setupTestUser();
     }
 
     /**
      * Setup test user dan dapatkan auth token
+     * Selalu buat user baru untuk setiap test
      */
     private function setupTestUser() {
         // Register user
@@ -43,6 +45,8 @@ class PasswordTest extends BaseTest {
             $this->authToken = $loginResult['data']['access_token'];
             $this->testHelper->setAuthToken($this->authToken);
             $this->testUserId = $loginResult['data']['user']['id'] ?? null;
+        } else {
+            echo "[ERROR] Failed to register or login test user: {$this->testEmail}\n";
         }
     }
 
@@ -204,13 +208,12 @@ class PasswordTest extends BaseTest {
 
         if (!$this->authToken) {
             return $this->skip("Change Password Weak - No auth token available");
-            
         }
 
-        // Check if token is still valid, re-authenticate if needed
+        // Pastikan token valid, login ulang jika perlu
         if (!$this->testHelper->reauthenticateIfNeeded($this->testEmail, $this->testPassword)) {
-            return $this->skip("Change Password Weak - Re-authentication failed");
-            
+            echo "[ERROR] Change Password Weak - Re-authentication failed\n";
+            return false;
         }
 
         $passwordData = [
@@ -220,19 +223,36 @@ class PasswordTest extends BaseTest {
         ];
 
         $result = $this->testHelper->post('change-password', $passwordData);
-
-        // API mungkin tidak validate kelemahan password di change-password
-        // hanya di register
         $success = $this->testHelper->printResult("Change Password Weak", $result);
 
-        if ($result['status'] === 401) {
-            // Token might be invalidated by previous test, try to re-authenticate
+        if ($result['status'] === 200) {
+            // Password berhasil diubah, update password dan login ulang
+            $this->testPassword = '123';
+            echo "[INFO] Re-authenticating after password change...\n";
+            $loginData = [
+                'email' => $this->testEmail,
+                'password' => $this->testPassword
+            ];
+            $loginResult = $this->testHelper->post('login', $loginData);
+            if ($loginResult['status'] === 200) {
+                echo "[INFO] Re-authentication successful ✓\n";
+                $this->authToken = $loginResult['data']['access_token'];
+                $this->testHelper->setAuthToken($this->authToken);
+            } else {
+                echo "[ERROR] Re-authentication failed after password change!\n";
+                return false;
+            }
+        } else if ($result['status'] === 400) {
+            // Validation error - password ditolak, token masih valid, tidak perlu re-auth
+            echo "[INFO] Password weak rejected (validation error), token still valid\n";
+        } else if ($result['status'] === 401) {
+            // Token invalid, coba login ulang dengan password lama
             echo "[INFO] Token invalidated, attempting re-authentication...\n";
             if ($this->testHelper->reauthenticateIfNeeded($this->testEmail, $this->testPassword)) {
-                echo "[INFO] Re-authentication successful, retrying...\n";
-                // Retry the request
-                $result = $this->testHelper->post('change-password', $passwordData);
-                $success = $this->testHelper->printResult("Change Password Weak (Retry)", $result);
+                echo "[INFO] Re-authentication successful (old password)\n";
+            } else {
+                echo "[ERROR] Change Password Weak - Re-authentication failed after retry\n";
+                return false;
             }
         }
 
@@ -248,13 +268,12 @@ class PasswordTest extends BaseTest {
 
         if (!$this->authToken) {
             return $this->skip("Change Password Same - No auth token available");
-            
         }
 
-        // Check if token is still valid, re-authenticate if needed
+        // Pastikan token valid, login ulang jika perlu
         if (!$this->testHelper->reauthenticateIfNeeded($this->testEmail, $this->testPassword)) {
-            return $this->skip("Change Password Same - Re-authentication failed");
-            
+            echo "[ERROR] Change Password Same - Re-authentication failed\n";
+            return false;
         }
 
         $passwordData = [
@@ -264,18 +283,23 @@ class PasswordTest extends BaseTest {
         ];
 
         $result = $this->testHelper->post('change-password', $passwordData);
-
-        // API mungkin tidak validate apakah password sama
         $success = $this->testHelper->printResult("Change Password Same as Current", $result);
 
-        if ($result['status'] === 401) {
-            // Token might be invalidated by previous test, try to re-authenticate
+        if ($result['status'] === 200) {
+            // Password sama - backend tidak mengubah password atau meng-invalidate token
+            // Token masih valid, tidak perlu login ulang
+            echo "[INFO] Password same as current - no change needed, token still valid\n";
+        } else if ($result['status'] === 400) {
+            // Validation error - token masih valid, tidak perlu re-auth
+            echo "[INFO] Password same rejected (validation error), token still valid\n";
+        } else if ($result['status'] === 401) {
+            // Token invalid, coba login ulang dengan password lama
             echo "[INFO] Token invalidated, attempting re-authentication...\n";
             if ($this->testHelper->reauthenticateIfNeeded($this->testEmail, $this->testPassword)) {
-                echo "[INFO] Re-authentication successful, retrying...\n";
-                // Retry the request
-                $result = $this->testHelper->post('change-password', $passwordData);
-                $success = $this->testHelper->printResult("Change Password Same as Current (Retry)", $result);
+                echo "[INFO] Re-authentication successful (old password)\n";
+            } else {
+                echo "[ERROR] Change Password Same - Re-authentication failed after retry\n";
+                return false;
             }
         }
 
@@ -328,6 +352,22 @@ class PasswordTest extends BaseTest {
         $success3 = ($result3['status'] === 200 || $result3['status'] === 400 || $result3['status'] === 401 || $result3['status'] === 404);
         echo "[INFO] Missing Confirm Password: status={$result3['status']} (200/400/401/404 accepted)\n";
         $results[] = $success3;
+
+        // Jika berhasil mengubah password, login ulang dengan password baru
+        if ($result3['status'] === 200) {
+            $this->testPassword = 'NewPassword123456';
+            echo "[INFO] Password changed without confirm_password, re-authenticating...\n";
+            $loginData = [
+                'email' => $this->testEmail,
+                'password' => $this->testPassword
+            ];
+            $loginResult = $this->testHelper->post('login', $loginData);
+            if ($loginResult['status'] === 200) {
+                echo "[INFO] Re-authentication successful ✓\n";
+                $this->authToken = $loginResult['data']['access_token'];
+                $this->testHelper->setAuthToken($this->authToken);
+            }
+        }
 
         return !in_array(false, $results);
     }

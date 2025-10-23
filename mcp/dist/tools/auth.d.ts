@@ -55,7 +55,7 @@ export declare class AuthTools {
     /**
      * Handle tool calls
      */
-    handleToolCall(toolName: string, args: any): Promise<any>;
+    handleToolCall(toolName: string, args: Record<string, unknown>): Promise<unknown>;
 }
 export declare const authTools: AuthTools;
 export declare const AUTH_TOOLS: McpTool[];

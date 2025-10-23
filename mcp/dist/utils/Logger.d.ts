@@ -4,6 +4,7 @@
  * A centralized logging system that replaces console.log statements
  * with proper logging infrastructure for production readiness.
  */
+import { LogMetadata } from '../types/mcp.types';
 export declare enum LogLevel {
     DEBUG = 0,
     INFO = 1,
@@ -14,7 +15,7 @@ export interface LogEntry {
     timestamp: string;
     level: LogLevel;
     message: string;
-    metadata?: Record<string, any>;
+    metadata?: LogMetadata;
     module?: string;
 }
 export interface LoggerConfig {
@@ -59,19 +60,19 @@ export declare class Logger {
     /**
      * Debug level logging
      */
-    debug(message: string, metadata?: Record<string, any>, module?: string): void;
+    debug(message: string, metadata?: LogMetadata, module?: string): void;
     /**
      * Info level logging
      */
-    info(message: string, metadata?: Record<string, any>, module?: string): void;
+    info(message: string, metadata?: LogMetadata, module?: string): void;
     /**
      * Warning level logging
      */
-    warn(message: string, metadata?: Record<string, any>, module?: string): void;
+    warn(message: string, metadata?: LogMetadata, module?: string): void;
     /**
      * Error level logging
      */
-    error(message: string, metadata?: Record<string, any>, module?: string): void;
+    error(message: string, metadata?: LogMetadata, module?: string): void;
     /**
      * CLI-specific logging (user-friendly output)
      */
@@ -100,10 +101,10 @@ export declare class ChildLogger {
     private parent;
     private moduleName;
     constructor(parent: Logger, moduleName: string);
-    debug(message: string, metadata?: Record<string, any>): void;
-    info(message: string, metadata?: Record<string, any>): void;
-    warn(message: string, metadata?: Record<string, any>): void;
-    error(message: string, metadata?: Record<string, any>): void;
+    debug(message: string, metadata?: LogMetadata): void;
+    info(message: string, metadata?: LogMetadata): void;
+    warn(message: string, metadata?: LogMetadata): void;
+    error(message: string, metadata?: LogMetadata): void;
     cli(message: string, type?: 'info' | 'success' | 'warning' | 'error'): void;
 }
 /**

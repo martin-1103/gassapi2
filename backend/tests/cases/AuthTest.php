@@ -231,12 +231,24 @@ class AuthTest extends BaseTest {
     protected function testRefreshToken() {
         $this->printHeader("Refresh Token Test");
 
-        // Skip refresh token test
-        // NOTE: Refresh token test disabled karena backend bug:
-        // - Refresh token di API adalah JWT format (mengandung dots)
-        // - Tapi validasi di RefreshTokenRepository::validateTokenFormat() hanya menerima alphanumeric
-        // - Ini menyebabkan "Invalid refresh token format" error
-        // - Perlu fix backend validation untuk mengizinkan JWT format
-        return $this->skip("Refresh Token - Disabled due to backend validation bug (JWT vs alphanumeric)");
+        if (!$this->refreshToken) {
+            return $this->skip("Refresh Token - No refresh token available from login");
+        }
+
+        $refreshData = [
+            'refresh_token' => $this->refreshToken
+        ];
+
+        $result = $this->testHelper->post('refresh', $refreshData);
+        $success = $this->testHelper->printResult("Refresh Token", $result, 200);
+
+        if ($success) {
+            $this->testHelper->assertHasKey($result, 'data');
+            $this->testHelper->assertHasKey($result['data'], 'tokens');
+            $this->testHelper->assertHasKey($result['data']['tokens'], 'access_token');
+            $this->testHelper->assertHasKey($result['data']['tokens'], 'refresh_token');
+        }
+
+        return $success;
     }
 }

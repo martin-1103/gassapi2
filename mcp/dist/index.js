@@ -1,67 +1,29 @@
 #!/usr/bin/env node
-"use strict";
 /**
  * GASSAPI MCP Client Entry Point
  * Main package initialization and CLI interface
  */
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || (function () {
-    var ownKeys = function(o) {
-        ownKeys = Object.getOwnPropertyNames || function (o) {
-            var ar = [];
-            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
-            return ar;
-        };
-        return ownKeys(o);
-    };
-    return function (mod) {
-        if (mod && mod.__esModule) return mod;
-        var result = {};
-        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
-        __setModuleDefault(result, mod);
-        return result;
-    };
-})();
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.config = exports.McpServer = exports.GassapiMcpClient = void 0;
-const McpServer_1 = require("./server/McpServer");
-Object.defineProperty(exports, "McpServer", { enumerable: true, get: function () { return McpServer_1.McpServer; } });
-const config_1 = require("./config");
-Object.defineProperty(exports, "config", { enumerable: true, get: function () { return config_1.config; } });
-const readlineSync = __importStar(require("readline-sync"));
+import { McpServer } from './server/McpServer';
+import { config } from './config';
+import * as readlineSync from 'readline-sync';
 // Load project configuration before starting server
 async function loadConfigurationAndStart() {
     try {
         console.log('🚀 Initializing GASSAPI MCP Client v1.0.0');
-        await config_1.config.loadProjectConfig();
-        if (config_1.config.hasProjectConfig()) {
+        await config.loadProjectConfig();
+        if (config.hasProjectConfig()) {
             console.log('✅ Project configuration loaded');
-            console.log(`📋 Project: ${config_1.config.getProjectName()}`);
-            console.log(`🆔 ID: ${config_1.config.getProjectId()}`);
-            console.log(`🔗 Server: ${config_1.config.getServerURL()}`);
-            console.log(`🌍 Environment: ${config_1.config.getActiveEnvironment()}`);
+            console.log(`📋 Project: ${config.getProjectName()}`);
+            console.log(`🆔 ID: ${config.getProjectId()}`);
+            console.log(`🔗 Server: ${config.getServerURL()}`);
+            console.log(`🌍 Environment: ${config.getActiveEnvironment()}`);
         }
         else {
             console.log('⚠️ No project configuration found');
             console.log('📝 Create gassapi.json in your project root');
             console.log('💡 Use "gassapi-mcp init" to create sample configuration');
         }
-        const server = new McpServer_1.McpServer();
+        const server = new McpServer();
         await server.start();
     }
     catch (error) {
@@ -104,9 +66,8 @@ if (require.main === module) {
  * Main MCP Client Application
  */
 class GassapiMcpClient {
-    server;
     constructor() {
-        this.server = new McpServer_1.McpServer();
+        this.server = new McpServer();
     }
     /**
      * Initialize MCP client
@@ -115,13 +76,13 @@ class GassapiMcpClient {
         try {
             console.log('🚀 Initializing GASSAPI MCP Client v1.0.0');
             // Load project configuration
-            await config_1.config.loadProjectConfig();
-            if (config_1.config.hasProjectConfig()) {
+            await config.loadProjectConfig();
+            if (config.hasProjectConfig()) {
                 console.log('✅ Project configuration loaded');
-                console.log(`📋 Project: ${config_1.config.getProjectName()}`);
-                console.log(`🆔 ID: ${config_1.config.getProjectId()}`);
-                console.log(`🔗 Server: ${config_1.config.getServerURL()}`);
-                console.log(`🌍 Environment: ${config_1.config.getActiveEnvironment()}`);
+                console.log(`📋 Project: ${config.getProjectName()}`);
+                console.log(`🆔 ID: ${config.getProjectId()}`);
+                console.log(`🔗 Server: ${config.getServerURL()}`);
+                console.log(`🌍 Environment: ${config.getActiveEnvironment()}`);
             }
             else {
                 console.log('⚠️ No project configuration found');
@@ -129,8 +90,8 @@ class GassapiMcpClient {
                 console.log('💡 Use "gassapi-mcp init" to create sample configuration');
             }
             // Validate configuration if available
-            if (config_1.config.hasProjectConfig()) {
-                const validation = await config_1.config.validateConfiguration();
+            if (config.hasProjectConfig()) {
+                const validation = await config.validateConfiguration();
                 if (!validation.isValid) {
                     console.log('❌ Configuration validation failed:');
                     validation.errors.forEach(error => console.log(`  - ${error}`));
@@ -187,11 +148,11 @@ class GassapiMcpClient {
             console.log('📊 GASSAPI MCP Client Status');
             console.log('='.repeat(40));
             // Configuration status
-            if (config_1.config.hasProjectConfig()) {
+            if (config.hasProjectConfig()) {
                 console.log('📋 Configuration: ✅ Loaded');
-                console.log(`  Project: ${config_1.config.getProjectName()} (${config_1.config.getProjectId()})`);
-                console.log(`  Environment: ${config_1.config.getActiveEnvironment()}`);
-                console.log(`  Variables: ${Object.keys(config_1.config.getEnvironmentVariables()).length} configured`);
+                console.log(`  Project: ${config.getProjectName()} (${config.getProjectId()})`);
+                console.log(`  Environment: ${config.getActiveEnvironment()}`);
+                console.log(`  Variables: ${Object.keys(config.getEnvironmentVariables()).length} configured`);
             }
             else {
                 console.log('📋 Configuration: ❌ Not found');
@@ -221,7 +182,7 @@ class GassapiMcpClient {
             console.log('📝 Creating GASSAPI sample configuration...');
             const name = projectName || readlineSync.question('Enter project name:') || 'My GASSAPI Project';
             const id = projectId || readlineSync.question('Enter project ID:') || 'proj_' + Date.now();
-            await config_1.config.createSampleConfig(name, id);
+            await config.createSampleConfig(name, id);
             console.log('✅ Sample configuration created successfully!');
             console.log('📁 File: ./gassapi.json');
             console.log('⚠️ Next steps:');
@@ -305,7 +266,6 @@ class GassapiMcpClient {
         return { command, options };
     }
 }
-exports.GassapiMcpClient = GassapiMcpClient;
 // Main execution
 async function main() {
     const args = process.argv.slice(2);
@@ -367,6 +327,8 @@ process.on('unhandledRejection', (reason, promise) => {
     console.error('❌ Unhandled Promise Rejection at:', promise, 'reason:', reason);
     process.exit(1);
 });
+// Export for external usage
+export { GassapiMcpClient, McpServer, config };
 // Run if called directly
 if (require.main === module) {
     main().catch(error => {

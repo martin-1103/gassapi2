@@ -1,8 +1,5 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.COLLECTION_TOOLS = exports.collectionTools = exports.CollectionTools = void 0;
-const ConfigLoader_1 = require("../discovery/ConfigLoader");
-const BackendClient_1 = require("../client/BackendClient");
+import { ConfigLoader } from '../discovery/ConfigLoader';
+import { BackendClient } from '../client/BackendClient';
 /**
  * Collection Management MCP Tools
  * Handles API collection operations
@@ -94,11 +91,10 @@ const delete_collection = {
         required: ['collectionId']
     }
 };
-class CollectionTools {
-    configLoader;
-    backendClient = null;
+export class CollectionTools {
     constructor() {
-        this.configLoader = new ConfigLoader_1.ConfigLoader();
+        this.backendClient = null;
+        this.configLoader = new ConfigLoader();
     }
     async getBackendClient() {
         if (this.backendClient) {
@@ -108,7 +104,7 @@ class CollectionTools {
         if (!config) {
             throw new Error('No GASSAPI configuration found. Please create gassapi.json in your project root.');
         }
-        this.backendClient = new BackendClient_1.BackendClient(this.configLoader.getServerURL(config), this.configLoader.getMcpToken(config));
+        this.backendClient = new BackendClient(this.configLoader.getServerURL(config), this.configLoader.getMcpToken(config));
         return this.backendClient;
     }
     /**
@@ -451,10 +447,9 @@ Please check:
         }
     }
 }
-exports.CollectionTools = CollectionTools;
 // Export for MCP server registration
-exports.collectionTools = new CollectionTools();
-exports.COLLECTION_TOOLS = [
+export const collectionTools = new CollectionTools();
+export const COLLECTION_TOOLS = [
     get_collections,
     create_collection,
     move_collection,

@@ -7,6 +7,7 @@
 
 import * as fs from 'fs';
 import * as path from 'path';
+import { LogMetadata } from '../types/mcp.types';
 
 export enum LogLevel {
   DEBUG = 0,
@@ -19,7 +20,7 @@ export interface LogEntry {
   timestamp: string;
   level: LogLevel;
   message: string;
-  metadata?: Record<string, any>;
+  metadata?: LogMetadata;
   module?: string;
 }
 
@@ -142,7 +143,7 @@ export class Logger {
   /**
    * Create log entry
    */
-  private createLogEntry(level: LogLevel, message: string, metadata?: Record<string, any>, module?: string): LogEntry {
+  private createLogEntry(level: LogLevel, message: string, metadata?: LogMetadata, module?: string): LogEntry {
     return {
       timestamp: new Date().toISOString(),
       level,
@@ -155,7 +156,7 @@ export class Logger {
   /**
    * Debug level logging
    */
-  public debug(message: string, metadata?: Record<string, any>, module?: string): void {
+  public debug(message: string, metadata?: LogMetadata, module?: string): void {
     if (!this.shouldLog(LogLevel.DEBUG)) return;
 
     const entry = this.createLogEntry(LogLevel.DEBUG, message, metadata, module);
@@ -165,7 +166,7 @@ export class Logger {
   /**
    * Info level logging
    */
-  public info(message: string, metadata?: Record<string, any>, module?: string): void {
+  public info(message: string, metadata?: LogMetadata, module?: string): void {
     if (!this.shouldLog(LogLevel.INFO)) return;
 
     const entry = this.createLogEntry(LogLevel.INFO, message, metadata, module);
@@ -175,7 +176,7 @@ export class Logger {
   /**
    * Warning level logging
    */
-  public warn(message: string, metadata?: Record<string, any>, module?: string): void {
+  public warn(message: string, metadata?: LogMetadata, module?: string): void {
     if (!this.shouldLog(LogLevel.WARN)) return;
 
     const entry = this.createLogEntry(LogLevel.WARN, message, metadata, module);
@@ -185,7 +186,7 @@ export class Logger {
   /**
    * Error level logging
    */
-  public error(message: string, metadata?: Record<string, any>, module?: string): void {
+  public error(message: string, metadata?: LogMetadata, module?: string): void {
     if (!this.shouldLog(LogLevel.ERROR)) return;
 
     const entry = this.createLogEntry(LogLevel.ERROR, message, metadata, module);
@@ -270,19 +271,19 @@ export class Logger {
 export class ChildLogger {
   constructor(private parent: Logger, private moduleName: string) {}
 
-  public debug(message: string, metadata?: Record<string, any>): void {
+  public debug(message: string, metadata?: LogMetadata): void {
     this.parent.debug(message, metadata, this.moduleName);
   }
 
-  public info(message: string, metadata?: Record<string, any>): void {
+  public info(message: string, metadata?: LogMetadata): void {
     this.parent.info(message, metadata, this.moduleName);
   }
 
-  public warn(message: string, metadata?: Record<string, any>): void {
+  public warn(message: string, metadata?: LogMetadata): void {
     this.parent.warn(message, metadata, this.moduleName);
   }
 
-  public error(message: string, metadata?: Record<string, any>): void {
+  public error(message: string, metadata?: LogMetadata): void {
     this.parent.error(message, metadata, this.moduleName);
   }
 

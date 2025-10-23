@@ -1,4 +1,4 @@
-import { McpTool } from '../types/mcp.types';
+import { McpTool, GassapiEnvironment, GassapiCollection, McpToolHandler } from '../types/mcp.types';
 import { ConfigLoader } from '../discovery/ConfigLoader';
 import { BackendClient } from '../client/BackendClient';
 
@@ -238,11 +238,11 @@ Please check gassapi.json configuration file`
       const client = await this.getBackendClient();
       const context = await client.getProjectContext(projectId);
 
-      const environments = context.environments.map((env: any) =>
+      const environments = context.environments.map((env: GassapiEnvironment) =>
         `- ${env.name} (ID: ${env.id}, Default: ${env.is_default ? 'Yes' : 'No'})`
       ).join('\n');
 
-      const collections = context.collections ? context.collections.map((col: any) =>
+      const collections = context.collections ? context.collections.map((col: GassapiCollection) =>
         `- ${col.name} (ID: ${col.id}, Endpoints: ${col.endpoints?.length || 0})`
       ).join('\n') : 'No collections found';
 
@@ -349,7 +349,7 @@ Authentication refresh failed!`
   /**
    * Handle tool calls
    */
-  async handleToolCall(toolName: string, args: any): Promise<any> {
+  async handleToolCall(toolName: string, args: Record<string, unknown>): Promise<unknown> {
     switch (toolName) {
       case 'validate_mcp_token':
         return this.validateMcpToken(args);

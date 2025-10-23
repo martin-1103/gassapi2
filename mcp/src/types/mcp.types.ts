@@ -192,10 +192,13 @@ export interface GassapiEnvironment {
 
 export interface GassapiCollection {
   id: string;
-  project_id: string;
+  project_id?: string;
   parent_id?: string;
   name: string;
   description?: string;
+  endpoint_count?: number;
+  endpoints?: GassapiEndpoint[];
+  children?: string[];
   created_at: string;
   updated_at: string;
 }
@@ -220,6 +223,11 @@ export interface GassapiEndpoint {
   body?: Record<string, unknown> | unknown[] | string | null;
   /** Optional description of endpoint purpose */
   description?: string;
+  /** Collection reference (for API responses) */
+  collection?: {
+    id: string;
+    name: string;
+  };
   /** ISO timestamp when endpoint was created */
   created_at: string;
   /** ISO timestamp when endpoint was last updated */
@@ -318,14 +326,14 @@ export interface McpToolHandler {
  * Environment variable structure from GASSAPI API
  */
 export interface GassapiEnvironmentVariable {
-  id: string;
-  environment_id: string;
+  id?: string;
+  environment_id?: string;
   key: string;
   value: string;
   enabled: boolean;
   description?: string;
-  created_at: string;
-  updated_at: string;
+  created_at?: string;
+  updated_at?: string;
 }
 
 /**
@@ -347,7 +355,8 @@ export interface GassapiTestExecution {
   environment_id: string;
   status: number;
   response_time: number;
-  response_body?: Record<string, unknown> | unknown[] | string | null;
+  response_body?: Record<string, unknown> | unknown[] | string | number | null;
+  response_headers?: Record<string, string>;
   error?: string;
   created_at: string;
   executed_by?: string;
@@ -384,4 +393,14 @@ export interface LogMetadata {
   userId?: string;
   /** Optional session context */
   sessionId?: string;
+}
+
+/**
+ * Collection tree node for hierarchical collection display
+ */
+export interface CollectionTreeNode {
+  collection: GassapiCollection;
+  children: CollectionTreeNode[];
+  endpointCount?: number;
+  endpoint_count?: number; // For API compatibility
 }

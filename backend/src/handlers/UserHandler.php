@@ -239,7 +239,7 @@ class UserHandler {
             ResponseHelper::success([
                 'id' => $userId,
                 'is_active' => $isActive
-            ], MessageHelper::userStatusMessage($isActive));
+            ], MessageHelper::SUCCESS_USER_STATUS_UPDATED);
         } catch (\Exception $e) {
             error_log("Toggle user status error: " . $e->getMessage());
             ResponseHelper::error(MessageHelper::ERROR_USER_STATUS_UPDATE_FAILED, 500);

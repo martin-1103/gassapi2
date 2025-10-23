@@ -223,7 +223,7 @@ class JwtHelper {
     }
 
     /**
-     * Validate token format
+     * Validate token format (URL-safe Base64 compatible)
      */
     public static function isValidTokenFormat($token) {
         if (empty($token)) {
@@ -236,9 +236,18 @@ class JwtHelper {
             return false;
         }
 
-        // Check if parts are valid base64
+        // Check if parts are valid base64 with URL-safe character handling
         foreach ($parts as $part) {
-            if (!base64_decode($part, true)) {
+            // Convert URL-safe base64 to standard base64 for validation
+            $base64Part = str_replace(['-', '_'], ['+', '/'], $part);
+
+            // Add padding if missing (base64 must be in multiples of 4)
+            $padding = strlen($base64Part) % 4;
+            if ($padding) {
+                $base64Part .= str_repeat('=', 4 - $padding);
+            }
+
+            if (!base64_decode($base64Part, true)) {
                 return false;
             }
         }

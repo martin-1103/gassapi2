@@ -16,6 +16,7 @@ import {
   EndpointUpdateRequest,
   CollectionDetailsResponse
 } from '../types/api.types';
+import { logger } from '../utils/Logger';
 
 // Unified environment type that works for both project data and cache
 type UnifiedEnvironment = {
@@ -79,7 +80,7 @@ export class BackendClient {
 
       return result.data;
     } catch (error) {
-      console.error('Token validation failed:', error);
+      logger.error('Token validation failed', { error: error instanceof Error ? error.message : String(error) }, 'BackendClient');
       throw error;
     }
   }
@@ -143,7 +144,7 @@ export class BackendClient {
         collections
       };
     } catch (error) {
-      console.error('Failed to get project context:', error);
+      logger.error('Failed to get project context', { error: error instanceof Error ? error.message : String(error), projectId }, 'BackendClient');
       throw error;
     }
   }
@@ -174,7 +175,7 @@ export class BackendClient {
 
       return result.data;
     } catch (error) {
-      console.error('Failed to get project details:', error);
+      logger.error('Failed to get project details', { error: error instanceof Error ? error.message : String(error), projectId }, 'BackendClient');
       throw error;
     }
   }
@@ -208,7 +209,7 @@ export class BackendClient {
 
       return { collections };
     } catch (error) {
-      console.error('Failed to get collections:', error);
+      logger.error('Failed to get collections', { error: error instanceof Error ? error.message : String(error), projectId }, 'BackendClient');
       throw error;
     }
   }
@@ -232,7 +233,7 @@ export class BackendClient {
 
       return result.data;
     } catch (error) {
-      console.error('Failed to create collection:', error);
+      logger.error('Failed to create collection', { error: error instanceof Error ? error.message : String(error), collectionId: collectionData.project_id }, 'BackendClient');
       throw error;
     }
   }
@@ -256,7 +257,7 @@ export class BackendClient {
 
       return result.data;
     } catch (error) {
-      console.error('Failed to move collection:', error);
+      logger.error('Failed to move collection', { error: error instanceof Error ? error.message : String(error), collectionId, newParentId }, 'BackendClient');
       throw error;
     }
   }
@@ -279,7 +280,7 @@ export class BackendClient {
 
       return result.data || { success: true };
     } catch (error) {
-      console.error('Failed to delete collection:', error);
+      logger.error('Failed to delete collection', { error: error instanceof Error ? error.message : String(error), collectionId, force }, 'BackendClient');
       throw error;
     }
   }
@@ -313,7 +314,7 @@ export class BackendClient {
 
       return { environments };
     } catch (error) {
-      console.error('Failed to get environments:', error);
+      logger.error('Failed to get environments', { error: error instanceof Error ? error.message : String(error), projectId }, 'BackendClient');
       throw error;
     }
   }
@@ -333,7 +334,7 @@ export class BackendClient {
 
       return result.data;
     } catch (error) {
-      console.error('Failed to get environment variables:', error);
+      logger.error('Failed to get environment variables', { error: error instanceof Error ? error.message : String(error), environmentId }, 'BackendClient');
       throw error;
     }
   }
@@ -357,7 +358,7 @@ export class BackendClient {
 
       return result.data;
     } catch (error) {
-      console.error('Failed to set environment variable:', error);
+      logger.error('Failed to set environment variable', { error: error instanceof Error ? error.message : String(error), variableData }, 'BackendClient');
       throw error;
     }
   }
@@ -377,7 +378,7 @@ export class BackendClient {
 
       return result.data;
     } catch (error) {
-      console.error('Failed to export environment:', error);
+      logger.error('Failed to export environment', { error: error instanceof Error ? error.message : String(error), environmentId, format }, 'BackendClient');
       throw error;
     }
   }
@@ -401,7 +402,7 @@ export class BackendClient {
 
       return result.data;
     } catch (error) {
-      console.error('Failed to import environment:', error);
+      logger.error('Failed to import environment', { error: error instanceof Error ? error.message : String(error), importData }, 'BackendClient');
       throw error;
     }
   }
@@ -436,7 +437,7 @@ export class BackendClient {
 
       return { endpoints: result.data };
     } catch (error) {
-      console.error('Failed to get endpoints:', error);
+      logger.error('Failed to get endpoints', { error: error instanceof Error ? error.message : String(error), collectionId, projectId }, 'BackendClient');
       throw error;
     }
   }
@@ -456,7 +457,7 @@ export class BackendClient {
 
       return result.data;
     } catch (error) {
-      console.error('Failed to get endpoint details:', error);
+      logger.error('Failed to get endpoint details', { error: error instanceof Error ? error.message : String(error), endpointId }, 'BackendClient');
       throw error;
     }
   }
@@ -480,7 +481,7 @@ export class BackendClient {
 
       return result.data;
     } catch (error) {
-      console.error('Failed to create endpoint:', error);
+      logger.error('Failed to create endpoint', { error: error instanceof Error ? error.message : String(error), endpointData }, 'BackendClient');
       throw error;
     }
   }
@@ -504,7 +505,7 @@ export class BackendClient {
 
       return result.data;
     } catch (error) {
-      console.error('Failed to update endpoint:', error);
+      logger.error('Failed to update endpoint', { error: error instanceof Error ? error.message : String(error), endpointId, updateData }, 'BackendClient');
       throw error;
     }
   }
@@ -528,7 +529,7 @@ export class BackendClient {
 
       return result.data;
     } catch (error) {
-      console.error('Failed to move endpoint:', error);
+      logger.error('Failed to move endpoint', { error: error instanceof Error ? error.message : String(error), endpointId, newCollectionId }, 'BackendClient');
       throw error;
     }
   }
@@ -557,7 +558,7 @@ export class BackendClient {
 
       return result.data;
     } catch (error) {
-      console.error('Failed to test endpoint:', error);
+      logger.error('Failed to test endpoint', { error: error instanceof Error ? error.message : String(error), endpointId, environmentId, overrideVariables }, 'BackendClient');
       throw error;
     }
   }

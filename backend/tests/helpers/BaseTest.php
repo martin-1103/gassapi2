@@ -41,7 +41,15 @@ abstract class BaseTest {
         echo "Status: " . ($passed === $total ? "SUCCESS" : "FAILED") . "\n";
         echo str_repeat("=", 50) . "\n";
 
-        return $passed === $total;
+        $success = ($passed === $total);
+        
+        // Debug: check if there's mismatch
+        if (!$success && defined('TEST_DEBUG')) {
+            echo "[DEBUG] tearDown returning false: passed=$passed, total=$total\n";
+            echo "[DEBUG] Results array: " . print_r($this->results, true) . "\n";
+        }
+
+        return $success;
     }
 
     /**
@@ -98,11 +106,11 @@ abstract class BaseTest {
 
     /**
      * Skip test dengan reason
-     * Returns true agar test dihitung sebagai success (skipped = acceptable)
+     * Returns false - dihitung sebagai FAIL
      */
     protected function skip($reason) {
-        echo "[SKIP] $reason\n";
-        return true;
+        echo "[SKIP/FAIL] $reason\n";
+        return false;
     }
 
     /**
