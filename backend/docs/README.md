@@ -2,7 +2,7 @@
 
 ## Backend PHP API v1.0.0
 
-Base URL: `/gassapi/backend-php`
+Base URL: `/gassapi2/backend/`
 
 Query format: `?act=endpoint_name&id={id}`
 
@@ -31,6 +31,25 @@ Query format: `?act=endpoint_name&id={id}`
 ### System
 - [API Help](system/help.md) - GET `/`
 - [Health Check](system/health.md) - GET `/health`
+
+### Projects
+- [List Projects](projects/list.md) - GET `/projects`
+- [Create Project](projects/create.md) - POST `/projects`
+- [Get Project](projects/get.md) - GET `/project/{id}`
+- [Update Project](projects/update.md) - PUT `/project/{id}`
+- [Delete Project](projects/delete.md) - DELETE `/project/{id}`
+- [Add Member](projects/add-member.md) - POST `/project/{id}/members`
+
+### Environments
+- [List Environments](environments/list.md) - GET `/project/{id}/environments`
+- [Create Environment](environments/create.md) - POST `/project/{id}/environments`
+- [Get Environment](environments/get.md) - GET `/environment/{id}`
+- [Update Environment](environments/update.md) - PUT `/environment/{id}`
+- [Delete Environment](environments/delete.md) - DELETE `/environment/{id}`
+
+### MCP
+- [Generate MCP Config](mcp/generate-config.md) - POST `/project/{id}/generate-config`
+- [Validate MCP Token](mcp/validate.md) - GET `/mcp/validate`
 
 ## Usage Examples
 

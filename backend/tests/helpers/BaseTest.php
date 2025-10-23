@@ -53,6 +53,7 @@ abstract class BaseTest {
         // Get all test methods (methods starting with 'test')
         $methods = get_class_methods($this);
         $testMethods = array_filter($methods, fn($method) => strpos($method, 'test') === 0);
+        sort($testMethods); // Sort alphabetically to ensure predictable order
 
         foreach ($testMethods as $method) {
             try {

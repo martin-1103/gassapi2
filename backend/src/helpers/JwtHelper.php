@@ -132,9 +132,37 @@ class JwtHelper {
      * Get token from request (multiple sources)
      */
     public static function getTokenFromRequest() {
-        // Try Authorization header first
+        // Try Authorization header first (check multiple sources)
+        $authHeader = null;
+
+        // Try $_SERVER first
         if (isset($_SERVER['HTTP_AUTHORIZATION'])) {
-            $token = self::extractTokenFromHeader($_SERVER['HTTP_AUTHORIZATION']);
+            $authHeader = $_SERVER['HTTP_AUTHORIZATION'];
+        }
+
+        // Try REDIRECT_HTTP_AUTHORIZATION (Apache workaround)
+        if (!$authHeader && isset($_SERVER['REDIRECT_HTTP_AUTHORIZATION'])) {
+            $authHeader = $_SERVER['REDIRECT_HTTP_AUTHORIZATION'];
+        }
+
+        // Try getallheaders() as fallback for Apache environments
+        if (!$authHeader && function_exists('getallheaders')) {
+            $headers = getallheaders();
+            if (isset($headers['Authorization'])) {
+                $authHeader = $headers['Authorization'];
+            }
+            // Case-insensitive fallback
+            foreach ($headers as $key => $value) {
+                if (strtolower($key) === 'authorization') {
+                    $authHeader = $value;
+                    break;
+                }
+            }
+        }
+
+        // Extract token if we found the header
+        if ($authHeader) {
+            $token = self::extractTokenFromHeader($authHeader);
             if ($token) {
                 return $token;
             }

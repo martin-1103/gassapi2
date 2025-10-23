@@ -70,10 +70,14 @@ class UserRepository extends BaseRepository {
         // Validate update data
         $this->validateUpdateData($data);
 
-        // Remove sensitive fields that shouldn't be updated directly
-        unset($data['password_hash'], $data['id']);
+        // Whitelist allowed fields for update
+        $allowedFields = ['email', 'name', 'avatar_url', 'is_active', 'email_verified'];
+        $filteredData = array_intersect_key($data, array_flip($allowedFields));
 
-        return parent::update($id, $data);
+        // Remove sensitive fields that shouldn't be updated directly
+        unset($filteredData['password_hash'], $filteredData['id']);
+
+        return parent::update($id, $filteredData);
     }
 
     /**

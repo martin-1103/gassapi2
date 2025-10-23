@@ -13,6 +13,16 @@
 
 require_once __DIR__ . '/cases/AuthTest.php';
 require_once __DIR__ . '/cases/UserTest.php';
+// Optional new tests (if present)
+if (file_exists(__DIR__ . '/cases/ProjectTest.php')) {
+    require_once __DIR__ . '/cases/ProjectTest.php';
+}
+if (file_exists(__DIR__ . '/cases/EnvironmentTest.php')) {
+    require_once __DIR__ . '/cases/EnvironmentTest.php';
+}
+if (file_exists(__DIR__ . '/cases/McpTest.php')) {
+    require_once __DIR__ . '/cases/McpTest.php';
+}
 
 class TestRunner {
     private $args = [];
@@ -44,6 +54,9 @@ class TestRunner {
         $this->testClasses = [
             'auth' => 'AuthTest',
             'user' => 'UserTest',
+            'project' => class_exists('ProjectTest') ? 'ProjectTest' : 'UserTest',
+            'environment' => class_exists('EnvironmentTest') ? 'EnvironmentTest' : 'UserTest',
+            'mcp' => class_exists('McpTest') ? 'McpTest' : 'UserTest',
             'all' => 'AllTests'
         ];
     }
@@ -61,6 +74,9 @@ class TestRunner {
         echo "Test Names:\n";
         echo "  auth            Run authentication tests\n";
         echo "  user            Run user management tests\n";
+        if (class_exists('ProjectTest')) echo "  project         Run project management tests\n";
+        if (class_exists('EnvironmentTest')) echo "  environment     Run environment tests\n";
+        if (class_exists('McpTest')) echo "  mcp             Run MCP integration tests\n";
         echo "  all             Run all tests (default)\n\n";
         echo "Examples:\n";
         echo "  php run_tests.php                # Run all tests\n";

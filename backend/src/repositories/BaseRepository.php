@@ -166,7 +166,13 @@ abstract class BaseRepository {
         $db = self::getConnection();
         $offset = ($page - 1) * $limit;
         if ($orderBy) {
-            $db->orderBy($orderBy);
+            // Parse orderBy if it contains direction (e.g., "created_at DESC")
+            $parts = explode(' ', trim($orderBy));
+            if (count($parts) === 2) {
+                $db->orderBy($parts[0], $parts[1]);
+            } else {
+                $db->orderBy($orderBy);
+            }
         }
         $results = $db->get($this->getTableName(), [$offset, $limit]);
         if ($db->getLastErrno()) {

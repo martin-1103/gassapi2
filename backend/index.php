@@ -51,7 +51,13 @@ $allowedActions = [
     'help', 'health',
     'login', 'register', 'logout', 'refresh', 'logout-all', 'change-password',
     'users', 'users_stats', 'user', 'profile',
-    'user_update', 'user_toggle_status'
+    'user_update', 'user_toggle_status', 'user_delete',
+    // Projects
+    'projects', 'project', 'project_update', 'project_delete', 'project_add_member',
+    // Environments
+    'project_environments', 'environment', 'environment_update', 'environment_delete', 'environment_create',
+    // MCP
+    'mcp_validate', 'mcp_generate_config'
 ];
 
 if (!in_array($action, $allowedActions)) {
@@ -79,10 +85,31 @@ function resolveRoutePath($action, $id = null) {
         'login' => '/login',
         'register' => '/register',
         'logout' => '/logout',
+        'logout-all' => '/logout-all',
         'refresh' => '/refresh',
+        'change-password' => '/change-password',
         'users' => '/users',
+        'users_stats' => '/users/stats',
         'profile' => '/profile',
-        'user' => $id ? "/user/$id" : '/user'
+        'user' => $id ? "/user/$id" : '/user',
+        'user_update' => $id ? "/user/$id" : '/user',
+        'user_delete' => $id ? "/user/$id" : '/user',
+        'user_toggle_status' => $id ? "/user/$id/toggle-status" : '/user/toggle-status',
+        // Projects
+        'projects' => '/projects',
+        'project' => $id ? "/project/$id" : '/project',
+        'project_update' => $id ? "/project/$id" : '/project',
+        'project_delete' => $id ? "/project/$id" : '/project',
+        'project_add_member' => $id ? "/project/$id/members" : '/project/members',
+        // Environments
+        'project_environments' => $id ? "/project/$id/environments" : '/project/environments',
+        'environment' => $id ? "/environment/$id" : '/environment',
+        'environment_update' => $id ? "/environment/$id" : '/environment',
+        'environment_delete' => $id ? "/environment/$id" : '/environment',
+        'environment_create' => $id ? "/project/$id/environments" : '/project/environments',
+        // MCP
+        'mcp_validate' => '/mcp/validate',
+        'mcp_generate_config' => $id ? "/project/$id/generate-config" : '/project/generate-config'
     ];
 
     return $routeMap[$action] ?? '/';

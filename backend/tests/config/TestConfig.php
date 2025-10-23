@@ -32,16 +32,27 @@ class TestConfig {
         'login' => '?act=login',
         'register' => '?act=register',
         'logout' => '?act=logout',
+        'logout_all' => '?act=logout-all',
         'logout-all' => '?act=logout-all',
         'refresh' => '?act=refresh',
+        'change_password' => '?act=change-password',
         'change-password' => '?act=change-password',
         'users' => '?act=users',
         'users_stats' => '?act=users_stats',
         'profile' => '?act=profile',
         'user' => '?act=user&id=',
+        'user_by_id' => '?act=user&id=',
         'user_update' => '?act=user_update&id=',
-        'user_toggle_status' => '?act=user&id=',  // Will be handled specially
-        'help' => '?act=help'
+        'user_toggle_status' => '?act=user_toggle_status&id=',
+        'user_delete' => '?act=user_delete&id=',
+        'help' => '?act=help',
+        // Projects & Environments & MCP
+        'projects' => '?act=projects',
+        'project' => '?act=project&id=',
+        'project_environments' => '?act=project_environments&id=',
+        'environment' => '?act=environment&id=',
+        'mcp_generate_config' => '?act=mcp_generate_config&id=',
+        'mcp_validate' => '?act=mcp_validate'
     ];
 
     // Headers default
@@ -65,12 +76,8 @@ class TestConfig {
 
         // Handle endpoints that need ID
         if ($id !== null) {
-            if (in_array($endpoint, ['user', 'user_update', 'user_toggle_status'])) {
+            if (in_array($endpoint, ['user', 'user_by_id', 'user_update', 'user_toggle_status', 'user_delete'])) {
                 $url .= $id;
-                // Special handling for toggle status
-                if ($endpoint === 'user_toggle_status') {
-                    $url = str_replace('?act=user&id=', '?act=user&id=' . $id . '/toggle-status', $url);
-                }
             }
         }
 

@@ -45,7 +45,7 @@ class UserHandler {
                 $sanitizedUsers = $this->userRepository->sanitizeMany($users);
 
                 ResponseHelper::success([
-                    'data' => $sanitizedUsers,
+                    'users' => $sanitizedUsers,
                     'total' => count($sanitizedUsers),
                     'search_query' => $search
                 ]);
@@ -54,15 +54,21 @@ class UserHandler {
                 $sanitizedUsers = $this->userRepository->sanitizeMany($users);
 
                 ResponseHelper::success([
-                    'data' => $sanitizedUsers,
+                    'users' => $sanitizedUsers,
                     'total' => count($sanitizedUsers)
                 ]);
             } else {
                 $result = $this->userRepository->paginate($page, $limit, 'created_at DESC');
-                $result['data'] = $this->userRepository->sanitizeMany($result['data']);
-
-                ResponseHelper::success($result);
+                $sanitizedUsers = $this->userRepository->sanitizeMany($result['data']);
+                
+                ResponseHelper::success([
+                    'users' => $sanitizedUsers,
+                    'pagination' => $result['pagination']
+                ]);
             }
+        } catch (\App\Repositories\RepositoryException $e) {
+            error_log("Get users repository error: " . $e->getMessage());
+            ResponseHelper::error('Failed to retrieve users: ' . $e->getMessage(), 500);
         } catch (\Exception $e) {
             error_log("Get users error: " . $e->getMessage());
             ResponseHelper::error('Failed to retrieve users', 500);
@@ -84,7 +90,7 @@ class UserHandler {
                 ResponseHelper::error('User not found', 404);
             }
 
-            ResponseHelper::success($user);
+            ResponseHelper::success(['user' => $user], 'User retrieved successfully');
         } catch (\Exception $e) {
             error_log("Get user error: " . $e->getMessage());
             ResponseHelper::error('Failed to retrieve user', 500);
@@ -116,6 +122,9 @@ class UserHandler {
             // Return updated user
             $updatedUser = $this->userRepository->findByIdSanitized($id);
             ResponseHelper::success($updatedUser, 'User updated successfully');
+        } catch (\App\Repositories\RepositoryException $e) {
+            error_log("Update user validation error: " . $e->getMessage());
+            ResponseHelper::error($e->getMessage(), $e->getCode() ?: 400);
         } catch (\Exception $e) {
             error_log("Update user error: " . $e->getMessage());
             ResponseHelper::error('Failed to update user', 500);
@@ -154,20 +163,29 @@ class UserHandler {
             ResponseHelper::error('User ID is required', 400);
         }
 
-        $input = ValidationHelper::getJsonInput();
-        ValidationHelper::required($input, ['is_active']);
-
         try {
             $user = $this->userRepository->findById($id);
             if (!$user) {
                 ResponseHelper::error('User not found', 404);
             }
 
-            $isActive = filter_var($input['is_active'], FILTER_VALIDATE_BOOLEAN);
+            $input = ValidationHelper::getJsonInput();
+            
+            // If is_active is provided, use it; otherwise toggle current status
+            if (isset($input['is_active'])) {
+                $isActive = filter_var($input['is_active'], FILTER_VALIDATE_BOOLEAN);
+            } else {
+                // Auto-toggle: flip the current status
+                $isActive = !$user['is_active'];
+            }
+            
             $this->userRepository->setActive($id, $isActive);
 
             $status = $isActive ? 'activated' : 'deactivated';
-            ResponseHelper::success(null, "User $status successfully");
+            ResponseHelper::success([
+                'id' => $id,
+                'is_active' => $isActive
+            ], "User $status successfully");
         } catch (\Exception $e) {
             error_log("Toggle user status error: " . $e->getMessage());
             ResponseHelper::error('Failed to update user status', 500);
@@ -187,7 +205,7 @@ class UserHandler {
             }
 
             $user = $this->authService->validateAccessToken($token);
-            ResponseHelper::success($user, 'Profile retrieved successfully');
+            ResponseHelper::success(['user' => $user], 'Profile retrieved successfully');
         } catch (\Exception $e) {
             error_log("Profile error: " . $e->getMessage());
             ResponseHelper::error('Failed to retrieve profile', 500);
@@ -209,7 +227,7 @@ class UserHandler {
             $input = ValidationHelper::getJsonInput();
 
             $result = $this->authService->updateProfile($user['id'], $input);
-            ResponseHelper::success($result, 'Profile updated successfully');
+            ResponseHelper::success(['user' => $result], 'Profile updated successfully');
         } catch (\Exception $e) {
             error_log("Update profile error: " . $e->getMessage());
             ResponseHelper::error('Failed to update profile', 500);

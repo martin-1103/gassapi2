@@ -85,12 +85,14 @@ class TestHelper {
             ];
         }
 
-        return [
-            'data' => $responseData,
+        // Merge API response with test metadata
+        $result = array_merge($responseData, [
             'status' => $this->lastInfo['http_code'],
             'info' => $this->lastInfo,
             'raw' => $this->lastResponse
-        ];
+        ]);
+
+        return $result;
     }
 
     /**
@@ -185,6 +187,11 @@ class TestHelper {
      * Assert response contains key
      */
     public function assertHasKey($response, $key) {
+        // Support checking both top-level keys and nested data keys
+        if (isset($response[$key])) {
+            return true; // Top-level key exists
+        }
+        
         if (!isset($response['data'][$key])) {
             throw new Exception("Response missing key: $key");
         }
@@ -195,9 +202,18 @@ class TestHelper {
      * Assert response equals expected value
      */
     public function assertEquals($response, $key, $expected) {
-        if (!isset($response['data'][$key]) || $response['data'][$key] !== $expected) {
-            $actual = isset($response['data'][$key]) ? $response['data'][$key] : 'MISSING';
-            throw new Exception("Expected $key = $expected, got $actual");
+        // Support both direct key access and nested data key access
+        $actual = null;
+        
+        if (isset($response[$key])) {
+            $actual = $response[$key]; // Direct key access
+        } elseif (isset($response['data'][$key])) {
+            $actual = $response['data'][$key]; // Nested in data
+        }
+        
+        if ($actual === null || $actual !== $expected) {
+            $actualStr = $actual !== null ? $actual : 'MISSING';
+            throw new Exception("Expected $key = $expected, got $actualStr");
         }
         return true;
     }

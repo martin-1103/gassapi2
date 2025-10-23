@@ -189,7 +189,10 @@ class UserTest extends BaseTest {
     /**
      * Test change password
      */
-    protected function testChangePassword() {
+    /**
+     * Test change password (run near end - prefixed with testZZ)
+     */
+    protected function testZZChangePassword() {
         $this->printHeader("Change Password Test");
 
         if (!$this->authToken) {
@@ -209,7 +212,21 @@ class UserTest extends BaseTest {
         if ($result['status'] === 200) {
             $this->testHelper->assertEquals($result, 'message', 'Password changed successfully');
             // Update test password for future use
-            $this->testPassword = 'NewPassword123456!';
+            $this->testPassword = 'NewPassword123456';
+            
+            // Re-authenticate with new password
+            echo "[INFO] Re-authenticating after password change...\n";
+            $loginData = [
+                'email' => $this->testEmail,
+                'password' => $this->testPassword
+            ];
+            
+            $loginResult = $this->testHelper->post('login', $loginData);
+            if ($loginResult['status'] === 200 && isset($loginResult['data']['access_token'])) {
+                $this->authToken = $loginResult['data']['access_token'];
+                $this->testHelper->setAuthToken($this->authToken);
+                echo "[INFO] Re-authentication successful\n";
+            }
         }
 
         // Accept both success and failure (endpoint might not exist or different endpoint)
@@ -217,9 +234,9 @@ class UserTest extends BaseTest {
     }
 
     /**
-     * Test logout from all devices
+     * Test logout all devices (run last - prefixed with ZZZ)
      */
-    protected function testLogoutAll() {
+    protected function testZZZLogoutAll() {
         $this->printHeader("Logout All Devices Test");
 
         if (!$this->authToken) {
@@ -239,9 +256,9 @@ class UserTest extends BaseTest {
     }
 
     /**
-     * Test update user by ID (admin functionality)
+     * Test update user by ID (admin functionality - run near end)
      */
-    protected function testUpdateUserById() {
+    protected function testZZUpdateUserById() {
         $this->printHeader("Update User by ID Test");
 
         if (!$this->authToken || !$this->testUserId) {
@@ -272,9 +289,9 @@ class UserTest extends BaseTest {
     }
 
     /**
-     * Test update user with invalid data
+     * Test update user with invalid data (run near end)
      */
-    protected function testUpdateUserInvalid() {
+    protected function testZZUpdateUserInvalid() {
         $this->printHeader("Update User Invalid Data Test");
 
         if (!$this->authToken || !$this->testUserId) {
@@ -301,9 +318,9 @@ class UserTest extends BaseTest {
     }
 
     /**
-     * Test toggle user status (admin functionality)
+     * Test toggle user status (admin functionality - run near end)
      */
-    protected function testToggleUserStatus() {
+    protected function testZZToggleUserStatus() {
         $this->printHeader("Toggle User Status Test");
 
         if (!$this->authToken || !$this->testUserId) {
@@ -331,9 +348,9 @@ class UserTest extends BaseTest {
     }
 
     /**
-     * Test delete user (admin functionality)
+     * Test delete user (admin functionality - run near end)
      */
-    protected function testDeleteUser() {
+    protected function testZZDeleteUser() {
         $this->printHeader("Delete User Test");
 
         if (!$this->authToken) {
@@ -369,7 +386,7 @@ class UserTest extends BaseTest {
         }
 
         // Test DELETE request
-        $result = $this->testHelper->delete('user', [], $tempUserId);
+        $result = $this->testHelper->delete('user_delete', [], $tempUserId);
         $success = $this->testHelper->printResult("Delete User", $result);
 
         // Accept 200 (success), 403 (not admin), or 404 (not found)
@@ -387,9 +404,9 @@ class UserTest extends BaseTest {
     }
 
     /**
-     * Test delete non-existent user
+     * Test delete non-existent user (run near end)
      */
-    protected function testDeleteNonExistentUser() {
+    protected function testZZDeleteNonExistentUser() {
         $this->printHeader("Delete Non-existent User Test");
 
         if (!$this->authToken) {
@@ -397,7 +414,7 @@ class UserTest extends BaseTest {
             return true;
         }
 
-        $result = $this->testHelper->delete('user', [], 99999);
+        $result = $this->testHelper->delete('user_delete', [], 99999);
         $success = $this->testHelper->printResult("Delete Non-existent User", $result, 404);
 
         // Accept 404 (not found) or 403 (not admin)
@@ -410,9 +427,9 @@ class UserTest extends BaseTest {
     }
 
     /**
-     * Test user statistics (admin endpoint)
+     * Test get user statistics (admin endpoint - run after toggle)
      */
-    protected function testUserStats() {
+    protected function testZZZUserStats() {
         $this->printHeader("User Statistics Test");
 
         if (!$this->authToken) {
