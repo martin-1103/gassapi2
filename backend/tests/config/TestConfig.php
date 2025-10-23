@@ -50,9 +50,41 @@ class TestConfig {
         'projects' => '?act=projects',
         'project' => '?act=project&id=',
         'project_environments' => '?act=project_environments&id=',
+        'project_update' => '?act=project_update&id=',
+        'project_delete' => '?act=project_delete&id=',
+        'project_add_member' => '?act=project_add_member&id=',
         'environment' => '?act=environment&id=',
+        'environment_create' => '?act=environment_create',
+        'environment_update' => '?act=environment_update&id=',
+        'environment_delete' => '?act=environment_delete&id=',
         'mcp_generate_config' => '?act=mcp_generate_config&id=',
-        'mcp_validate' => '?act=mcp_validate'
+        'mcp_validate' => '?act=mcp_validate',
+
+        // Collections API
+        'collection_create' => '?act=collection_create&id=',
+        'collection_list' => '?act=collection_list&id=',
+        'collection_get' => '?act=collection_get&id=',
+        'collection_update' => '?act=collection_update&id=',
+        'collection_delete' => '?act=collection_delete&id=',
+
+        // Endpoints API
+        'endpoint_create' => '?act=endpoint_create&id=',
+        'endpoint_list' => '?act=endpoint_list&id=',
+        'endpoint_get' => '?act=endpoint_get&id=',
+        'endpoint_update' => '?act=endpoint_update&id=',
+        'endpoint_delete' => '?act=endpoint_delete&id=',
+
+        // Flows API
+        'flow_create' => '?act=flow_create&id=',
+        'flow_list' => '?act=flow_list&id=',
+        'flow_get' => '?act=flow_get&id=',
+        'flow_update' => '?act=flow_update&id=',
+        'flow_delete' => '?act=flow_delete&id=',
+        'flow_toggle_active' => '?act=flow_toggle_active&id=',
+        'flow_duplicate' => '?act=flow_duplicate&id=',
+        'flow_execute' => '?act=flow_execute&id=',
+        'flow_activate' => '?act=flow_activate&id=',
+        'flow_deactivate' => '?act=flow_deactivate&id='
     ];
 
     // Headers default
@@ -76,7 +108,38 @@ class TestConfig {
 
         // Handle endpoints that need ID
         if ($id !== null) {
+            // User management endpoints
             if (in_array($endpoint, ['user', 'user_by_id', 'user_update', 'user_toggle_status', 'user_delete'])) {
+                $url .= $id;
+            }
+
+            // Project endpoints
+            if (in_array($endpoint, ['project', 'project_environments', 'project_update', 'project_delete', 'project_add_member'])) {
+                $url .= $id;
+            }
+
+            // Environment endpoints
+            if (in_array($endpoint, ['environment', 'environment_update', 'environment_delete'])) {
+                $url .= $id;
+            }
+
+            // MCP endpoints
+            if (in_array($endpoint, ['mcp_generate_config'])) {
+                $url .= $id;
+            }
+
+            // Collection endpoints
+            if (in_array($endpoint, ['collection_create', 'collection_list', 'collection_get', 'collection_update', 'collection_delete'])) {
+                $url .= $id;
+            }
+
+            // Endpoint endpoints
+            if (in_array($endpoint, ['endpoint_create', 'endpoint_list', 'endpoint_get', 'endpoint_update', 'endpoint_delete'])) {
+                $url .= $id;
+            }
+
+            // Flow endpoints
+            if (in_array($endpoint, ['flow_create', 'flow_list', 'flow_get', 'flow_update', 'flow_delete', 'flow_toggle_active', 'flow_duplicate', 'flow_execute', 'flow_activate', 'flow_deactivate'])) {
                 $url .= $id;
             }
         }

@@ -1,0 +1,271 @@
+<?php
+namespace App\Handlers;
+
+use App\Helpers\ResponseHelper;
+use App\Helpers\ValidationHelper;
+use App\Helpers\JwtHelper;
+use App\Repositories\ProjectRepository;
+use App\Repositories\FlowRepository;
+use App\Repositories\CollectionRepository;
+
+class FlowHandler {
+    private $projects;
+    private $flows;
+    private $collections;
+
+    public function __construct() {
+        $this->projects = new ProjectRepository();
+        $this->flows = new FlowRepository();
+        $this->collections = new CollectionRepository();
+    }
+
+    /**
+     * GET /project/{id}/flows
+     */
+    public function getAll($projectId) {
+        if (!$projectId) { 
+            ResponseHelper::error('Project ID is required', 400); 
+        }
+        $userId = $this->requireUserId();
+        
+        if (!$this->projects->isMember($projectId, $userId)) {
+            ResponseHelper::error('Forbidden', 403);
+        }
+        
+        $list = $this->flows->listByProject($projectId);
+        ResponseHelper::success($list, 'Flows fetched');
+    }
+
+    /**
+     * GET /project/{id}/flows/active
+     */
+    public function getActive($projectId) {
+        if (!$projectId) { 
+            ResponseHelper::error('Project ID is required', 400); 
+        }
+        $userId = $this->requireUserId();
+        
+        if (!$this->projects->isMember($projectId, $userId)) {
+            ResponseHelper::error('Forbidden', 403);
+        }
+        
+        $list = $this->flows->listActiveByProject($projectId);
+        ResponseHelper::success($list, 'Active flows fetched');
+    }
+
+    /**
+     * POST /project/{id}/flows
+     */
+    public function create($projectId) {
+        if (!$projectId) { 
+            ResponseHelper::error('Project ID is required', 400); 
+        }
+        $userId = $this->requireUserId();
+        
+        if (!$this->projects->isMember($projectId, $userId)) {
+            ResponseHelper::error('Forbidden', 403);
+        }
+        
+        $input = ValidationHelper::getJsonInput();
+        ValidationHelper::required($input, ['name']);
+        
+        $name = ValidationHelper::sanitize($input['name']);
+        $description = isset($input['description']) ? ValidationHelper::sanitize($input['description']) : null;
+        $collectionId = isset($input['collection_id']) ? ValidationHelper::sanitize($input['collection_id']) : null;
+        $flowData = $input['flow_data'] ?? ['nodes' => [], 'edges' => []];
+        $isActive = isset($input['is_active']) ? (int)!!$input['is_active'] : 1;
+
+        // Validate collection belongs to project if provided
+        if ($collectionId) {
+            if (!$this->collections->belongsToProject($collectionId, $projectId)) {
+                ResponseHelper::error('Collection does not belong to this project', 400);
+            }
+        }
+
+        try {
+            $flowId = $this->flows->createForProject($projectId, [
+                'name' => $name,
+                'description' => $description,
+                'collection_id' => $collectionId,
+                'flow_data' => $flowData,
+                'is_active' => $isActive,
+                'created_by' => $userId
+            ]);
+            
+            $flow = $this->flows->findById($flowId);
+            ResponseHelper::created($flow, 'Flow created');
+        } catch (\Exception $e) {
+            error_log('Flow create error: ' . $e->getMessage());
+            ResponseHelper::error('Failed to create flow', 500);
+        }
+    }
+
+    /**
+     * GET /flow/{id}
+     */
+    public function getById($id) {
+        if (!$id) { 
+            ResponseHelper::error('Flow ID is required', 400); 
+        }
+        $userId = $this->requireUserId();
+        
+        $flow = $this->flows->findWithDetails($id);
+        if (!$flow) { 
+            ResponseHelper::error('Flow not found', 404); 
+        }
+        
+        if (!$this->projects->isMember($flow['project_id'], $userId)) {
+            ResponseHelper::error('Forbidden', 403);
+        }
+        
+        ResponseHelper::success($flow, 'Flow detail');
+    }
+
+    /**
+     * PUT /flow/{id}
+     */
+    public function update($id) {
+        if (!$id) { 
+            ResponseHelper::error('Flow ID is required', 400); 
+        }
+        $userId = $this->requireUserId();
+        
+        $flow = $this->flows->findById($id);
+        if (!$flow) { 
+            ResponseHelper::error('Flow not found', 404); 
+        }
+        
+        if (!$this->projects->isMember($flow['project_id'], $userId)) {
+            ResponseHelper::error('Forbidden', 403);
+        }
+        
+        $input = ValidationHelper::getJsonInput();
+        $data = [];
+        
+        if (isset($input['name'])) { 
+            $data['name'] = ValidationHelper::sanitize($input['name']); 
+        }
+        if (isset($input['description'])) { 
+            $data['description'] = ValidationHelper::sanitize($input['description']); 
+        }
+        if (isset($input['collection_id'])) { 
+            $collectionId = ValidationHelper::sanitize($input['collection_id']);
+            // Validate collection belongs to project if provided
+            if ($collectionId && !$this->collections->belongsToProject($collectionId, $flow['project_id'])) {
+                ResponseHelper::error('Collection does not belong to this project', 400);
+            }
+            $data['collection_id'] = $collectionId;
+        }
+        if (isset($input['flow_data'])) { 
+            $data['flow_data'] = $input['flow_data']; 
+        }
+        if (isset($input['is_active'])) { 
+            $data['is_active'] = (int)!!$input['is_active']; 
+        }
+
+        try {
+            $this->flows->updateFlow($id, $data);
+            $updated = $this->flows->findById($id);
+            ResponseHelper::success($updated, 'Flow updated');
+        } catch (\Exception $e) {
+            error_log('Flow update error: ' . $e->getMessage());
+            ResponseHelper::error('Failed to update flow', 500);
+        }
+    }
+
+    /**
+     * DELETE /flow/{id}
+     */
+    public function delete($id) {
+        if (!$id) { 
+            ResponseHelper::error('Flow ID is required', 400); 
+        }
+        $userId = $this->requireUserId();
+        
+        $flow = $this->flows->findById($id);
+        if (!$flow) { 
+            ResponseHelper::error('Flow not found', 404); 
+        }
+        
+        if (!$this->projects->isMember($flow['project_id'], $userId)) {
+            ResponseHelper::error('Forbidden', 403);
+        }
+
+        try {
+            $this->flows->delete($id);
+            ResponseHelper::success(['id' => $id], 'Flow deleted');
+        } catch (\Exception $e) {
+            error_log('Flow delete error: ' . $e->getMessage());
+            ResponseHelper::error('Failed to delete flow', 500);
+        }
+    }
+
+    /**
+     * PUT /flow/{id}/toggle-active
+     */
+    public function toggleActive($id) {
+        if (!$id) { 
+            ResponseHelper::error('Flow ID is required', 400); 
+        }
+        $userId = $this->requireUserId();
+        
+        $flow = $this->flows->findById($id);
+        if (!$flow) { 
+            ResponseHelper::error('Flow not found', 404); 
+        }
+        
+        if (!$this->projects->isMember($flow['project_id'], $userId)) {
+            ResponseHelper::error('Forbidden', 403);
+        }
+
+        try {
+            $this->flows->toggleActive($id);
+            $updated = $this->flows->findById($id);
+            $status = $updated['is_active'] ? 'activated' : 'deactivated';
+            ResponseHelper::success($updated, "Flow {$status}");
+        } catch (\Exception $e) {
+            error_log('Flow toggle error: ' . $e->getMessage());
+            ResponseHelper::error('Failed to toggle flow status', 500);
+        }
+    }
+
+    /**
+     * POST /flow/{id}/duplicate
+     */
+    public function duplicate($id) {
+        if (!$id) { 
+            ResponseHelper::error('Flow ID is required', 400); 
+        }
+        $userId = $this->requireUserId();
+        
+        $flow = $this->flows->findById($id);
+        if (!$flow) { 
+            ResponseHelper::error('Flow not found', 404); 
+        }
+        
+        if (!$this->projects->isMember($flow['project_id'], $userId)) {
+            ResponseHelper::error('Forbidden', 403);
+        }
+
+        $input = ValidationHelper::getJsonInput();
+        $newName = isset($input['name']) ? ValidationHelper::sanitize($input['name']) : null;
+
+        try {
+            $newFlowId = $this->flows->duplicate($id, $newName);
+            $newFlow = $this->flows->findById($newFlowId);
+            ResponseHelper::created($newFlow, 'Flow duplicated');
+        } catch (\Exception $e) {
+            error_log('Flow duplicate error: ' . $e->getMessage());
+            ResponseHelper::error('Failed to duplicate flow', 500);
+        }
+    }
+
+    private function requireUserId() {
+        $token = JwtHelper::getTokenFromRequest();
+        $payload = JwtHelper::validateAccessToken($token);
+        if (!$payload) { 
+            ResponseHelper::error('Unauthorized', 401); 
+        }
+        return $payload['sub'];
+    }
+}

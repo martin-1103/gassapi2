@@ -1,0 +1,114 @@
+{
+  "name": "gassapi-mcp-client",
+  "version": "1.0.0",
+  "description": "AI-powered API testing with Claude Desktop integration",
+  "main": "dist/index.js",
+  "bin": {
+    "gassapi-mcp": "bin/gassapi-mcp"
+  },
+  "scripts": {
+    "build": "tsc && chmod +x bin/gassapi-mcp",
+    "dev": "tsx watch src/index.ts",
+    "start": "node dist/index.js",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "lint": "eslint src --ext .ts",
+    "lint:fix": "eslint src --ext .ts --fix",
+    "typecheck": "tsc --noEmit",
+    "clean": "rimraf dist",
+    "prepublishOnly": "npm run build",
+    "release": "npm run test && npm run lint && npm run clean && npm run build"
+  },
+  "keywords": [
+    "api",
+    "testing",
+    "claude",
+    "mcp",
+    "model-context-protocol",
+    "gassapi",
+    "automation",
+    "typescript"
+  ],
+  "author": "GASSAPI Team",
+  "license": "MIT",
+  "homepage": "https://docs.gassapi.com/mcp-client",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/gassapi/mcp-client"
+  },
+  "bugs": {
+    "url": "https://github.com/gassapi/mcp-client/issues"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "files": [
+    "dist",
+    "bin",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE"
+  ],
+  "preferGlobal": true,
+  "directories": {
+    "bin": "bin",
+    "lib": "dist"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/jest": "^29.0.0",
+    "@types/readline-sync": "^1.4.8",
+    "@typescript-eslint/eslint-plugin": "^6.0.0",
+    "@typescript-eslint/parser": "^6.0.0",
+    "eslint": "^8.0.0",
+    "jest": "^29.0.0",
+    "rimraf": "^5.0.0",
+    "tsx": "^4.0.0",
+    "typescript": "^5.0.0"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "testMatch": [
+      "**/__tests__/**/*.test.ts"
+    ],
+    "collectCoverageFrom": [
+      "src/**/*.ts"
+    ],
+    "coverageDirectory": "coverage",
+    "coverageReporters": [
+      "text",
+      "lcov",
+      "html"
+    ],
+    "preset": "ts-jest"
+  },
+  "eslintConfig": {
+    "extends": [
+      "@typescript-eslint/recommended"
+    ],
+    "parser": "@typescript-eslint/parser",
+    "parserOptions": {
+      "ecmaVersion": 2020,
+      "sourceType": "module"
+    },
+    "rules": {
+      "no-console": "warn",
+      "prefer-const": "error",
+      "@typescript-eslint/no-explicit-any": "warn",
+      "@typescript-eslint/no-unused-vars": "error"
+    },
+    "ignorePatterns": [
+      "dist/",
+      "node_modules/",
+      "coverage/"
+    ]
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  }
+}

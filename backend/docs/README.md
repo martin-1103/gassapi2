@@ -44,12 +44,32 @@ Query format: `?act=endpoint_name&id={id}`
 - [List Environments](environments/list.md) - GET `/project/{id}/environments`
 - [Create Environment](environments/create.md) - POST `/project/{id}/environments`
 - [Get Environment](environments/get.md) - GET `/environment/{id}`
-- [Update Environment](environments/update.md) - PUT `/environment/{id}`
-- [Delete Environment](environments/delete.md) - DELETE `/environment/{id}`
+
+### Collections
+- [List Collections](collections/list.md) - GET `/project/{id}/collections`
+- [Create Collection](collections/create.md) - POST `/project/{id}/collections`
+- [Get Collection](collections/get.md) - GET `/collection/{id}`
+- [Update Collection](collections/update.md) - PUT `/collection/{id}`
+- [Delete Collection](collections/delete.md) - DELETE `/collection/{id}`
+
+### Endpoints
+- [List Endpoints](endpoints/list.md) - GET `/collection/{id}/endpoints`
+- [Create Endpoint](endpoints/create.md) - POST `/collection/{id}/endpoints`
+- [Get Endpoint](endpoints/get.md) - GET `/endpoint/{id}`
+- [Update Endpoint](endpoints/update.md) - PUT `/endpoint/{id}`
+- [Delete Endpoint](endpoints/delete.md) - DELETE `/endpoint/{id}`
+
+### Flows
+- [List Flows](flows/list.md) - GET `/project/{id}/flows`
+- [List Active Flows](flows/list.md#get-active-flows-only) - GET `/project/{id}/flows/active`
+- [Create Flow](flows/create.md) - POST `/project/{id}/flows`
+- [Get Flow](flows/get.md) - GET `/flow/{id}`
+- [Update Flow](flows/update.md) - PUT `/flow/{id}`
+- [Delete Flow](flows/delete.md) - DELETE `/flow/{id}`
+- [Toggle Active](flows/toggle-active.md) - PUT `/flow/{id}/toggle-active`
+- [Duplicate Flow](flows/duplicate.md) - POST `/flow/{id}/duplicate`
 
 ### MCP
-- [Generate MCP Config](mcp/generate-config.md) - POST `/project/{id}/generate-config`
-- [Validate MCP Token](mcp/validate.md) - GET `/mcp/validate`
 
 ## Usage Examples
 

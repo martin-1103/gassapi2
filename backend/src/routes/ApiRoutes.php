@@ -6,6 +6,9 @@ use App\Handlers\UserHandler;
 use App\Handlers\HealthHandler;
 use App\Handlers\ProjectHandler;
 use App\Handlers\EnvironmentHandler;
+use App\Handlers\CollectionHandler;
+use App\Handlers\EndpointHandler;
+use App\Handlers\FlowHandler;
 use App\Handlers\McpHandler;
 
 /**
@@ -31,6 +34,18 @@ class ApiRoutes {
                 // Environments
                 '/project/{id}/environments' => ['handler' => 'environments_list', 'description' => 'List environments for a project'],
                 '/environment/{id}' => ['handler' => 'environment_detail', 'description' => 'Get environment detail'],
+                // Collections
+                '/project/{id}/collections' => ['handler' => 'collections_list', 'description' => 'List collections for a project'],
+                '/collection/{id}' => ['handler' => 'collection_detail', 'description' => 'Get collection detail'],
+                // Endpoints
+                '/collection/{id}/endpoints' => ['handler' => 'endpoints_list', 'description' => 'List endpoints for a collection'],
+                '/endpoint/{id}' => ['handler' => 'endpoint_detail', 'description' => 'Get endpoint detail'],
+                '/project/{id}/endpoints' => ['handler' => 'project_endpoints_list', 'description' => 'List all endpoints in a project'],
+                '/project/{id}/endpoints/grouped' => ['handler' => 'project_endpoints_grouped', 'description' => 'List endpoints grouped by collection'],
+                // Flows
+                '/project/{id}/flows' => ['handler' => 'flows_list', 'description' => 'List flows for a project'],
+                '/project/{id}/flows/active' => ['handler' => 'flows_active_list', 'description' => 'List active flows for a project'],
+                '/flow/{id}' => ['handler' => 'flow_detail', 'description' => 'Get flow detail'],
                 // MCP
                 '/mcp/validate' => ['handler' => 'mcp_validate', 'description' => 'Validate MCP token']
             ],
@@ -48,6 +63,13 @@ class ApiRoutes {
                 '/project/{id}/members' => ['handler' => 'project_add_member', 'description' => 'Add member to project'],
                 // Environments
                 '/project/{id}/environments' => ['handler' => 'environment_create', 'description' => 'Create environment for a project'],
+                // Collections
+                '/project/{id}/collections' => ['handler' => 'collection_create', 'description' => 'Create collection for a project'],
+                // Endpoints
+                '/collection/{id}/endpoints' => ['handler' => 'endpoint_create', 'description' => 'Create endpoint for a collection'],
+                // Flows
+                '/project/{id}/flows' => ['handler' => 'flow_create', 'description' => 'Create flow for a project'],
+                '/flow/{id}/duplicate' => ['handler' => 'flow_duplicate', 'description' => 'Duplicate a flow'],
                 // MCP
                 '/project/{id}/generate-config' => ['handler' => 'mcp_generate_config', 'description' => 'Generate MCP config for project']
             ],
@@ -57,14 +79,27 @@ class ApiRoutes {
                 // Projects
                 '/project/{id}' => ['handler' => 'project_update', 'description' => 'Update project'],
                 // Environments
-                '/environment/{id}' => ['handler' => 'environment_update', 'description' => 'Update environment']
+                '/environment/{id}' => ['handler' => 'environment_update', 'description' => 'Update environment'],
+                // Collections
+                '/collection/{id}' => ['handler' => 'collection_update', 'description' => 'Update collection'],
+                // Endpoints
+                '/endpoint/{id}' => ['handler' => 'endpoint_update', 'description' => 'Update endpoint'],
+                // Flows
+                '/flow/{id}' => ['handler' => 'flow_update', 'description' => 'Update flow'],
+                '/flow/{id}/toggle-active' => ['handler' => 'flow_toggle_active', 'description' => 'Toggle flow active status']
             ],
             'DELETE' => [
                 '/user/{id}' => ['handler' => 'user_delete', 'description' => 'Delete user'],
                 // Projects
                 '/project/{id}' => ['handler' => 'project_delete', 'description' => 'Delete project'],
                 // Environments
-                '/environment/{id}' => ['handler' => 'environment_delete', 'description' => 'Delete environment']
+                '/environment/{id}' => ['handler' => 'environment_delete', 'description' => 'Delete environment'],
+                // Collections
+                '/collection/{id}' => ['handler' => 'collection_delete', 'description' => 'Delete collection'],
+                // Endpoints
+                '/endpoint/{id}' => ['handler' => 'endpoint_delete', 'description' => 'Delete endpoint'],
+                // Flows
+                '/flow/{id}' => ['handler' => 'flow_delete', 'description' => 'Delete flow']
             ]
         ];
     }
@@ -106,8 +141,11 @@ class ApiRoutes {
         $authHandler = new AuthHandler();
         $userHandler = new UserHandler();
         $healthHandler = new HealthHandler();
-        $projectHandler = new ProjectHandler();
-        $environmentHandler = new EnvironmentHandler();
+    $projectHandler = new ProjectHandler();
+    $environmentHandler = new EnvironmentHandler();
+    $collectionHandler = new CollectionHandler();
+    $endpointHandler = new EndpointHandler();
+    $flowHandler = new FlowHandler();
         $mcpHandler = new McpHandler();
 
         switch ($handler) {
@@ -193,6 +231,69 @@ class ApiRoutes {
                 break;
             case 'environment_delete':
                 $environmentHandler->delete($id);
+                break;
+            // Collection management
+            case 'collections_list':
+                $collectionHandler->getAll($id);
+                break;
+            case 'collection_detail':
+                $collectionHandler->getById($id);
+                break;
+            case 'collection_create':
+                $collectionHandler->create($id);
+                break;
+            case 'collection_update':
+                $collectionHandler->update($id);
+                break;
+            case 'collection_delete':
+                $collectionHandler->delete($id);
+                break;
+            // Endpoint management
+            case 'endpoints_list':
+                $endpointHandler->getAll($id);
+                break;
+            case 'endpoint_detail':
+                $endpointHandler->getById($id);
+                break;
+            case 'endpoint_create':
+                $endpointHandler->create($id);
+                break;
+            case 'endpoint_update':
+                $endpointHandler->update($id);
+                break;
+            case 'endpoint_delete':
+                $endpointHandler->delete($id);
+                break;
+            case 'project_endpoints_list':
+                $endpointHandler->getAllByProject($id);
+                break;
+            case 'project_endpoints_grouped':
+                $endpointHandler->getGrouped($id);
+                break;
+            // Flow management
+            case 'flows_list':
+                $flowHandler->getAll($id);
+                break;
+            case 'flows_active_list':
+                $flowHandler->getActive($id);
+                break;
+            case 'flow_detail':
+                $flowHandler->getById($id);
+                break;
+            case 'flow_create':
+                $flowHandler->create($id);
+                break;
+            case 'flow_update':
+                $flowHandler->update($id);
+                break;
+            case 'flow_delete':
+                $flowHandler->delete($id);
+                break;
+            case 'flow_toggle_active':
+                $flowHandler->toggleActive($id);
+                break;
+            case 'flow_duplicate':
+                $flowHandler->duplicate($id);
                 break;
             // MCP integration
             case 'mcp_generate_config':

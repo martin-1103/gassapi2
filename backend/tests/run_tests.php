@@ -11,17 +11,33 @@
  * php run_tests.php --debug            # Run with debug output
  */
 
+// Core Authentication Tests
 require_once __DIR__ . '/cases/AuthTest.php';
-require_once __DIR__ . '/cases/UserTest.php';
-// Optional new tests (if present)
-if (file_exists(__DIR__ . '/cases/ProjectTest.php')) {
-    require_once __DIR__ . '/cases/ProjectTest.php';
+
+// Legacy UserTest.php (for backward compatibility)
+if (file_exists(__DIR__ . '/cases/UserTest.php')) {
+    require_once __DIR__ . '/cases/UserTest.php';
 }
-if (file_exists(__DIR__ . '/cases/EnvironmentTest.php')) {
-    require_once __DIR__ . '/cases/EnvironmentTest.php';
-}
-if (file_exists(__DIR__ . '/cases/McpTest.php')) {
-    require_once __DIR__ . '/cases/McpTest.php';
+
+// New Modular Test Files
+$testFiles = [
+    'PasswordTest.php',
+    'UserProfileTest.php',
+    'UserManagementTest.php',
+    'ProjectTest.php',
+    'EnvironmentTest.php',
+    'McpTest.php',
+    'SystemTest.php',
+    'UserFlowTest.php',
+    'CollectionTest.php',
+    'EndpointTest.php',
+    'FlowTest.php'
+];
+
+foreach ($testFiles as $file) {
+    if (file_exists(__DIR__ . '/cases/' . $file)) {
+        require_once __DIR__ . '/cases/' . $file;
+    }
 }
 
 class TestRunner {
@@ -52,11 +68,39 @@ class TestRunner {
      */
     private function registerTestClasses() {
         $this->testClasses = [
+            // Core authentication tests
             'auth' => 'AuthTest',
-            'user' => 'UserTest',
+
+            // Legacy user tests (for backward compatibility)
+            'user' => class_exists('UserTest') ? 'UserTest' : 'UserProfileTest',
+
+            // New modular tests
+            'password' => class_exists('PasswordTest') ? 'PasswordTest' : 'UserTest',
+            'profile' => class_exists('UserProfileTest') ? 'UserProfileTest' : 'UserTest',
+            'management' => class_exists('UserManagementTest') ? 'UserManagementTest' : 'UserTest',
             'project' => class_exists('ProjectTest') ? 'ProjectTest' : 'UserTest',
             'environment' => class_exists('EnvironmentTest') ? 'EnvironmentTest' : 'UserTest',
             'mcp' => class_exists('McpTest') ? 'McpTest' : 'UserTest',
+            'system' => class_exists('SystemTest') ? 'SystemTest' : 'AuthTest',
+            'flow' => class_exists('UserFlowTest') ? 'UserFlowTest' : 'UserTest',
+
+            // New API testing modules
+            'collection' => class_exists('CollectionTest') ? 'CollectionTest' : 'UserTest',
+            'endpoint' => class_exists('EndpointTest') ? 'EndpointTest' : 'UserTest',
+            'flows' => class_exists('FlowTest') ? 'FlowTest' : 'UserTest',
+
+            // Convenience aliases
+            'users' => class_exists('UserManagementTest') ? 'UserManagementTest' : 'UserTest',
+            'projects' => class_exists('ProjectTest') ? 'ProjectTest' : 'UserTest',
+            'environments' => class_exists('EnvironmentTest') ? 'EnvironmentTest' : 'UserTest',
+            'collections' => class_exists('CollectionTest') ? 'CollectionTest' : 'UserTest',
+            'endpoints' => class_exists('EndpointTest') ? 'EndpointTest' : 'UserTest',
+            'integration' => class_exists('UserFlowTest') ? 'UserFlowTest' : 'UserTest',
+
+            // API testing combined
+            'api' => 'AllApiTests',
+
+            // All tests
             'all' => 'AllTests'
         ];
     }
@@ -71,17 +115,39 @@ class TestRunner {
         echo "  --debug, -d     Enable debug output\n";
         echo "  --list, -l      List available tests\n";
         echo "  --help, -h      Show this help\n\n";
-        echo "Test Names:\n";
-        echo "  auth            Run authentication tests\n";
-        echo "  user            Run user management tests\n";
-        if (class_exists('ProjectTest')) echo "  project         Run project management tests\n";
-        if (class_exists('EnvironmentTest')) echo "  environment     Run environment tests\n";
-        if (class_exists('McpTest')) echo "  mcp             Run MCP integration tests\n";
+        echo "Test Categories:\n";
+        echo "  auth            Run authentication tests (register, login, logout)\n";
+        echo "  password        Run password management tests (change, reset)\n";
+        echo "  profile         Run user profile tests (get, update profile)\n";
+        echo "  management      Run user management tests (admin functions)\n";
+        echo "  project         Run project management tests (CRUD projects)\n";
+        echo "  environment     Run environment tests (CRUD environments)\n";
+        echo "  collection      Run collection tests (API collection management)\n";
+        echo "  endpoint        Run endpoint tests (API endpoint management)\n";
+        echo "  flows           Run flow tests (automation flow management)\n";
+        echo "  mcp             Run MCP integration tests (token validation)\n";
+        echo "  system          Run system tests (health check, API help)\n";
+        echo "  flow            Run end-to-end user flow tests (integration)\n";
+        echo "  user            Run legacy user tests (backward compatibility)\n";
+        echo "  api             Run all API testing modules (collections, endpoints, flows)\n";
         echo "  all             Run all tests (default)\n\n";
+        echo "Aliases:\n";
+        echo "  users           Same as 'management' (user CRUD)\n";
+        echo "  projects        Same as 'project'\n";
+        echo "  environments    Same as 'environment'\n";
+        echo "  collections     Same as 'collection'\n";
+        echo "  endpoints       Same as 'endpoint'\n";
+        echo "  flows           Same as 'flows' (flow management)\n";
+        echo "  integration     Same as 'flow' (end-to-end testing)\n\n";
         echo "Examples:\n";
         echo "  php run_tests.php                # Run all tests\n";
         echo "  php run_tests.php auth           # Run auth tests only\n";
-        echo "  php run_tests.php user --debug   # Run user tests with debug\n";
+        echo "  php run_tests.php collection     # Run collection tests\n";
+        echo "  php run_tests.php endpoint       # Run endpoint tests\n";
+        echo "  php run_tests.php flows          # Run flow tests\n";
+        echo "  php run_tests.php api            # Run all API testing modules\n";
+        echo "  php run_tests.php flow           # Run integration flow tests\n";
+        echo "  php run_tests.php profile --debug # Run profile tests with debug\n";
         echo "  php run_tests.php --list         # List available tests\n\n";
     }
 
