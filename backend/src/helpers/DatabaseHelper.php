@@ -84,29 +84,6 @@ class DatabaseHelper {
         }
     }
 
-    /**
-     * Begin database transaction
-     */
-    public static function beginTransaction() {
-        $db = self::getConnection();
-        return $db->startTransaction();
-    }
-
-    /**
-     * Commit transaction
-     */
-    public static function commit() {
-        $db = self::getConnection();
-        return $db->commit();
-    }
-
-    /**
-     * Rollback transaction
-     */
-    public static function rollback() {
-        $db = self::getConnection();
-        return $db->rollback();
-    }
 
     /**
      * Get last database error

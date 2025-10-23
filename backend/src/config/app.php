@@ -52,7 +52,6 @@ class App {
     public static function getSecurityConfig() {
         return [
             'bcrypt_rounds' => (int) self::get('BCRYPT_ROUNDS', 12),
-            'jwt_secret' => self::get('JWT_SECRET'),
             'jwt_access_expire' => (int) self::get('JWT_ACCESS_EXPIRE', 900),
             'jwt_refresh_expire' => (int) self::get('JWT_REFRESH_EXPIRE', 604800)
         ];

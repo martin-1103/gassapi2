@@ -22,21 +22,15 @@ class AuthHandler {
      */
     public function login() {
         $input = ValidationHelper::getJsonInput();
-
         // Validate required fields
         ValidationHelper::required($input, ['email', 'password']);
-
         // Validate email format
         $email = ValidationHelper::email($input['email']);
         $password = $input['password']; // AuthService handles validation
-
         try {
             $result = $this->authService->login($email, $password);
-
             ResponseHelper::success($result, 'Login successful');
         } catch (\Exception $e) {
-            // AuthService already handles response errors with ResponseHelper
-            // This catch is for unexpected errors only
             error_log("Login error: " . $e->getMessage());
             ResponseHelper::error('Login failed', 500);
         }
@@ -51,14 +45,13 @@ class AuthHandler {
         // Validate required fields
         ValidationHelper::required($input, ['email', 'name', 'password']);
 
-        // Validate email format
+        // Validate email and sanitize name
         $email = ValidationHelper::email($input['email']);
         $name = ValidationHelper::sanitize($input['name']);
-        $password = $input['password']; // AuthService handles validation
+        $password = $input['password'];
 
         try {
             $result = $this->authService->register($email, $name, $password);
-
             ResponseHelper::created($result, 'User registered successfully');
         } catch (\Exception $e) {
             error_log("Registration error: " . $e->getMessage());
@@ -129,43 +122,6 @@ class AuthHandler {
         }
     }
 
-    /**
-     * Get current user profile
-     */
-    public function profile() {
-        // Get user from current token
-        $token = JwtHelper::getTokenFromRequest();
-        if (!$token) {
-            ResponseHelper::error('No access token provided', 401);
-        }
-
-        $user = $this->authService->validateAccessToken($token);
-
-        ResponseHelper::success($user, 'Profile retrieved successfully');
-    }
-
-    /**
-     * Update user profile
-     */
-    public function updateProfile() {
-        // Get user from current token
-        $token = JwtHelper::getTokenFromRequest();
-        if (!$token) {
-            ResponseHelper::error('No access token provided', 401);
-        }
-
-        $user = $this->authService->validateAccessToken($token);
-        $input = ValidationHelper::getJsonInput();
-
-        try {
-            $result = $this->authService->updateProfile($user['id'], $input);
-
-            ResponseHelper::success($result, 'Profile updated successfully');
-        } catch (\Exception $e) {
-            error_log("Profile update error: " . $e->getMessage());
-            ResponseHelper::error('Profile update failed', 500);
-        }
-    }
 
 
     /**

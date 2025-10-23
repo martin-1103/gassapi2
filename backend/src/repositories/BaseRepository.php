@@ -9,21 +9,20 @@ use App\Helpers\ResponseHelper;
  */
 abstract class BaseRepository {
 
-    protected static $db = null;
-
     /**
-     * Get database connection instance
+     * Get database connection instance (shared singleton from Database)
      */
     protected static function getConnection() {
-        if (self::$db === null) {
-            try {
-                self::$db = new \MysqliDb(Database::getMysqliDbConfig());
-            } catch (\Exception $e) {
-                error_log("Database connection failed: " . $e->getMessage());
-                ResponseHelper::error('Database connection failed', 500);
+        try {
+            static $db = null;
+            if ($db === null) {
+                $db = new \MysqliDb(Database::getMysqliDbConfig());
             }
+            return $db;
+        } catch (\Exception $e) {
+            error_log("Database connection failed: " . $e->getMessage());
+            throw new RepositoryException('Database connection failed', 500, $e);
         }
-        return self::$db;
     }
 
     /**
@@ -44,7 +43,11 @@ abstract class BaseRepository {
     public function findById($id) {
         $db = self::getConnection();
         $db->where($this->getPrimaryKey(), $id);
-        return $db->getOne($this->getTableName());
+        $result = $db->getOne($this->getTableName());
+        if ($db->getLastErrno()) {
+            throw new RepositoryException('Find by ID failed: ' . $db->getLastError());
+        }
+        return $result;
     }
 
     /**
@@ -53,7 +56,11 @@ abstract class BaseRepository {
     public function findBy($field, $value) {
         $db = self::getConnection();
         $db->where($field, $value);
-        return $db->getOne($this->getTableName());
+        $result = $db->getOne($this->getTableName());
+        if ($db->getLastErrno()) {
+            throw new RepositoryException('Find by field failed: ' . $db->getLastError());
+        }
+        return $result;
     }
 
     /**
@@ -62,12 +69,14 @@ abstract class BaseRepository {
     public function findManyBy($field, $value, $limit = null) {
         $db = self::getConnection();
         $db->where($field, $value);
-
         if ($limit) {
             $db->limit($limit);
         }
-
-        return $db->get($this->getTableName());
+        $result = $db->get($this->getTableName());
+        if ($db->getLastErrno()) {
+            throw new RepositoryException('Find many by field failed: ' . $db->getLastError());
+        }
+        return $result;
     }
 
     /**
@@ -75,16 +84,17 @@ abstract class BaseRepository {
      */
     public function all($limit = null, $orderBy = null) {
         $db = self::getConnection();
-
         if ($orderBy) {
             $db->orderBy($orderBy);
         }
-
         if ($limit) {
             $db->limit($limit);
         }
-
-        return $db->get($this->getTableName());
+        $result = $db->get($this->getTableName());
+        if ($db->getLastErrno()) {
+            throw new RepositoryException('Get all failed: ' . $db->getLastError());
+        }
+        return $result;
     }
 
     /**
@@ -92,18 +102,13 @@ abstract class BaseRepository {
      */
     public function create($data) {
         $db = self::getConnection();
-
-        // Add created_at if not exists
         if (!isset($data['created_at'])) {
             $data['created_at'] = date('Y-m-d H:i:s');
         }
-
         $id = $db->insert($this->getTableName(), $data);
-
         if (!$id) {
-            ResponseHelper::error('Create failed: ' . $db->getLastError());
+            throw new RepositoryException('Create failed: ' . $db->getLastError());
         }
-
         return $id;
     }
 
@@ -113,18 +118,13 @@ abstract class BaseRepository {
     public function update($id, $data) {
         $db = self::getConnection();
         $db->where($this->getPrimaryKey(), $id);
-
-        // Add updated_at if not exists
         if (!isset($data['updated_at'])) {
             $data['updated_at'] = date('Y-m-d H:i:s');
         }
-
         $result = $db->update($this->getTableName(), $data);
-
         if (!$result) {
-            ResponseHelper::error('Update failed: ' . $db->getLastError());
+            throw new RepositoryException('Update failed: ' . $db->getLastError());
         }
-
         return $result;
     }
 
@@ -135,11 +135,9 @@ abstract class BaseRepository {
         $db = self::getConnection();
         $db->where($this->getPrimaryKey(), $id);
         $result = $db->delete($this->getTableName());
-
         if (!$result) {
-            ResponseHelper::error('Delete failed: ' . $db->getLastError());
+            throw new RepositoryException('Delete failed: ' . $db->getLastError());
         }
-
         return $result;
     }
 
@@ -148,14 +146,16 @@ abstract class BaseRepository {
      */
     public function count($where = null) {
         $db = self::getConnection();
-
         if ($where) {
             foreach ($where as $field => $value) {
                 $db->where($field, $value);
             }
         }
-
-        return $db->getValue($this->getTableName(), "COUNT(*)");
+        $result = $db->getValue($this->getTableName(), "COUNT(*)");
+        if ($db->getLastErrno()) {
+            throw new RepositoryException('Count failed: ' . $db->getLastError());
+        }
+        return $result;
     }
 
     /**
@@ -170,16 +170,15 @@ abstract class BaseRepository {
      */
     public function paginate($page = 1, $limit = 10, $orderBy = null) {
         $db = self::getConnection();
-
         $offset = ($page - 1) * $limit;
-
         if ($orderBy) {
             $db->orderBy($orderBy);
         }
-
         $results = $db->get($this->getTableName(), [$offset, $limit]);
+        if ($db->getLastErrno()) {
+            throw new RepositoryException('Pagination failed: ' . $db->getLastError());
+        }
         $total = $this->count();
-
         return [
             'data' => $results,
             'pagination' => [

@@ -1,6 +1,8 @@
 <?php
 namespace App\Repositories;
 
+use App\Repositories\RepositoryException;
+
 /**
  * User Repository untuk semua user-related database operations
  */
@@ -184,23 +186,23 @@ class UserRepository extends BaseRepository {
         $required = ['email', 'name', 'password_hash'];
         foreach ($required as $field) {
             if (empty($data[$field])) {
-                ResponseHelper::error("Field '$field' is required", 400);
+                throw new RepositoryException("Field '$field' is required", 400);
             }
         }
 
         // Validate email format
         if (!filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
-            ResponseHelper::error('Invalid email format', 400);
+            throw new RepositoryException('Invalid email format', 400);
         }
 
         // Check unique email
         if ($this->emailExists($data['email'])) {
-            ResponseHelper::error('Email already exists', 409);
+            throw new RepositoryException('Email already exists', 409);
         }
 
         // Validate name
         if (strlen(trim($data['name'])) < 2) {
-            ResponseHelper::error('Name must be at least 2 characters', 400);
+            throw new RepositoryException('Name must be at least 2 characters', 400);
         }
     }
 
@@ -211,24 +213,24 @@ class UserRepository extends BaseRepository {
         // Validate email if provided
         if (isset($data['email'])) {
             if (!filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
-                ResponseHelper::error('Invalid email format', 400);
+                throw new RepositoryException('Invalid email format', 400);
             }
 
             // Check if email is taken by another user
             $existingUser = $this->findByEmail($data['email']);
             if ($existingUser && $existingUser['id'] !== ($data['id'] ?? null)) {
-                ResponseHelper::error('Email already exists', 409);
+                throw new RepositoryException('Email already exists', 409);
             }
         }
 
         // Validate name if provided
         if (isset($data['name']) && strlen(trim($data['name'])) < 2) {
-            ResponseHelper::error('Name must be at least 2 characters', 400);
+            throw new RepositoryException('Name must be at least 2 characters', 400);
         }
 
         // Validate is_active if provided
         if (isset($data['is_active']) && !in_array($data['is_active'], [0, 1])) {
-            ResponseHelper::error('is_active must be 0 or 1', 400);
+            throw new RepositoryException('is_active must be 0 or 1', 400);
         }
     }
 
@@ -237,7 +239,7 @@ class UserRepository extends BaseRepository {
      */
     private function validatePassword($password) {
         if (strlen($password) < 8) {
-            ResponseHelper::error('Password must be at least 8 characters', 400);
+            throw new RepositoryException('Password must be at least 8 characters', 400);
         }
 
         // Add more password validation as needed
@@ -246,7 +248,7 @@ class UserRepository extends BaseRepository {
         $hasNumber = preg_match('/[0-9]/', $password);
 
         if (!$hasUpper || !$hasLower || !$hasNumber) {
-            ResponseHelper::error('Password must contain uppercase, lowercase, and numbers', 400);
+            throw new RepositoryException('Password must contain uppercase, lowercase, and numbers', 400);
         }
     }
 }

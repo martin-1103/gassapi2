@@ -14,6 +14,7 @@ require_once __DIR__ . '/lib/MysqliDb.php';
 // Load environment variables
 use Dotenv\Dotenv;
 use App\Config\App;
+use App\Helpers\ResponseHelper;
 
 try {
     $dotenv = Dotenv::createImmutable(__DIR__);
@@ -47,12 +48,12 @@ $method = $_SERVER['REQUEST_METHOD'];
 
 // Security: Action whitelist
 $allowedActions = [
-    'help', 'health', 'login', 'register', 'logout',
+    'help', 'health', 'login', 'register', 'logout', 'refresh',
     'users', 'user', 'profile'
 ];
 
 if (!in_array($action, $allowedActions)) {
-    App\Helpers\ResponseHelper::error('Invalid action', 400);
+    ResponseHelper::error('Invalid action', 400);
 }
 
 // Resolve and execute route
@@ -60,7 +61,7 @@ $routePath = resolveRoutePath($action, $id);
 $resolveResult = ApiRoutes::resolveRoute($method, $routePath, $id);
 
 if ($resolveResult['error']) {
-    App\Helpers\ResponseHelper::error($resolveResult['error'], 404);
+    ResponseHelper::error($resolveResult['error'], 404);
 }
 
 // Execute the resolved handler
@@ -76,6 +77,7 @@ function resolveRoutePath($action, $id = null) {
         'login' => '/login',
         'register' => '/register',
         'logout' => '/logout',
+        'refresh' => '/refresh',
         'users' => '/users',
         'profile' => '/profile',
         'user' => $id ? "/user/$id" : '/user'
