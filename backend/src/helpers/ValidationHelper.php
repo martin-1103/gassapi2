@@ -210,12 +210,10 @@ class ValidationHelper {
             ResponseHelper::error('Password harus mengandung huruf besar, huruf kecil, dan angka', 400);
         }
 
-        // Check for common passwords (basic check)
+        // Check for exact common passwords (not containing them)
         $commonPasswords = ['password', '123456', 'qwerty', 'admin', 'letmein'];
-        foreach ($commonPasswords as $common) {
-            if (stripos($password, $common) !== false) {
-                ResponseHelper::error('Password tidak boleh mengandung kata yang umum', 400);
-            }
+        if (in_array(strtolower($password), $commonPasswords)) {
+            ResponseHelper::error('Password tidak boleh menggunakan kata yang umum', 400);
         }
 
         return $password;

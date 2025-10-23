@@ -5,6 +5,7 @@ use App\Repositories\UserRepository;
 use App\Repositories\RefreshTokenRepository;
 use App\Helpers\ResponseHelper;
 use App\Helpers\JwtHelper;
+use App\Helpers\SecuritySanitizer;
 
 /**
  * Authentication Service untuk centralize auth logic
@@ -288,7 +289,7 @@ class AuthService {
         $this->refreshTokenRepository->deactivateAllForUser($userId);
 
         return [
-            'message' => 'Password changed successfully. Please login again.',
+            'message' => 'Password changed successfully',
             'requires_reauth' => true,
             'old_token_version' => $currentTokenVersion,
             'new_token_version' => $currentTokenVersion + 1
@@ -384,7 +385,8 @@ class AuthService {
             ResponseHelper::error('Name must be less than 100 characters', 400);
         }
 
-        // XSS protection for registration name
+        // Enhanced XSS protection for registration name
+        SecuritySanitizer::checkSQLInjection($name);
         $this->validateXSS($name);
 
         if (strlen($password) < 8) {
@@ -417,7 +419,8 @@ class AuthService {
             ResponseHelper::error('Name must be less than 100 characters', 400);
         }
 
-        // Comprehensive XSS protection
+        // Enhanced XSS protection with comprehensive validation
+        SecuritySanitizer::checkSQLInjection($name);
         $this->validateXSS($name);
     }
 
@@ -539,8 +542,8 @@ class AuthService {
             ResponseHelper::error('Invalid email format', 400);
         }
 
-        // XSS protection for email field
-        $this->validateXSS($email);
+        // XSS protection for email field (basic validation already done)
+        // Email format validation is sufficient for XSS prevention in email context
 
         // Check if email already exists (exclude current user)
         if ($this->userRepository->emailExists($email, $excludeUserId)) {

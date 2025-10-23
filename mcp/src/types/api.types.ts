@@ -2,18 +2,33 @@
  * API Response Type Definitions
  */
 
-export interface ApiResponse<T = any> {
+/**
+ * Base interface for all API responses with generic data type
+ * @template T - Type of the response data
+ */
+export interface ApiResponse<T = unknown> {
+  /** Indicates if the request was successful */
   success: boolean;
+  /** Response payload (if successful) */
   data?: T;
+  /** Human-readable success message */
   message?: string;
+  /** Error details (if unsuccessful) */
   error?: string;
 }
 
+/**
+ * Standardized error response structure
+ */
 export interface ApiError {
+  /** Always false for error responses */
   success: false;
+  /** Error message describing what went wrong */
   error: string;
+  /** Machine-readable error code for programmatic handling */
   code?: string;
-  details?: any;
+  /** Additional error context or validation details */
+  details?: ValidationError[] | Record<string, unknown>;
 }
 
 export interface PaginatedResponse<T> {
@@ -27,10 +42,39 @@ export interface PaginatedResponse<T> {
   };
 }
 
+/**
+ * Individual validation error detail
+ */
 export interface ValidationError {
+  /** Field name that failed validation */
   field: string;
+  /** Validation error message */
   message: string;
+  /** Validation rule that failed (e.g., 'required', 'minLength', 'email') */
   code?: string;
+}
+
+/**
+ * HTTP method types supported by the API
+ */
+export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' | 'HEAD' | 'OPTIONS';
+
+/**
+ * Request body types that can be sent to the API
+ */
+export type RequestBody =
+  | Record<string, unknown>
+  | unknown[]
+  | string
+  | number
+  | boolean
+  | null;
+
+/**
+ * API headers structure
+ */
+export interface ApiHeaders {
+  [key: string]: string;
 }
 
 // Project-related API responses
@@ -185,26 +229,48 @@ export interface EndpointsResponse {
   }>;
 }
 
+/**
+ * Detailed endpoint information with test results
+ */
 export interface EndpointDetailsResponse {
+  /** Unique endpoint identifier */
   id: string;
+  /** Parent collection identifier */
   collection_id: string;
+  /** Human-readable endpoint name */
   name: string;
-  method: string;
+  /** HTTP method for this endpoint */
+  method: HttpMethod;
+  /** Endpoint URL path */
   url: string;
-  headers?: Record<string, string>;
-  body?: any;
+  /** Default headers for endpoint requests */
+  headers?: ApiHeaders;
+  /** Default request body template */
+  body?: RequestBody;
+  /** Optional description of endpoint purpose */
   description?: string;
+  /** ISO timestamp when endpoint was created */
   created_at: string;
+  /** ISO timestamp when endpoint was last updated */
   updated_at: string;
+  /** Parent collection information */
   collection?: {
+    /** Collection identifier */
     id: string;
+    /** Collection name */
     name: string;
+    /** Parent collection identifier (if nested) */
     parent_id?: string;
   };
+  /** Recent test execution results */
   test_results?: Array<{
+    /** Test result identifier */
     id: string;
+    /** HTTP status code received */
     status: number;
+    /** Response time in milliseconds */
     response_time: number;
+    /** ISO timestamp when test was executed */
     created_at: string;
   }>;
 }
@@ -216,15 +282,27 @@ export interface TestExecutionRequest {
   save_result?: boolean;
 }
 
+/**
+ * Result of a test execution against an endpoint
+ */
 export interface TestExecutionResponse {
+  /** Test execution identifier */
   id: string;
+  /** Endpoint that was tested */
   endpoint_id: string;
+  /** Environment used for testing */
   environment_id: string;
+  /** HTTP status code received */
   status: number;
+  /** Response time in milliseconds */
   response_time: number;
-  response_body?: any;
-  response_headers?: Record<string, string>;
+  /** Raw response body (parsed if JSON) */
+  response_body?: RequestBody;
+  /** Response headers received */
+  response_headers?: ApiHeaders;
+  /** Error message if test failed */
   error?: string;
+  /** ISO timestamp when test was executed */
   created_at: string;
 }
 
@@ -254,21 +332,40 @@ export interface CollectionCreateRequest {
   description?: string;
 }
 
+/**
+ * Request payload for creating a new endpoint
+ */
 export interface EndpointCreateRequest {
+  /** Human-readable endpoint name */
   name: string;
+  /** Parent collection identifier */
   collection_id: string;
-  method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' | 'HEAD' | 'OPTIONS';
+  /** HTTP method for this endpoint */
+  method: HttpMethod;
+  /** Endpoint URL path */
   url: string;
-  headers?: Record<string, string>;
-  body?: any;
+  /** Default headers for endpoint requests */
+  headers?: ApiHeaders;
+  /** Default request body template */
+  body?: RequestBody;
+  /** Optional description of endpoint purpose */
   description?: string;
 }
 
+/**
+ * Request payload for updating an existing endpoint
+ */
 export interface EndpointUpdateRequest {
+  /** Updated human-readable endpoint name */
   name?: string;
-  method?: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' | 'HEAD' | 'OPTIONS';
+  /** Updated HTTP method for this endpoint */
+  method?: HttpMethod;
+  /** Updated endpoint URL path */
   url?: string;
-  headers?: Record<string, string>;
-  body?: any;
+  /** Updated default headers for endpoint requests */
+  headers?: ApiHeaders;
+  /** Updated default request body template */
+  body?: RequestBody;
+  /** Updated description of endpoint purpose */
   description?: string;
 }

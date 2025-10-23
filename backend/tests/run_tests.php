@@ -307,6 +307,17 @@ class TestRunner {
         $testName = $this->getTestClass();
         $startTime = microtime(true);
 
+        // Clear old report files at the start
+        $reportsDir = __DIR__ . '/reports/';
+        if (is_dir($reportsDir)) {
+            $oldFiles = glob($reportsDir . '*');
+            foreach ($oldFiles as $file) {
+                if (is_file($file)) {
+                    unlink($file);
+                }
+            }
+        }
+
         echo "Starting Backend PHP API Tests...\n";
         echo "Test Suite: $testName\n";
         echo "Base URL: " . TestConfig::getBaseUrl() . "\n";

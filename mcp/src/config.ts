@@ -1,3 +1,4 @@
+import { promises as fs } from 'fs';
 import { ConfigLoader } from './discovery/ConfigLoader';
 import { CacheConfig, McpServerConfig, ExecutionConfig } from './types/config.types';
 
@@ -321,7 +322,7 @@ export class Config {
       const projectDir = process.cwd();
       const configPath = `${projectDir}/gassapi.json`;
 
-      await require('fs').promises.writeFile(configPath, JSON.stringify(config, null, 2));
+      await fs.writeFile(configPath, JSON.stringify(config, null, 2));
 
       // Reload
       this._projectConfig = null;

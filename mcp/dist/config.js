@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.config = exports.Config = void 0;
+const fs_1 = require("fs");
 const ConfigLoader_1 = require("./discovery/ConfigLoader");
 /**
  * GASSAPI MCP Client Configuration
@@ -269,7 +270,7 @@ class Config {
             // Save to file
             const projectDir = process.cwd();
             const configPath = `${projectDir}/gassapi.json`;
-            await require('fs').promises.writeFile(configPath, JSON.stringify(config, null, 2));
+            await fs_1.promises.writeFile(configPath, JSON.stringify(config, null, 2));
             // Reload
             this._projectConfig = null;
             await this.loadProjectConfig();

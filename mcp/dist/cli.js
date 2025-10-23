@@ -38,7 +38,9 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
+const readline = __importStar(require("readline"));
 const config_1 = require("./config");
+const Logger_1 = require("./utils/Logger");
 /**
  * CLI application class
  */
@@ -48,10 +50,12 @@ class GassapiMcpCli {
      */
     static async main() {
         try {
+            // Initialize logger
+            (0, Logger_1.initializeLogger)();
             // Parse command line arguments
             const args = process.argv.slice(2);
             const command = args[0] || 'help';
-            console.log('🚀 GASSAPI MCP Client CLI');
+            Logger_1.logger.cli('🚀 GASSAPI MCP Client CLI', 'info');
             switch (command) {
                 case 'start':
                     await GassapiMcpCli.startServer();
@@ -82,13 +86,13 @@ class GassapiMcpCli {
                     GassapiMcpCli.showVersion();
                     break;
                 default:
-                    console.error(`❌ Unknown command: ${command}`);
-                    console.error('Use "gassapi-mcp help" for available commands');
+                    Logger_1.logger.cli(`❌ Unknown command: ${command}`, 'error');
+                    Logger_1.logger.cli('Use "gassapi-mcp help" for available commands', 'error');
                     process.exit(1);
             }
         }
         catch (error) {
-            console.error('❌ CLI Error:', error instanceof Error ? error.message : 'Unknown error');
+            Logger_1.logger.cli('❌ CLI Error: ' + (error instanceof Error ? error.message : 'Unknown error'), 'error');
             process.exit(1);
         }
     }
@@ -96,27 +100,27 @@ class GassapiMcpCli {
      * Start MCP server
      */
     static async startServer() {
-        console.log('🤖 Starting MCP Server...');
+        Logger_1.logger.cli('🤖 Starting MCP Server...', 'info');
         try {
             // Load configuration first
             await config_1.config.loadProjectConfig();
             if (!config_1.config.hasProjectConfig()) {
-                console.error('❌ No GASSAPI configuration found');
-                console.error('Please create gassapi.json in your project root or run "gassapi-mcp init"');
+                Logger_1.logger.cli('❌ No GASSAPI configuration found', 'error');
+                Logger_1.logger.cli('Please create gassapi.json in your project root or run "gassapi-mcp init"', 'error');
                 process.exit(1);
             }
             const summary = config_1.config.getConfigurationSummary();
-            console.log(`📋 Project: ${summary.projectName} (${summary.projectId})`);
-            console.log(`🔗 Server: ${summary.serverUrl}`);
-            console.log(`🌍 Environment: ${summary.environmentActive}`);
-            console.log(`🔧 Variables: ${summary.variableCount}`);
+            Logger_1.logger.cli(`📋 Project: ${summary.projectName} (${summary.projectId})`, 'info');
+            Logger_1.logger.cli(`🔗 Server: ${summary.serverUrl}`, 'info');
+            Logger_1.logger.cli(`🌍 Environment: ${summary.environmentActive}`, 'info');
+            Logger_1.logger.cli(`🔧 Variables: ${summary.variableCount}`, 'info');
             // Import and start server
             const { GassapiMcpClient } = await Promise.resolve().then(() => __importStar(require('./index.js')));
             const client = new GassapiMcpClient();
             await client.start();
         }
         catch (error) {
-            console.error('❌ Failed to start MCP server:', error instanceof Error ? error.message : 'Unknown error');
+            Logger_1.logger.cli('❌ Failed to start MCP server: ' + (error instanceof Error ? error.message : 'Unknown error'), 'error');
             process.exit(1);
         }
     }
@@ -125,7 +129,7 @@ class GassapiMcpCli {
      */
     static async initConfig() {
         console.log('📝 Initializing GASSAPI configuration...');
-        const readline = require('readline');
+        // readline already imported above
         const rl = readline.createInterface({
             input: process.stdin,
             output: process.stdout
@@ -378,7 +382,7 @@ class GassapiMcpCli {
     }
 }
 // Run CLI if called directly
-if (require.main === module) {
+if (import.meta.url === `file://${process.argv[1]}`) {
     GassapiMcpCli.main().catch(error => {
         console.error('❌ Fatal CLI error:', error);
         process.exit(1);

@@ -55,7 +55,7 @@ class AuthHandler {
 
         try {
             $result = $this->authService->register($email, $name, $password);
-            ResponseHelper::created($result, 'Registrasi berhasil');
+            ResponseHelper::created($result, 'User registered successfully');
         } catch (\Exception $e) {
             error_log("Registration error: " . $e->getMessage());
             ResponseHelper::error('Registrasi gagal', 400);

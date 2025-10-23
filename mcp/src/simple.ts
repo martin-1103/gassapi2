@@ -1,4 +1,8 @@
 // Simple MCP client for testing
+import fetch from 'node-fetch';
+import * as fs from 'fs';
+import * as path from 'path';
+
 interface Config {
   project?: {
     id: string;
@@ -9,9 +13,6 @@ interface Config {
     serverURL: string;
   };
 }
-
-// Use node-fetch for better HTTP client support
-const fetch = require('node-fetch').default || require('node-fetch');
 
 /**
  * Type guards for configuration validation
@@ -90,8 +91,7 @@ export class SimpleMcpClient {
    */
   private loadConfig(): void {
     try {
-      const fs = require('fs');
-      const path = require('path');
+      // fs and path already imported above
 
       // Look for gassapi.json in current and parent directories
       let currentDir = process.cwd();
@@ -275,8 +275,7 @@ export class SimpleMcpClient {
    * Create sample configuration dengan validasi struktur
    */
   createSampleConfig(): void {
-    const fs = require('fs');
-    const path = require('path');
+    // fs and path already imported above
 
     const sampleConfig = {
       project: {

@@ -14,6 +14,7 @@ import {
   EnvironmentSetVariableRequest,
   EnvironmentImportRequest,
   CollectionCreateRequest,
+CollectionDetailsResponse,
   EndpointCreateRequest,
   EndpointUpdateRequest
 } from '../types/api.types';
@@ -74,8 +75,8 @@ export class BackendClient {
 
   // Project operations
   async getProjectContext(projectId: string): Promise<{
-    project: any;
-    environments: any[];
+    project: ProjectDetailsResponse;
+    environments: EnvironmentsResponse['environments'];
     collections?: any[];
     endpoints?: any[];
   }> {
@@ -200,7 +201,8 @@ export class BackendClient {
     }
   }
 
-  async createCollection(collectionData: CollectionCreateRequest): Promise<any> {
+  async createCollection(collectionData: CollectionCreateRequest): Promise<CollectionDetailsResponse> {
+CollectionDetailsResponse,
     try {
       const response = await this.fetchWithTimeout('/collections', {
         method: 'POST',
@@ -224,7 +226,7 @@ export class BackendClient {
     }
   }
 
-  async moveCollection(collectionId: string, newParentId: string): Promise<any> {
+  async moveCollection(collectionId: string, newParentId: string): Promise<CollectionDetailsResponse> {
     try {
       const response = await this.fetchWithTimeout(`/collections/${collectionId}/move`, {
         method: 'PUT',
@@ -248,7 +250,7 @@ export class BackendClient {
     }
   }
 
-  async deleteCollection(collectionId: string, force: boolean = false): Promise<any> {
+  async deleteCollection(collectionId: string, force: boolean = false): Promise<{ success: boolean; message?: string }> {
     try {
       const response = await this.fetchWithTimeout(`/collections/${collectionId}?force=${force}`, {
         method: 'DELETE',
@@ -325,7 +327,7 @@ export class BackendClient {
     }
   }
 
-  async setEnvironmentVariable(variableData: EnvironmentSetVariableRequest): Promise<any> {
+  async setEnvironmentVariable(variableData: EnvironmentSetVariableRequest): Promise<{ success: boolean; variable?: any }> {
     try {
       const response = await this.fetchWithTimeout('/environments/variables', {
         method: 'POST',
@@ -349,7 +351,7 @@ export class BackendClient {
     }
   }
 
-  async exportEnvironment(environmentId: string, format: 'json' | 'env' | 'yaml' = 'json'): Promise<any> {
+  async exportEnvironment(environmentId: string, format: 'json' | 'env' | 'yaml' = 'json'): Promise<{ content: string; format: string }> {
     try {
       const response = await this.fetchWithTimeout(`/environments/${environmentId}/export?format=${format}`, {
         method: 'GET',
@@ -369,7 +371,7 @@ export class BackendClient {
     }
   }
 
-  async importEnvironment(importData: EnvironmentImportRequest): Promise<any> {
+  async importEnvironment(importData: EnvironmentImportRequest): Promise<{ success: boolean; imported?: number }> {
     try {
       const response = await this.fetchWithTimeout('/environments/import', {
         method: 'POST',
@@ -448,7 +450,7 @@ export class BackendClient {
     }
   }
 
-  async createEndpoint(endpointData: EndpointCreateRequest): Promise<any> {
+  async createEndpoint(endpointData: EndpointCreateRequest): Promise<EndpointDetailsResponse> {
     try {
       const response = await this.fetchWithTimeout('/endpoints', {
         method: 'POST',
@@ -472,7 +474,7 @@ export class BackendClient {
     }
   }
 
-  async updateEndpoint(endpointId: string, updateData: EndpointUpdateRequest): Promise<any> {
+  async updateEndpoint(endpointId: string, updateData: EndpointUpdateRequest): Promise<EndpointDetailsResponse> {
     try {
       const response = await this.fetchWithTimeout(`/endpoints/${endpointId}`, {
         method: 'PUT',
@@ -496,7 +498,7 @@ export class BackendClient {
     }
   }
 
-  async moveEndpoint(endpointId: string, newCollectionId: string): Promise<any> {
+  async moveEndpoint(endpointId: string, newCollectionId: string): Promise<EndpointDetailsResponse> {
     try {
       const response = await this.fetchWithTimeout(`/endpoints/${endpointId}/move`, {
         method: 'PUT',

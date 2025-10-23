@@ -288,7 +288,7 @@ Please check:
                 description: args.description,
                 enabled: args.enabled !== undefined ? args.enabled : true
             };
-            const result = await client.setEnvironmentVariable(variableData);
+            await client.setEnvironmentVariable(variableData);
             return {
                 content: [
                     {
@@ -386,7 +386,7 @@ Please check:
                 variables: args.variables,
                 overwrite: args.overwrite || false
             };
-            const result = await client.importEnvironment(importData);
+            await client.importEnvironment(importData);
             const successCount = args.variables.length;
             const variablesText = args.variables.map((v) => `${v.enabled !== false ? '🟢' : '🔴'} ${v.key} = "${v.value}"${v.description ? ` // ${v.description}` : ''}`).join('\n');
             return {

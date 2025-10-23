@@ -137,7 +137,6 @@ Token validation failed!`
   }> {
     try {
       const config = await this.configLoader.detectProjectConfig();
-      const configExists = await this.configLoader.configExists();
 
       if (!config) {
         return {
@@ -303,7 +302,7 @@ Project context loading failed!`
       this.backendClient = null;
 
       // Re-validate token
-      const result = await this.validateMcpToken({});
+      await this.validateMcpToken({});
 
       return {
         content: [

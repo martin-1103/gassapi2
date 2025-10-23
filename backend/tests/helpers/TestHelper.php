@@ -152,6 +152,13 @@ class TestHelper {
     }
 
     /**
+     * Get base URL
+     */
+    public function getBaseUrl() {
+        return $this->baseUrl;
+    }
+
+    /**
      * Print test result
      */
     public function printResult($testName, $result, $expectedStatus = 200) {

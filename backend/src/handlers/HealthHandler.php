@@ -18,15 +18,14 @@ class HealthHandler {
             $dbStatus = $db ? 'connected' : 'disconnected';
 
             $healthData = [
-                'status' => [
-                    'app' => 'Backend PHP API',
-                    'version' => '1.0.0',
-                    'timestamp' => date('Y-m-d H:i:s'),
-                    'environment' => $_ENV['APP_ENV'] ?? 'unknown',
-                    'database' => $dbStatus,
-                    'memory_usage' => memory_get_usage(true),
-                    'peak_memory' => memory_get_peak_usage(true)
-                ]
+                'status' => 'healthy',
+                'app' => 'Backend PHP API',
+                'version' => '1.0.0',
+                'timestamp' => date('Y-m-d H:i:s'),
+                'environment' => $_ENV['APP_ENV'] ?? 'unknown',
+                'database' => $dbStatus,
+                'memory_usage' => memory_get_usage(true),
+                'peak_memory' => memory_get_peak_usage(true)
             ];
 
             ResponseHelper::success($healthData, 'Health check successful');

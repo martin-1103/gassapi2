@@ -7,7 +7,7 @@
 
 import { McpServer } from './server/McpServer';
 import { config } from './config';
-const prompt = require('readline-sync');
+import * as readlineSync from 'readline-sync';
 
 // Load project configuration before starting server
 async function loadConfigurationAndStart() {
@@ -195,8 +195,8 @@ class GassapiMcpClient {
     try {
       console.log('📝 Creating GASSAPI sample configuration...');
 
-      const name = projectName || prompt.question('Enter project name:') || 'My GASSAPI Project';
-      const id = projectId || prompt.question('Enter project ID:') || 'proj_' + Date.now();
+      const name = projectName || readlineSync.question('Enter project name:') || 'My GASSAPI Project';
+      const id = projectId || readlineSync.question('Enter project ID:') || 'proj_' + Date.now();
 
       await config.createSampleConfig(name, id);
 

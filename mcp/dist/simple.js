@@ -1,8 +1,11 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.SimpleMcpClient = void 0;
-// Use node-fetch for better HTTP client support
-const fetch = require('node-fetch').default || require('node-fetch');
+// Simple MCP client for testing
+const node_fetch_1 = __importDefault(require("node-fetch"));
 /**
  * Type guards for configuration validation
  */
@@ -154,7 +157,7 @@ class SimpleMcpClient {
                 console.log('🌐 Testing HTTP request ke:', this.config.mcpClient.serverURL);
                 const startTime = Date.now();
                 // Gunakan node-fetch untuk HTTP client yang lebih baik
-                const response = await fetch(this.config.mcpClient.serverURL + '/health', {
+                const response = await (0, node_fetch_1.default)(this.config.mcpClient.serverURL + '/health', {
                     method: 'GET',
                     headers: {
                         'User-Agent': 'gassapi-mcp-client/1.0.0',

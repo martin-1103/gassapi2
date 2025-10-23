@@ -84,6 +84,13 @@ class UserHandler {
             ResponseHelper::error('User ID is required', 400);
         }
 
+        // Check authentication first
+        $token = JwtHelper::getTokenFromRequest();
+        if (!$token) {
+            ResponseHelper::error('Authentication required', 401);
+        }
+        $this->authService->validateAccessToken($token);
+
         try {
             $user = $this->userRepository->findByIdSanitized($id);
 
@@ -105,6 +112,13 @@ class UserHandler {
         if (empty($id)) {
             ResponseHelper::error('ID user wajib diisi', 400);
         }
+
+        // Check authentication first
+        $token = JwtHelper::getTokenFromRequest();
+        if (!$token) {
+            ResponseHelper::error('Authentication required', 401);
+        }
+        $this->authService->validateAccessToken($token);
 
         // Validate ID
         $userId = ValidationHelper::integer($id, 1);
@@ -167,6 +181,13 @@ class UserHandler {
         if (empty($id)) {
             ResponseHelper::error('ID user wajib diisi', 400);
         }
+
+        // Check authentication first
+        $token = JwtHelper::getTokenFromRequest();
+        if (!$token) {
+            ResponseHelper::error('Authentication required', 401);
+        }
+        $this->authService->validateAccessToken($token);
 
         // Validate ID
         $userId = ValidationHelper::integer($id, 1);

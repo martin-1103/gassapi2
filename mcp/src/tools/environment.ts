@@ -338,7 +338,7 @@ Please check:
         enabled: args.enabled !== undefined ? args.enabled : true
       };
 
-      const result = await client.setEnvironmentVariable(variableData);
+      await client.setEnvironmentVariable(variableData);
 
       return {
         content: [
@@ -461,7 +461,7 @@ Please check:
         overwrite: args.overwrite || false
       };
 
-      const result = await client.importEnvironment(importData);
+      await client.importEnvironment(importData);
 
       const successCount = args.variables.length;
       const variablesText = args.variables.map((v: any) =>

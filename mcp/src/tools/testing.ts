@@ -1,6 +1,7 @@
 import { McpTool } from '../types/mcp.types';
 import { ConfigLoader } from '../discovery/ConfigLoader';
 import { BackendClient } from '../client/BackendClient';
+import { logger } from '../utils/Logger';
 
 import { TestExecutionResponse } from '../types/api.types';
 /**
@@ -121,18 +122,18 @@ export class TestingTools {
 
         // Validate variable structure
         if (!variable || typeof variable !== 'object') {
-          console.warn(`Variable di index ${i} tidak valid, dilewati`);
+          logger.warn(`Variable di index ${i} tidak valid, dilewati`, { index: i }, 'TestingTools');
           continue;
         }
 
         // Check required fields
         if (!variable.key || typeof variable.key !== 'string') {
-          console.warn(`Variable di index ${i} tidak memiliki key yang valid, dilewati`);
+          logger.warn(`Variable di index ${i} tidak memiliki key yang valid, dilewati`, { index: i }, 'TestingTools');
           continue;
         }
 
         if (variable.key.trim() === '') {
-          console.warn(`Variable di index ${i} memiliki key kosong, dilewati`);
+          logger.warn(`Variable di index ${i} memiliki key kosong, dilewati`, { index: i }, 'TestingTools');
           continue;
         }
 

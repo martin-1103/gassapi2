@@ -117,7 +117,6 @@ Token validation failed!`
     async getAuthStatus() {
         try {
             const config = await this.configLoader.detectProjectConfig();
-            const configExists = await this.configLoader.configExists();
             if (!config) {
                 return {
                     content: [
@@ -265,7 +264,7 @@ Project context loading failed!`
             await this.configLoader.clearCache();
             this.backendClient = null;
             // Re-validate token
-            const result = await this.validateMcpToken({});
+            await this.validateMcpToken({});
             return {
                 content: [
                     {
