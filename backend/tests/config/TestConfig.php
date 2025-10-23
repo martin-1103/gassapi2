@@ -32,10 +32,15 @@ class TestConfig {
         'login' => '?act=login',
         'register' => '?act=register',
         'logout' => '?act=logout',
+        'logout-all' => '?act=logout-all',
         'refresh' => '?act=refresh',
+        'change-password' => '?act=change-password',
         'users' => '?act=users',
+        'users_stats' => '?act=users_stats',
         'profile' => '?act=profile',
-        'user_by_id' => '?act=user&id=',
+        'user' => '?act=user&id=',
+        'user_update' => '?act=user_update&id=',
+        'user_toggle_status' => '?act=user&id=',  // Will be handled specially
         'help' => '?act=help'
     ];
 
@@ -57,9 +62,18 @@ class TestConfig {
      */
     public static function getUrl($endpoint, $id = null) {
         $url = self::BASE_URL . self::ENDPOINTS[$endpoint];
-        if ($id !== null && $endpoint === 'user_by_id') {
-            $url .= $id;
+
+        // Handle endpoints that need ID
+        if ($id !== null) {
+            if (in_array($endpoint, ['user', 'user_update', 'user_toggle_status'])) {
+                $url .= $id;
+                // Special handling for toggle status
+                if ($endpoint === 'user_toggle_status') {
+                    $url = str_replace('?act=user&id=', '?act=user&id=' . $id . '/toggle-status', $url);
+                }
+            }
         }
+
         return $url;
     }
 

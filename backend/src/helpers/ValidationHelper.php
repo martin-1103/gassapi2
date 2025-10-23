@@ -11,7 +11,15 @@ class ValidationHelper {
      */
     public static function getJsonInput() {
         $input = file_get_contents('php://input');
-        return json_decode($input, true) ?? [];
+        $decoded = json_decode($input, true);
+
+        // Handle JSON decode errors
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            error_log("JSON decode error: " . json_last_error_msg() . " | Input: " . $input);
+            return [];
+        }
+
+        return $decoded ?? [];
     }
 
     /**

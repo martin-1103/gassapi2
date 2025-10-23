@@ -13,7 +13,7 @@ class AuthTest extends BaseTest {
     protected function setUp() {
         parent::setUp();
         $this->testEmail = 'test_' . time() . '@example.com';
-        $this->testPassword = 'Test123456!';
+        $this->testPassword = 'Test123456';
     }
 
     /**

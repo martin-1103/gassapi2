@@ -48,8 +48,10 @@ $method = $_SERVER['REQUEST_METHOD'];
 
 // Security: Action whitelist
 $allowedActions = [
-    'help', 'health', 'login', 'register', 'logout', 'refresh',
-    'users', 'user', 'profile'
+    'help', 'health',
+    'login', 'register', 'logout', 'refresh', 'logout-all', 'change-password',
+    'users', 'users_stats', 'user', 'profile',
+    'user_update', 'user_toggle_status'
 ];
 
 if (!in_array($action, $allowedActions)) {

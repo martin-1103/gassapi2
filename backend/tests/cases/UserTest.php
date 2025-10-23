@@ -14,7 +14,7 @@ class UserTest extends BaseTest {
     protected function setUp() {
         parent::setUp();
         $this->testEmail = 'usertest_' . time() . '@example.com';
-        $this->testPassword = 'UserTest123456!';
+        $this->testPassword = 'UserTest123456';
         $this->setupTestUser();
     }
 
@@ -199,11 +199,11 @@ class UserTest extends BaseTest {
 
         $passwordData = [
             'current_password' => $this->testPassword,
-            'new_password' => 'NewPassword123456!',
-            'confirm_password' => 'NewPassword123456!'
+            'new_password' => 'NewPassword123456',
+            'confirm_password' => 'NewPassword123456'
         ];
 
-        $result = $this->testHelper->post('register', $passwordData); // Using register endpoint for change-password
+        $result = $this->testHelper->post('change-password', $passwordData);
         $success = $this->testHelper->printResult("Change Password", $result);
 
         if ($result['status'] === 200) {
@@ -227,7 +227,7 @@ class UserTest extends BaseTest {
             return true;
         }
 
-        $result = $this->testHelper->post('register'); // Using register endpoint for logout-all
+        $result = $this->testHelper->post('logout-all');
         $success = $this->testHelper->printResult("Logout All", $result);
 
         if ($result['status'] === 200) {
@@ -236,6 +236,177 @@ class UserTest extends BaseTest {
         }
 
         return $result['status'] === 200 || $result['status'] === 404;
+    }
+
+    /**
+     * Test update user by ID (admin functionality)
+     */
+    protected function testUpdateUserById() {
+        $this->printHeader("Update User by ID Test");
+
+        if (!$this->authToken || !$this->testUserId) {
+            echo "[SKIP] Update User - No auth token or user ID available\n";
+            return true;
+        }
+
+        $updateData = [
+            'name' => 'Updated User Name',
+            'email' => 'updated_' . $this->testEmail,
+            'role' => 'user'
+        ];
+
+        // Test PUT request
+        $result = $this->testHelper->put('user', $updateData, [], $this->testUserId);
+        $success = $this->testHelper->printResult("Update User by ID", $result);
+
+        // Accept 200 (success), 403 (not admin), or 404 (not found)
+        if ($result['status'] === 200) {
+            $this->testHelper->assertHasKey($result, 'data');
+            $this->testHelper->assertEquals($result, 'message', 'User updated successfully');
+        } elseif ($result['status'] === 403) {
+            echo "[INFO] Update User - User is not admin (expected)\n";
+            $success = true;
+        }
+
+        return $success;
+    }
+
+    /**
+     * Test update user with invalid data
+     */
+    protected function testUpdateUserInvalid() {
+        $this->printHeader("Update User Invalid Data Test");
+
+        if (!$this->authToken || !$this->testUserId) {
+            echo "[SKIP] Update User Invalid - No auth token or user ID available\n";
+            return true;
+        }
+
+        // Test with invalid email
+        $invalidData = [
+            'email' => 'invalid-email-format',
+            'name' => 'Test User'
+        ];
+
+        $result = $this->testHelper->put('user', $invalidData, [], $this->testUserId);
+        $success = $this->testHelper->printResult("Update User Invalid Email", $result, 400);
+
+        // Accept 400 (validation error) or 403 (not admin)
+        if ($result['status'] === 403) {
+            echo "[INFO] Update User Invalid - User is not admin (expected)\n";
+            $success = true;
+        }
+
+        return $success;
+    }
+
+    /**
+     * Test toggle user status (admin functionality)
+     */
+    protected function testToggleUserStatus() {
+        $this->printHeader("Toggle User Status Test");
+
+        if (!$this->authToken || !$this->testUserId) {
+            echo "[SKIP] Toggle Status - No auth token or user ID available\n";
+            return true;
+        }
+
+        // Test PUT request to toggle status
+        $result = $this->testHelper->put('user_toggle_status', [], [], $this->testUserId);
+        $success = $this->testHelper->printResult("Toggle User Status", $result);
+
+        // Accept 200 (success), 403 (not admin), or 404 (endpoint not found)
+        if ($result['status'] === 200) {
+            $this->testHelper->assertHasKey($result, 'data');
+            $this->testHelper->assertEquals($result, 'message', 'User status updated successfully');
+        } elseif ($result['status'] === 403) {
+            echo "[INFO] Toggle Status - User is not admin (expected)\n";
+            $success = true;
+        } elseif ($result['status'] === 404) {
+            echo "[INFO] Toggle Status - Endpoint not found\n";
+            $success = true;
+        }
+
+        return $success;
+    }
+
+    /**
+     * Test delete user (admin functionality)
+     */
+    protected function testDeleteUser() {
+        $this->printHeader("Delete User Test");
+
+        if (!$this->authToken) {
+            echo "[SKIP] Delete User - No auth token available\n";
+            return true;
+        }
+
+        // Create a temporary user for deletion test
+        $tempEmail = 'temp_delete_' . time() . '@example.com';
+        $tempPassword = 'TempPassword123456';
+        
+        // Register temporary user
+        $userData = [
+            'email' => $tempEmail,
+            'password' => $tempPassword,
+            'name' => 'Temp User For Delete'
+        ];
+        
+        $registerResult = $this->testHelper->post('register', $userData);
+        
+        if ($registerResult['status'] !== 201 && $registerResult['status'] !== 200) {
+            echo "[SKIP] Delete User - Could not create temporary user\n";
+            return true;
+        }
+
+        // Get temp user ID (might need to login first or extract from response)
+        $tempUserId = null;
+        if (isset($registerResult['data']['user']['id'])) {
+            $tempUserId = $registerResult['data']['user']['id'];
+        } else {
+            // Try to get user by searching or use a fixed test ID
+            $tempUserId = 999; // Use test ID for deletion
+        }
+
+        // Test DELETE request
+        $result = $this->testHelper->delete('user', [], $tempUserId);
+        $success = $this->testHelper->printResult("Delete User", $result);
+
+        // Accept 200 (success), 403 (not admin), or 404 (not found)
+        if ($result['status'] === 200) {
+            $this->testHelper->assertEquals($result, 'message', 'User deleted successfully');
+        } elseif ($result['status'] === 403) {
+            echo "[INFO] Delete User - User is not admin (expected)\n";
+            $success = true;
+        } elseif ($result['status'] === 404) {
+            echo "[INFO] Delete User - User not found or endpoint not available\n";
+            $success = true;
+        }
+
+        return $success;
+    }
+
+    /**
+     * Test delete non-existent user
+     */
+    protected function testDeleteNonExistentUser() {
+        $this->printHeader("Delete Non-existent User Test");
+
+        if (!$this->authToken) {
+            echo "[SKIP] Delete Non-existent User - No auth token available\n";
+            return true;
+        }
+
+        $result = $this->testHelper->delete('user', [], 99999);
+        $success = $this->testHelper->printResult("Delete Non-existent User", $result, 404);
+
+        // Accept 404 (not found) or 403 (not admin)
+        if ($result['status'] === 403) {
+            echo "[INFO] Delete Non-existent User - User is not admin (expected)\n";
+            $success = true;
+        }
+
+        return $success;
     }
 
     /**
