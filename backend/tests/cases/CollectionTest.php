@@ -73,8 +73,8 @@ class CollectionTest extends BaseTest {
         $this->printHeader("Create Collection Test");
 
         if (!$this->projectId) {
-            echo "[SKIP] Create Collection - No project ID available\n";
-            return true;
+            return $this->skip("Create Collection - No project ID available");
+            
         }
 
         $collectionData = [
@@ -111,8 +111,8 @@ class CollectionTest extends BaseTest {
         $this->printHeader("List Collections Test");
 
         if (!$this->projectId) {
-            echo "[SKIP] List Collections - No project ID available\n";
-            return true;
+            return $this->skip("List Collections - No project ID available");
+            
         }
 
         $result = $this->testHelper->get('collection_list', [], $this->projectId);
@@ -136,8 +136,8 @@ class CollectionTest extends BaseTest {
         $this->printHeader("Get Collection Test");
 
         if (empty($this->testCollections)) {
-            echo "[SKIP] Get Collection - No test collections available\n";
-            return true;
+            return $this->skip("Get Collection - No test collections available");
+            
         }
 
         $collection = $this->testCollections[0];
@@ -160,8 +160,8 @@ class CollectionTest extends BaseTest {
         $this->printHeader("Update Collection Test");
 
         if (empty($this->testCollections)) {
-            echo "[SKIP] Update Collection - No test collections available\n";
-            return true;
+            return $this->skip("Update Collection - No test collections available");
+            
         }
 
         $collection = $this->testCollections[0];
@@ -198,8 +198,8 @@ class CollectionTest extends BaseTest {
         $this->printHeader("Create Nested Collection Test");
 
         if (!$this->projectId || empty($this->testCollections)) {
-            echo "[SKIP] Nested Collection - No project or parent collection available\n";
-            return true;
+            return $this->skip("Nested Collection - No project or parent collection available");
+            
         }
 
         $parentCollection = $this->testCollections[0];
@@ -233,8 +233,8 @@ class CollectionTest extends BaseTest {
         $this->printHeader("Delete Collection Test");
 
         if (empty($this->testCollections)) {
-            echo "[SKIP] Delete Collection - No test collections available\n";
-            return true;
+            return $this->skip("Delete Collection - No test collections available");
+            
         }
 
         // Use the last collection for deletion test
@@ -256,8 +256,8 @@ class CollectionTest extends BaseTest {
         $this->printHeader("Create Collection Invalid Data Test");
 
         if (!$this->projectId) {
-            echo "[SKIP] Create Collection Invalid - No project ID available\n";
-            return true;
+            return $this->skip("Create Collection Invalid - No project ID available");
+            
         }
 
         $results = [];
@@ -295,8 +295,8 @@ class CollectionTest extends BaseTest {
         $this->printHeader("Collection Without Authentication Test");
 
         if (!$this->projectId) {
-            echo "[SKIP] Collection Unauthorized - No project ID available\n";
-            return true;
+            return $this->skip("Collection Unauthorized - No project ID available");
+            
         }
 
         // Clear token for unauthorized test
@@ -334,8 +334,8 @@ class CollectionTest extends BaseTest {
         $this->printHeader("Collection Headers Test");
 
         if (!$this->projectId) {
-            echo "[SKIP] Collection Headers - No project ID available\n";
-            return true;
+            return $this->skip("Collection Headers - No project ID available");
+            
         }
 
         $collectionData = [
@@ -380,8 +380,8 @@ class CollectionTest extends BaseTest {
         $this->printHeader("Collection Variables Test");
 
         if (!$this->projectId) {
-            echo "[SKIP] Collection Variables - No project ID available\n";
-            return true;
+            return $this->skip("Collection Variables - No project ID available");
+            
         }
 
         $collectionData = [
@@ -423,8 +423,8 @@ class CollectionTest extends BaseTest {
         $this->printHeader("Collection Permission Test");
 
         if (empty($this->testCollections)) {
-            echo "[SKIP] Collection Permission - No test collections available\n";
-            return true;
+            return $this->skip("Collection Permission - No test collections available");
+            
         }
 
         // Create a different user and try to access our collection
@@ -456,13 +456,13 @@ class CollectionTest extends BaseTest {
 
                 if ($result['status'] === 403) {
                     echo "[INFO] Permission test passed - Cannot access other user's collection\n";
-                    return true;
+                    
                 }
             }
         }
 
-        echo "[SKIP] Permission test - Could not create different user\n";
-        return true;
+        return $this->skip("Permission test - Could not create different user");
+        
     }
 
     protected function tearDown() {

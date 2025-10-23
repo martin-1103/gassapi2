@@ -206,7 +206,7 @@ class UserFlowTest extends BaseTest {
             $updateSuccess = $this->testHelper->printResult("Project Flow Update", $updateResult);
             $results[] = $updateSuccess;
         } else {
-            echo "[SKIP] Project update - no project ID\n";
+            return $this->skip("Project update - no project ID");
             $results[] = true;
         }
 
@@ -222,7 +222,7 @@ class UserFlowTest extends BaseTest {
                 ]
             ];
 
-            $envResult = $this->testHelper->post('environment_create', $envData);
+            $envResult = $this->testHelper->post('environment_create', $envData, [], $flow['project_id']);
             $envSuccess = $this->testHelper->printResult("Project Flow Create Env", $envResult, 201);
             $results[] = $envSuccess;
 
@@ -230,7 +230,7 @@ class UserFlowTest extends BaseTest {
                 $flow['env_id'] = $envResult['data']['data']['id'];
             }
         } else {
-            echo "[SKIP] Environment creation - no project ID\n";
+            return $this->skip("Environment creation - no project ID");
             $results[] = true;
         }
 
@@ -251,7 +251,7 @@ class UserFlowTest extends BaseTest {
             $envUpdateSuccess = $this->testHelper->printResult("Project Flow Update Env", $envUpdateResult);
             $results[] = $envUpdateSuccess;
         } else {
-            echo "[SKIP] Environment update - no environment ID\n";
+            return $this->skip("Environment update - no environment ID");
             $results[] = true;
         }
 
@@ -262,7 +262,7 @@ class UserFlowTest extends BaseTest {
             $deleteEnvSuccess = $this->testHelper->printResult("Project Flow Delete Env", $deleteEnvResult);
             $results[] = $deleteEnvSuccess;
         } else {
-            echo "[SKIP] Environment deletion - no environment ID\n";
+            return $this->skip("Environment deletion - no environment ID");
             $results[] = true;
         }
 
@@ -273,7 +273,7 @@ class UserFlowTest extends BaseTest {
             $deleteProjectSuccess = $this->testHelper->printResult("Project Flow Delete", $deleteProjectResult);
             $results[] = $deleteProjectSuccess;
         } else {
-            echo "[SKIP] Project deletion - no project ID\n";
+            return $this->skip("Project deletion - no project ID");
             $results[] = true;
         }
 
@@ -358,7 +358,7 @@ class UserFlowTest extends BaseTest {
                 $this->testHelper->setAuthToken($flow['token']);
             }
         } else {
-            echo "[SKIP] Token refresh - no refresh token\n";
+            return $this->skip("Token refresh - no refresh token");
             $results[] = true;
         }
 
@@ -545,7 +545,7 @@ class UserFlowTest extends BaseTest {
                 $flow['mcp_token'] = $mcpResult['data']['data']['token'];
             }
         } else {
-            echo "[SKIP] MCP config generation - no project ID\n";
+            return $this->skip("MCP config generation - no project ID");
             $results[] = true;
         }
 
@@ -557,7 +557,7 @@ class UserFlowTest extends BaseTest {
             $validateSuccess = $this->testHelper->printResult("MCP Flow Validate Token", $validateResult, 200);
             $results[] = $validateSuccess;
         } else {
-            echo "[SKIP] MCP token validation - no MCP token\n";
+            return $this->skip("MCP token validation - no MCP token");
             $results[] = true;
         }
 
@@ -574,7 +574,7 @@ class UserFlowTest extends BaseTest {
                 $results[] = true;
             }
         } else {
-            echo "[SKIP] MCP token access - no MCP token\n";
+            return $this->skip("MCP token access - no MCP token");
             $results[] = true;
         }
 
@@ -812,7 +812,7 @@ class UserFlowTest extends BaseTest {
                 $results[] = false;
             }
         } else {
-            echo "[SKIP] Flow execution - no flow created\n";
+            return $this->skip("Flow execution - no flow created");
             $results[] = true;
         }
 
@@ -920,7 +920,7 @@ class UserFlowTest extends BaseTest {
         echo "[STEP 3/6] Create collection with variables and headers...\n";
 
         if (!isset($flow['project_id'])) {
-            echo "[SKIP] Collection creation - no project ID available\n";
+            return $this->skip("Collection creation - no project ID available");
             $results[] = true;
             $flow['collection_id'] = null;
         } else {
@@ -954,7 +954,7 @@ class UserFlowTest extends BaseTest {
         echo "[STEP 4/6] Create endpoints with variable substitution...\n";
 
         if (!isset($flow['collection_id'])) {
-            echo "[SKIP] Endpoint creation - no collection ID available\n";
+            return $this->skip("Endpoint creation - no collection ID available");
             $results[] = true;
         } else {
             $endpointData = [
@@ -1000,7 +1000,7 @@ class UserFlowTest extends BaseTest {
             }
             $results[] = $verifySuccess;
         } else {
-            echo "[SKIP] Variable inheritance verification - no endpoint created\n";
+            return $this->skip("Variable inheritance verification - no endpoint created");
             $results[] = true;
         }
 
@@ -1028,7 +1028,7 @@ class UserFlowTest extends BaseTest {
                 $this->testHelper->delete('collection_delete', [], $nestedResult['data']['data']['id']);
             }
         } else {
-            echo "[SKIP] Nested collection test - no parent collection\n";
+            return $this->skip("Nested collection test - no parent collection");
             $results[] = true;
         }
 
@@ -1073,7 +1073,7 @@ class UserFlowTest extends BaseTest {
 
         if ($totalTime < 5000) { // 5 seconds threshold
             echo "[INFO] Flow performance is acceptable ✓\n";
-            return true;
+            
         } else {
             echo "[WARNING] Flow performance is slow (>{$totalTime}ms)\n";
             return $lifecycleResult; // Return flow result but note performance issue

@@ -1,15 +1,4 @@
 import { ProjectDetailsResponse, CollectionsResponse, EnvironmentsResponse, EnvironmentVariablesResponse, EndpointsResponse, EndpointDetailsResponse, TokenValidationResponse, TestExecutionResponse, EnvironmentSetVariableRequest, EnvironmentImportRequest, CollectionCreateRequest, EndpointCreateRequest, EndpointUpdateRequest, CollectionDetailsResponse } from '../types/api.types';
-type UnifiedEnvironment = {
-    id: string;
-    name: string;
-    description?: string;
-    is_active?: boolean;
-    is_default?: boolean;
-    project_id?: string;
-    variable_count?: number;
-    created_at: string;
-    updated_at?: string;
-};
 /**
  * Backend API Client with integrated caching
  * Handles all communication with GASSAPI backend
@@ -23,7 +12,7 @@ export declare class BackendClient {
     validateToken(): Promise<TokenValidationResponse>;
     getProjectContext(projectId: string): Promise<{
         project: ProjectDetailsResponse;
-        environments: UnifiedEnvironment[];
+        environments: EnvironmentsResponse['environments'];
         collections?: CollectionsResponse['collections'];
         endpoints?: EndpointsResponse['endpoints'];
     }>;
@@ -74,5 +63,4 @@ export declare class BackendClient {
         error?: string;
     }>;
 }
-export {};
-//# sourceMappingURL=BackendClient.d.ts.map
+//# sourceMappingURL=BackendClient_old.d.ts.map

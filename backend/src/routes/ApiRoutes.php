@@ -46,6 +46,9 @@ class ApiRoutes {
                 '/project/{id}/flows' => ['handler' => 'flows_list', 'description' => 'List flows for a project'],
                 '/project/{id}/flows/active' => ['handler' => 'flows_active_list', 'description' => 'List active flows for a project'],
                 '/flow/{id}' => ['handler' => 'flow_detail', 'description' => 'Get flow detail'],
+                '/flow/{id}/activate' => ['handler' => 'flow_activate', 'description' => 'Activate flow'],
+                '/flow/{id}/deactivate' => ['handler' => 'flow_deactivate', 'description' => 'Deactivate flow'],
+                '/flow/{id}/execute' => ['handler' => 'flow_execute', 'description' => 'Execute flow'],
                 // MCP
                 '/mcp/validate' => ['handler' => 'mcp_validate', 'description' => 'Validate MCP token']
             ],
@@ -78,6 +81,8 @@ class ApiRoutes {
             'PUT' => [
                 '/user/{id}' => ['handler' => 'user_update', 'description' => 'Update user'],
                 '/user/{id}/toggle-status' => ['handler' => 'toggle_status', 'description' => 'Activate/Deactivate user'],
+                '/flow/{id}/activate' => ['handler' => 'flow_activate', 'description' => 'Activate flow'],
+                '/flow/{id}/deactivate' => ['handler' => 'flow_deactivate', 'description' => 'Deactivate flow'],
                 // Projects
                 '/project/{id}' => ['handler' => 'project_update', 'description' => 'Update project'],
                 // Environments
@@ -92,6 +97,7 @@ class ApiRoutes {
             ],
             'DELETE' => [
                 '/user/{id}' => ['handler' => 'user_delete', 'description' => 'Delete user'],
+                '/flow/{id}/execute' => ['handler' => 'flow_execute', 'description' => 'Execute flow'],
                 // Projects
                 '/project/{id}' => ['handler' => 'project_delete', 'description' => 'Delete project'],
                 // Environments
@@ -282,10 +288,16 @@ class ApiRoutes {
             case 'flows_list':
                 $flowHandler->getAll($id);
                 break;
+            case 'flow_list': // Alias for flows_list
+                $flowHandler->getAll($id);
+                break;
             case 'flows_active_list':
                 $flowHandler->getActive($id);
                 break;
             case 'flow_detail':
+                $flowHandler->getById($id);
+                break;
+            case 'flow_get': // Alias for flow_detail
                 $flowHandler->getById($id);
                 break;
             case 'flow_create':
@@ -302,6 +314,15 @@ class ApiRoutes {
                 break;
             case 'flow_duplicate':
                 $flowHandler->duplicate($id);
+                break;
+            case 'flow_activate':
+                $flowHandler->activate($id);
+                break;
+            case 'flow_deactivate':
+                $flowHandler->deactivate($id);
+                break;
+            case 'flow_execute':
+                $flowHandler->execute($id);
                 break;
             // MCP integration
             case 'mcp_generate_config':

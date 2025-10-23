@@ -11,6 +11,72 @@
  * php run_tests.php --debug            # Run with debug output
  */
 
+/**
+ * Test Cache Manager - Simple caching for passed tests
+ */
+class TestCacheManager {
+    private $config;
+    private $cacheFile;
+    private $cache = [];
+    
+    public function __construct() {
+        $configFile = __DIR__ . '/config/test_runner_config.php';
+        $this->config = file_exists($configFile) ? require $configFile : ['skip_passed_tests' => false];
+        
+        $cacheDir = $this->config['cache_dir'] ?? __DIR__ . '/.cache';
+        if (!is_dir($cacheDir)) {
+            @mkdir($cacheDir, 0755, true);
+        }
+        
+        $this->cacheFile = $cacheDir . '/test_results.json';
+        $this->loadCache();
+    }
+    
+    private function loadCache() {
+        if (file_exists($this->cacheFile)) {
+            $data = json_decode(file_get_contents($this->cacheFile), true);
+            $this->cache = $data['results'] ?? [];
+        }
+    }
+    
+    private function saveCache() {
+        $data = [
+            'last_run' => date('Y-m-d H:i:s'),
+            'results' => $this->cache
+        ];
+        file_put_contents($this->cacheFile, json_encode($data, JSON_PRETTY_PRINT));
+    }
+    
+    public function shouldSkip($testName) {
+        if (!($this->config['skip_passed_tests'] ?? false)) {
+            return false;
+        }
+        
+        if (!isset($this->cache[$testName])) {
+            return false;
+        }
+        
+        return $this->cache[$testName]['status'] === 'PASS';
+    }
+    
+    public function saveResult($testName, $passed, $total) {
+        $status = ($passed === $total) ? 'PASS' : 'FAIL';
+        
+        $this->cache[$testName] = [
+            'status' => $status,
+            'passed' => $passed,
+            'total' => $total,
+            'last_run' => date('Y-m-d H:i:s')
+        ];
+        
+        $this->saveCache();
+    }
+    
+    public function getCachedResult($testName) {
+        return $this->cache[$testName] ?? null;
+    }
+}
+
 // Core Authentication Tests
 require_once __DIR__ . '/cases/AuthTest.php';
 
@@ -49,11 +115,13 @@ class TestRunner {
     private $debug = false;
     private $testClasses = [];
     private $results = [];
+    private $cacheManager;
 
     public function __construct($args = []) {
         $this->args = array_slice($args, 1); // Skip script name
         $this->parseArguments();
         $this->registerTestClasses();
+        $this->cacheManager = new TestCacheManager();
     }
 
     /**

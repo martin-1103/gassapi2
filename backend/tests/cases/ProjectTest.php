@@ -128,8 +128,8 @@ class ProjectTest extends BaseTest {
         ]);
 
         if ($registerRes['status'] !== 201 && $registerRes['status'] !== 200) {
-            echo "[SKIP] Add Member - Could not create member user\n";
-            return true;
+            return $this->skip("Add Member - Could not create member user");
+            
         }
 
         // Get member user ID (might need to extract from response)

@@ -3,6 +3,7 @@ namespace App\Handlers;
 
 use App\Helpers\ResponseHelper;
 use App\Helpers\ValidationHelper;
+use App\Helpers\MessageHelper;
 use App\Repositories\UserRepository;
 use App\Services\AuthService;
 use App\Helpers\JwtHelper;
@@ -28,7 +29,7 @@ class UserHandler {
         // Check authentication via AuthService for consistency
         $token = JwtHelper::getTokenFromRequest();
         if (!$token) {
-            ResponseHelper::error('Authentication required', 401);
+            ResponseHelper::error(MessageHelper::ERROR_AUTH_REQUIRED, 401);
         }
         // Will throw response error if invalid/expired
         $this->authService->validateAccessToken($token);
@@ -69,10 +70,10 @@ class UserHandler {
             }
         } catch (\App\Repositories\RepositoryException $e) {
             error_log("Get users repository error: " . $e->getMessage());
-            ResponseHelper::error('Failed to retrieve users: ' . $e->getMessage(), 500);
+            ResponseHelper::error(MessageHelper::ERROR_USER_RETRIEVAL_FAILED . ': ' . $e->getMessage(), 500);
         } catch (\Exception $e) {
             error_log("Get users error: " . $e->getMessage());
-            ResponseHelper::error('Failed to retrieve users', 500);
+            ResponseHelper::error(MessageHelper::ERROR_USER_RETRIEVAL_FAILED, 500);
         }
     }
 
@@ -80,28 +81,27 @@ class UserHandler {
      * Get user by ID
      */
     public function getById($id) {
-        if (empty($id)) {
-            ResponseHelper::error('User ID is required', 400);
-        }
+        // Validate ID (support string dan integer format)
+        $userId = ValidationHelper::flexibleId($id, 1);
 
         // Check authentication first
         $token = JwtHelper::getTokenFromRequest();
         if (!$token) {
-            ResponseHelper::error('Authentication required', 401);
+            ResponseHelper::error(MessageHelper::ERROR_AUTH_REQUIRED, 401);
         }
         $this->authService->validateAccessToken($token);
 
         try {
-            $user = $this->userRepository->findByIdSanitized($id);
+            $user = $this->userRepository->findByIdSanitized($userId);
 
             if (!$user) {
-                ResponseHelper::error('User not found', 404);
+                ResponseHelper::error(MessageHelper::ERROR_USER_NOT_FOUND, 404);
             }
 
-            ResponseHelper::success(['user' => $user], 'User retrieved successfully');
+            ResponseHelper::success(['user' => $user], MessageHelper::SUCCESS_USER_RETRIEVED);
         } catch (\Exception $e) {
             error_log("Get user error: " . $e->getMessage());
-            ResponseHelper::error('Failed to retrieve user', 500);
+            ResponseHelper::error(MessageHelper::ERROR_USER_RETRIEVAL_FAILED, 500);
         }
     }
 
@@ -110,18 +110,18 @@ class UserHandler {
      */
     public function update($id) {
         if (empty($id)) {
-            ResponseHelper::error('ID user wajib diisi', 400);
+            ResponseHelper::error(MessageHelper::ERROR_ID_REQUIRED, 400);
         }
 
         // Check authentication first
         $token = JwtHelper::getTokenFromRequest();
         if (!$token) {
-            ResponseHelper::error('Authentication required', 401);
+            ResponseHelper::error(MessageHelper::ERROR_AUTH_REQUIRED, 401);
         }
         $this->authService->validateAccessToken($token);
 
-        // Validate ID
-        $userId = ValidationHelper::integer($id, 1);
+        // Validate ID (support string dan integer format)
+        $userId = ValidationHelper::flexibleId($id, 1);
 
         // CSRF validation for admin operations
         CSRFMiddleware::validateCSRF();
@@ -132,7 +132,7 @@ class UserHandler {
             // Check if user exists
             $existingUser = $this->userRepository->findById($userId);
             if (!$existingUser) {
-                ResponseHelper::error('User tidak ditemukan', 404);
+                ResponseHelper::error(MessageHelper::ERROR_USER_NOT_FOUND, 404);
             }
 
             // Allowed fields for admin update
@@ -164,13 +164,13 @@ class UserHandler {
 
             // Return updated user
             $updatedUser = $this->userRepository->findByIdSanitized($userId);
-            ResponseHelper::success($updatedUser, 'User berhasil diperbarui');
+            ResponseHelper::success($updatedUser, MessageHelper::SUCCESS_USER_UPDATED);
         } catch (\App\Repositories\RepositoryException $e) {
             error_log("Update user validation error: " . $e->getMessage());
             ResponseHelper::error($e->getMessage(), $e->getCode() ?: 400);
         } catch (\Exception $e) {
             error_log("Update user error: " . $e->getMessage());
-            ResponseHelper::error('Gagal memperbarui user', 500);
+            ResponseHelper::error(MessageHelper::ERROR_USER_UPDATE_FAILED, 500);
         }
     }
 
@@ -179,18 +179,18 @@ class UserHandler {
      */
     public function delete($id) {
         if (empty($id)) {
-            ResponseHelper::error('ID user wajib diisi', 400);
+            ResponseHelper::error(MessageHelper::ERROR_ID_REQUIRED, 400);
         }
 
         // Check authentication first
         $token = JwtHelper::getTokenFromRequest();
         if (!$token) {
-            ResponseHelper::error('Authentication required', 401);
+            ResponseHelper::error(MessageHelper::ERROR_AUTH_REQUIRED, 401);
         }
         $this->authService->validateAccessToken($token);
 
-        // Validate ID
-        $userId = ValidationHelper::integer($id, 1);
+        // Validate ID (support string dan integer format)
+        $userId = ValidationHelper::flexibleId($id, 1);
 
         // CSRF validation for admin operations
         CSRFMiddleware::validateCSRF();
@@ -199,15 +199,15 @@ class UserHandler {
             // Check if user exists
             $user = $this->userRepository->findById($userId);
             if (!$user) {
-                ResponseHelper::error('User tidak ditemukan', 404);
+                ResponseHelper::error(MessageHelper::ERROR_USER_NOT_FOUND, 404);
             }
 
             // Delete user
             $this->userRepository->delete($userId);
-            ResponseHelper::success(null, 'User berhasil dihapus');
+            ResponseHelper::success(null, MessageHelper::SUCCESS_USER_DELETED);
         } catch (\Exception $e) {
             error_log("Delete user error: " . $e->getMessage());
-            ResponseHelper::error('Gagal menghapus user', 500);
+            ResponseHelper::error(MessageHelper::ERROR_USER_DELETE_FAILED, 500);
         }
     }
 
@@ -215,18 +215,17 @@ class UserHandler {
      * Activate/Deactivate user (admin only)
      */
     public function toggleStatus($id) {
-        if (empty($id)) {
-            ResponseHelper::error('User ID is required', 400);
-        }
+        // Validate ID (support string dan integer format)
+        $userId = ValidationHelper::flexibleId($id, 1);
 
         try {
-            $user = $this->userRepository->findById($id);
+            $user = $this->userRepository->findById($userId);
             if (!$user) {
-                ResponseHelper::error('User not found', 404);
+                ResponseHelper::error(MessageHelper::ERROR_USER_NOT_FOUND, 404);
             }
 
             $input = ValidationHelper::getJsonInput();
-            
+
             // If is_active is provided, use it; otherwise toggle current status
             if (isset($input['is_active'])) {
                 $isActive = filter_var($input['is_active'], FILTER_VALIDATE_BOOLEAN);
@@ -234,17 +233,16 @@ class UserHandler {
                 // Auto-toggle: flip the current status
                 $isActive = !$user['is_active'];
             }
-            
-            $this->userRepository->setActive($id, $isActive);
 
-            $status = $isActive ? 'activated' : 'deactivated';
+            $this->userRepository->setActive($userId, $isActive);
+
             ResponseHelper::success([
-                'id' => $id,
+                'id' => $userId,
                 'is_active' => $isActive
-            ], "User $status successfully");
+            ], MessageHelper::userStatusMessage($isActive));
         } catch (\Exception $e) {
             error_log("Toggle user status error: " . $e->getMessage());
-            ResponseHelper::error('Failed to update user status', 500);
+            ResponseHelper::error(MessageHelper::ERROR_USER_STATUS_UPDATE_FAILED, 500);
         }
     }
 
@@ -257,14 +255,14 @@ class UserHandler {
             // Get user from JWT token
             $token = JwtHelper::getTokenFromRequest();
             if (!$token) {
-                ResponseHelper::error('No access token provided', 401);
+                ResponseHelper::error(MessageHelper::ERROR_TOKEN_NOT_FOUND, 401);
             }
 
             $user = $this->authService->validateAccessToken($token);
-            ResponseHelper::success(['user' => $user], 'Profile retrieved successfully');
+            ResponseHelper::success(['user' => $user], MessageHelper::SUCCESS_PROFILE_RETRIEVED);
         } catch (\Exception $e) {
             error_log("Profile error: " . $e->getMessage());
-            ResponseHelper::error('Failed to retrieve profile', 500);
+            ResponseHelper::error(MessageHelper::ERROR_PROFILE_RETRIEVAL_FAILED, 500);
         }
     }
 
@@ -276,7 +274,7 @@ class UserHandler {
             // Get user from JWT token
             $token = JwtHelper::getTokenFromRequest();
             if (!$token) {
-                ResponseHelper::error('Token akses tidak ditemukan', 401);
+                ResponseHelper::error(MessageHelper::ERROR_TOKEN_NOT_FOUND, 401);
             }
 
             $user = $this->authService->validateAccessToken($token);
@@ -284,14 +282,14 @@ class UserHandler {
 
             // Validasi field yang diizinkan untuk update profile
             if (empty($input)) {
-                ResponseHelper::error('Tidak ada data yang akan diupdate', 400);
+                ResponseHelper::error(MessageHelper::ERROR_NO_DATA_TO_UPDATE, 400);
             }
 
             $result = $this->authService->updateProfile($user['id'], $input);
-            ResponseHelper::success(['user' => $result], 'Profile berhasil diperbarui');
+            ResponseHelper::success(['user' => $result], MessageHelper::SUCCESS_PROFILE_UPDATED);
         } catch (\Exception $e) {
             error_log("Update profile error: " . $e->getMessage());
-            ResponseHelper::error('Gagal memperbarui profile', 400);
+            ResponseHelper::error(MessageHelper::ERROR_PROFILE_UPDATE_FAILED, 400);
         }
     }
 
@@ -310,7 +308,7 @@ class UserHandler {
             ]);
         } catch (\Exception $e) {
             error_log("Get stats error: " . $e->getMessage());
-            ResponseHelper::error('Failed to retrieve statistics', 500);
+            ResponseHelper::error(MessageHelper::ERROR_STATS_RETRIEVAL_FAILED, 500);
         }
     }
 }

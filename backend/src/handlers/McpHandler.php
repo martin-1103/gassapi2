@@ -71,9 +71,14 @@ class McpHandler {
             $plain = trim($m[1]);
         }
         if (!$plain) {
-            // Try from body
-            $input = ValidationHelper::getJsonInput();
-            $plain = $input['token'] ?? ($_GET['token'] ?? null);
+            // Try from query parameter first
+            $plain = $_GET['token'] ?? null;
+
+            // If still no token, try from body (for POST requests)
+            if (!$plain && $_SERVER['REQUEST_METHOD'] === 'POST') {
+                $input = ValidationHelper::getJsonInput();
+                $plain = $input['token'] ?? null;
+            }
         }
         if (!$plain) {
             ResponseHelper::error('No token provided', 401);

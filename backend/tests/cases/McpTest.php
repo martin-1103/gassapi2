@@ -45,7 +45,7 @@ class McpTest extends BaseTest {
     }
 
     protected function testGenerateConfig() {
-        if (!$this->projectId) return true;
+        if (!$this->projectId) 
         $this->printHeader('Generate MCP Config');
         $res = $this->testHelper->post('mcp_generate_config', null, [], $this->projectId);
         $ok = $this->testHelper->printResult('Generate MCP Config', $res, 201);
@@ -56,7 +56,7 @@ class McpTest extends BaseTest {
     }
 
     protected function testValidateToken() {
-        if (!$this->mcpToken) return true;
+        if (!$this->mcpToken) 
         $this->printHeader('Validate MCP Token');
         // Use direct request to include custom Authorization header, bypassing auth token
         $helper = new TestHelper();
@@ -98,8 +98,8 @@ class McpTest extends BaseTest {
             return $success;
         }
 
-        echo "[SKIP] Generate Config Unauthorized - No project ID available\n";
-        return true;
+        return $this->skip("Generate Config Unauthorized - No project ID available");
+        
     }
 
     /**
@@ -178,7 +178,7 @@ class McpTest extends BaseTest {
      * Test MCP token permissions (access other project's token)
      */
     protected function testMcpTokenPermission() {
-        if (!$this->mcpToken) return true;
+        if (!$this->mcpToken) 
         $this->printHeader('MCP Token Permission Test');
 
         // Try to use MCP token to access other project endpoints
@@ -203,7 +203,7 @@ class McpTest extends BaseTest {
      * Test multiple MCP config generations
      */
     protected function testMultipleConfigGenerations() {
-        if (!$this->projectId) return true;
+        if (!$this->projectId) 
         $this->printHeader('Multiple MCP Config Generations');
 
         $tokens = [];
@@ -223,7 +223,7 @@ class McpTest extends BaseTest {
         // Validate that all generated tokens are unique
         if (count($tokens) === count(array_unique($tokens))) {
             echo "[INFO] All generated MCP tokens are unique\n";
-            return true;
+            
         } else {
             echo "[ERROR] Duplicate MCP tokens detected\n";
             return false;
@@ -234,7 +234,7 @@ class McpTest extends BaseTest {
      * Test MCP config generation with project member vs owner
      */
     protected function testMcpConfigMemberPermission() {
-        if (!$this->projectId) return true;
+        if (!$this->projectId) 
         $this->printHeader('MCP Config Member Permission Test');
 
         // Create a different user
@@ -265,16 +265,16 @@ class McpTest extends BaseTest {
 
                 if ($res['status'] === 403) {
                     echo "[INFO] Permission test passed - Non-member cannot generate MCP config\n";
-                    return true;
+                    
                 } elseif ($res['status'] === 404) {
                     echo "[INFO] MCP config endpoint not found or different permission model\n";
-                    return true;
+                    
                 }
             }
         }
 
-        echo "[SKIP] Member permission test - Could not create or login member user\n";
-        return true;
+        return $this->skip("Member permission test - Could not create or login member user");
+        
     }
 
     protected function tearDown() {

@@ -128,7 +128,7 @@ class GassapiMcpCli {
      * Initialize sample configuration
      */
     static async initConfig() {
-        console.log('📝 Initializing GASSAPI configuration...');
+        Logger_1.logger.cli('📝 Initializing GASSAPI configuration...', 'info');
         // readline already imported above
         const rl = readline.createInterface({
             input: process.stdin,
@@ -143,17 +143,17 @@ class GassapiMcpCli {
             }) || 'proj_' + Date.now();
             rl.close();
             await config_1.config.createSampleConfig(projectName, projectId);
-            console.log('✅ Configuration initialized successfully!');
-            console.log('');
-            console.log('📁 File created: ./gassapi.json');
-            console.log('⚠️  Next steps:');
-            console.log('   1. Edit gassapi.json with your actual project details');
-            console.log('   2. Replace YOUR_MCP_TOKEN_HERE with your actual MCP token');
-            console.log('   3. Configure environment variables');
-            console.log('   4. Start MCP server: gassapi-mcp start');
+            Logger_1.logger.cli('✅ Configuration initialized successfully!', 'success');
+            Logger_1.logger.cli('');
+            Logger_1.logger.cli('📁 File created: ./gassapi.json', 'info');
+            Logger_1.logger.cli('⚠️  Next steps:', 'warning');
+            Logger_1.logger.cli('   1. Edit gassapi.json with your actual project details', 'info');
+            Logger_1.logger.cli('   2. Replace YOUR_MCP_TOKEN_HERE with your actual MCP token', 'info');
+            Logger_1.logger.cli('   3. Configure environment variables', 'info');
+            Logger_1.logger.cli('   4. Start MCP server: gassapi-mcp start', 'info');
         }
         catch (error) {
-            console.error('❌ Failed to initialize configuration:', error instanceof Error ? error.message : 'Unknown error');
+            Logger_1.logger.cli('❌ Failed to initialize configuration: ' + (error instanceof Error ? error.message : 'Unknown error'), 'error');
             process.exit(1);
         }
     }
@@ -161,104 +161,104 @@ class GassapiMcpCli {
      * Show current status
      */
     static async showStatus() {
-        console.log('📊 GASSAPI MCP Client Status');
-        console.log('='.repeat(50));
+        Logger_1.logger.cli('📊 GASSAPI MCP Client Status', 'info');
+        Logger_1.logger.cli('='.repeat(50), 'info');
         try {
             // Load configuration
             await config_1.config.loadProjectConfig();
             if (!config_1.config.hasProjectConfig()) {
-                console.log('📋 Configuration: ❌ Not found');
-                console.log('📄 gassapi.json: Missing in project directory');
-                console.log('');
-                console.log('💡 To setup:');
-                console.log('   1. Run: gassapi-mcp init');
-                console.log('   2. Edit generated gassapi.json');
-                console.log('   3. Start: gassapi-mcp start');
+                Logger_1.logger.cli('📋 Configuration: ❌ Not found', 'error');
+                Logger_1.logger.cli('📄 gassapi.json: Missing in project directory', 'error');
+                Logger_1.logger.cli('');
+                Logger_1.logger.cli('💡 To setup:', 'info');
+                Logger_1.logger.cli('   1. Run: gassapi-mcp init', 'info');
+                Logger_1.logger.cli('   2. Edit generated gassapi.json', 'info');
+                Logger_1.logger.cli('   3. Start: gassapi-mcp start', 'info');
                 return;
             }
             const summary = config_1.config.getConfigurationSummary();
             const validation = await config_1.config.validateConfiguration();
-            console.log('📋 Configuration: ✅ Loaded and valid');
-            console.log(`   Project: ${summary.projectName} (${summary.projectId})`);
-            console.log(`   Server: ${summary.serverUrl}`);
-            console.log(`   Environment: ${summary.environmentActive}`);
-            console.log(`   Variables: ${summary.variableCount} configured`);
-            console.log(`   Tools: ${summary.toolsAvailable} available`);
+            Logger_1.logger.cli('📋 Configuration: ✅ Loaded and valid', 'success');
+            Logger_1.logger.cli(`   Project: ${summary.projectName} (${summary.projectId})`, 'info');
+            Logger_1.logger.cli(`   Server: ${summary.serverUrl}`, 'info');
+            Logger_1.logger.cli(`   Environment: ${summary.environmentActive}`, 'info');
+            Logger_1.logger.cli(`   Variables: ${summary.variableCount} configured`, 'info');
+            Logger_1.logger.cli(`   Tools: ${summary.toolsAvailable} available`, 'info');
             if (validation.warnings.length > 0) {
-                console.log('');
-                console.log('⚠️  Warnings:');
-                validation.warnings.forEach(warning => console.log(`   - ${warning}`));
+                Logger_1.logger.cli('');
+                Logger_1.logger.cli('⚠️  Warnings:', 'warning');
+                validation.warnings.forEach(warning => Logger_1.logger.cli(`   - ${warning}`, 'warning'));
             }
             // Test backend connection
             const { BackendClient } = await Promise.resolve().then(() => __importStar(require('./client/BackendClient.js')));
             const serverURL = config_1.config.getServerURL();
             const token = config_1.config.getMcpToken();
             if (serverURL && token) {
-                console.log('');
-                console.log('🔗 Testing backend connection...');
+                Logger_1.logger.cli('');
+                Logger_1.logger.cli('🔗 Testing backend connection...', 'info');
                 try {
                     const client = new BackendClient(serverURL, token);
                     const healthCheck = await client.healthCheck();
                     if (healthCheck.status === 'ok') {
-                        console.log('✅ Backend connection: OK');
-                        console.log(`   Response time: ${Date.now() - healthCheck.timestamp}ms`);
+                        Logger_1.logger.cli('✅ Backend connection: OK', 'success');
+                        Logger_1.logger.cli(`   Response time: ${Date.now() - healthCheck.timestamp}ms`, 'info');
                     }
                     else {
-                        console.log('❌ Backend connection: Failed');
-                        console.log(`   Error: ${healthCheck.error || 'Unknown error'}`);
+                        Logger_1.logger.cli('❌ Backend connection: Failed', 'error');
+                        Logger_1.logger.cli(`   Error: ${healthCheck.error || 'Unknown error'}`, 'error');
                     }
                 }
                 catch (error) {
-                    console.log('❌ Backend connection: Error');
-                    console.log(`   ${error instanceof Error ? error.message : 'Unknown error'}`);
+                    Logger_1.logger.cli('❌ Backend connection: Error', 'error');
+                    Logger_1.logger.cli(`   ${error instanceof Error ? error.message : 'Unknown error'}`, 'error');
                 }
             }
         }
         catch (error) {
-            console.error('❌ Failed to get status:', error instanceof Error ? error.message : 'Unknown error');
+            Logger_1.logger.cli('❌ Failed to get status: ' + (error instanceof Error ? error.message : 'Unknown error'), 'error');
         }
     }
     /**
      * Validate current configuration
      */
     static async validateConfig() {
-        console.log('🔍 Validating GASSAPI configuration...');
+        Logger_1.logger.cli('🔍 Validating GASSAPI configuration...', 'info');
         try {
             await config_1.config.loadProjectConfig();
             const validation = await config_1.config.validateConfiguration();
-            console.log('='.repeat(50));
-            console.log('📋 Configuration Validation Results:');
+            Logger_1.logger.cli('='.repeat(50), 'info');
+            Logger_1.logger.cli('📋 Configuration Validation Results:', 'info');
             if (validation.isValid) {
-                console.log('✅ Valid: Configuration is correct and ready to use');
+                Logger_1.logger.cli('✅ Valid: Configuration is correct and ready to use', 'success');
             }
             else {
-                console.log('❌ Invalid: Configuration has errors');
+                Logger_1.logger.cli('❌ Invalid: Configuration has errors', 'error');
             }
             if (validation.errors.length > 0) {
-                console.log('');
-                console.log('❌ Errors:');
+                Logger_1.logger.cli('');
+                Logger_1.logger.cli('❌ Errors:', 'error');
                 validation.errors.forEach((error, index) => {
-                    console.log(`   ${index + 1}. ${error}`);
+                    Logger_1.logger.cli(`   ${index + 1}. ${error}`, 'error');
                 });
             }
             if (validation.warnings.length > 0) {
-                console.log('');
-                console.log('⚠️  Warnings:');
+                Logger_1.logger.cli('');
+                Logger_1.logger.cli('⚠️  Warnings:', 'warning');
                 validation.warnings.forEach((warning, index) => {
-                    console.log(`   ${index + 1}. ${warning}`);
+                    Logger_1.logger.cli(`   ${index + 1}. ${warning}`, 'warning');
                 });
             }
-            console.log('='.repeat(50));
+            Logger_1.logger.cli('='.repeat(50), 'info');
             if (!validation.isValid) {
-                console.log('💡 To fix:');
-                console.log('   1. Check gassapi.json format');
-                console.log('   2. Verify all required fields are present');
-                console.log('   3. Ensure MCP token is valid and active');
-                console.log('   4. Check server URL accessibility');
+                Logger_1.logger.cli('💡 To fix:', 'info');
+                Logger_1.logger.cli('   1. Check gassapi.json format', 'info');
+                Logger_1.logger.cli('   2. Verify all required fields are present', 'info');
+                Logger_1.logger.cli('   3. Ensure MCP token is valid and active', 'info');
+                Logger_1.logger.cli('   4. Check server URL accessibility', 'info');
             }
         }
         catch (error) {
-            console.error('❌ Validation failed:', error instanceof Error ? error.message : 'Unknown error');
+            Logger_1.logger.cli('❌ Validation failed: ' + (error instanceof Error ? error.message : 'Unknown error'), 'error');
             process.exit(1);
         }
     }
@@ -266,36 +266,36 @@ class GassapiMcpCli {
      * Test backend connection
      */
     static async testConnection() {
-        console.log('🔗 Testing GASSAPI backend connection...');
+        Logger_1.logger.cli('🔗 Testing GASSAPI backend connection...', 'info');
         try {
             await config_1.config.loadProjectConfig();
             if (!config_1.config.hasProjectConfig()) {
-                console.error('❌ No configuration found');
-                console.error('Please run "gassapi-mcp init" or create gassapi.json');
+                Logger_1.logger.cli('❌ No configuration found', 'error');
+                Logger_1.logger.cli('Please run "gassapi-mcp init" or create gassapi.json', 'error');
                 process.exit(1);
             }
             const { BackendClient } = await Promise.resolve().then(() => __importStar(require('./client/BackendClient.js')));
             const serverURL = config_1.config.getServerURL();
             const token = config_1.config.getMcpToken();
             if (!serverURL || !token) {
-                console.error('❌ Server URL or MCP token missing from configuration');
+                Logger_1.logger.cli('❌ Server URL or MCP token missing from configuration', 'error');
                 process.exit(1);
             }
             const client = new BackendClient(serverURL, token);
-            console.log(`🔗 Connecting to: ${serverURL}`);
-            console.log('🔐 Using token validation...');
+            Logger_1.logger.cli(`🔗 Connecting to: ${serverURL}`, 'info');
+            Logger_1.logger.cli('🔐 Using token validation...', 'info');
             // Test token validation
             const startTime = Date.now();
             const result = await client.validateToken();
             const responseTime = Date.now() - startTime;
-            console.log('✅ Token validation: Successful');
-            console.log(`📊 Response time: ${responseTime}ms`);
-            console.log(`📋 Project: ${result.project?.name || 'N/A'}`);
-            console.log(`🌍 Environment: ${result.environment?.name || 'N/A'}`);
-            console.log(`🔢 Variables: ${Object.keys(result.environment?.variables || {}).length} configured`);
+            Logger_1.logger.cli('✅ Token validation: Successful', 'success');
+            Logger_1.logger.cli(`📊 Response time: ${responseTime}ms`, 'info');
+            Logger_1.logger.cli(`📋 Project: ${result.project?.name || 'N/A'}`, 'info');
+            Logger_1.logger.cli(`🌍 Environment: ${result.environment?.name || 'N/A'}`, 'info');
+            Logger_1.logger.cli(`🔢 Variables: ${Object.keys(result.environment?.variables || {}).length} configured`, 'info');
         }
         catch (error) {
-            console.error('❌ Connection test failed:', error instanceof Error ? error.message : 'Unknown error');
+            Logger_1.logger.cli('❌ Connection test failed: ' + (error instanceof Error ? error.message : 'Unknown error'), 'error');
             process.exit(1);
         }
     }
@@ -303,18 +303,18 @@ class GassapiMcpCli {
      * Clear all caches
      */
     static async clearCache() {
-        console.log('🧹 Clearing GASSAPI caches...');
+        Logger_1.logger.cli('🧹 Clearing GASSAPI caches...', 'info');
         try {
             const { CacheManager } = await Promise.resolve().then(() => __importStar(require('./cache/CacheManager.js')));
             const cacheManager = new CacheManager();
             await cacheManager.clearAllCache();
-            console.log('✅ All caches cleared successfully');
-            console.log('');
-            console.log('Cleared: cache/gassapi/ directory');
-            console.log('Project configurations, tokens, and temporary data removed');
+            Logger_1.logger.cli('✅ All caches cleared successfully', 'success');
+            Logger_1.logger.cli('');
+            Logger_1.logger.cli('Cleared: cache/gassapi/ directory', 'info');
+            Logger_1.logger.cli('Project configurations, tokens, and temporary data removed', 'info');
         }
         catch (error) {
-            console.error('❌ Failed to clear caches:', error instanceof Error ? error.message : 'Unknown error');
+            Logger_1.logger.cli('❌ Failed to clear caches: ' + (error instanceof Error ? error.message : 'Unknown error'), 'error');
             process.exit(1);
         }
     }
@@ -322,69 +322,69 @@ class GassapiMcpCli {
      * Show help information
      */
     static showHelp() {
-        console.log('🚀 GASSAPI MCP Client - AI-powered API Testing');
-        console.log('');
-        console.log('USAGE:');
-        console.log('  gassapi-mcp <command> [options]');
-        console.log('');
-        console.log('COMMANDS:');
-        console.log('  start           Start MCP server for Claude Desktop (default)');
-        console.log('  init            Create sample gassapi.json configuration');
-        console.log('  status          Show configuration and connection status');
-        console.log('  validate        Validate current configuration');
-        console.log('  test            Test backend connection');
-        console.log('  clear-cache     Clear all local caches');
-        console.log('  help            Show this help message');
-        console.log('  version         Show version information');
-        console.log('');
-        console.log('EXAMPLES:');
-        console.log('  gassapi-mcp start                    # Start with auto-detected config');
-        console.log('  gassapi-mcp init "My API Project"    # Create sample config');
-        console.log('  gassapi-mcp status                    # Show current status');
-        console.log('  gassapi-mcp validate                   # Validate configuration');
-        console.log('');
-        console.log('CONFIGURATION:');
-        console.log('  GASSAPI configuration is loaded from gassapi.json');
-        console.log('  File should be in project root or parent directory');
-        console.log('  Contains project info, MCP token, and environment settings');
-        console.log('');
-        console.log('CLAUDE DESKTOP SETUP:');
-        console.log('  Add to ~/.claude/claude_desktop_config.json:');
-        console.log('  {');
-        console.log('    "mcpServers": {');
-        console.log('      "gassapi-local": {');
-        console.log('        "command": "gassapi-mcp"');
-        console.log('      }');
-        console.log('    }');
-        console.log('  }');
-        console.log('');
-        console.log('LEARN MORE:');
-        console.log('  📖 Documentation: https://docs.gassapi.com/mcp-client');
-        console.log('  🛠️ GitHub: https://github.com/gassapi/mcp-client');
-        console.log('  💬 Discord: https://discord.gg/gassapi');
-        console.log('  🐛 Issues: https://github.com/gassapi/mcp-client/issues');
+        Logger_1.logger.cli('🚀 GASSAPI MCP Client - AI-powered API Testing', 'info');
+        Logger_1.logger.cli('');
+        Logger_1.logger.cli('USAGE:', 'info');
+        Logger_1.logger.cli('  gassapi-mcp <command> [options]', 'info');
+        Logger_1.logger.cli('');
+        Logger_1.logger.cli('COMMANDS:', 'info');
+        Logger_1.logger.cli('  start           Start MCP server for Claude Desktop (default)', 'info');
+        Logger_1.logger.cli('  init            Create sample gassapi.json configuration', 'info');
+        Logger_1.logger.cli('  status          Show configuration and connection status', 'info');
+        Logger_1.logger.cli('  validate        Validate current configuration', 'info');
+        Logger_1.logger.cli('  test            Test backend connection', 'info');
+        Logger_1.logger.cli('  clear-cache     Clear all local caches', 'info');
+        Logger_1.logger.cli('  help            Show this help message', 'info');
+        Logger_1.logger.cli('  version         Show version information', 'info');
+        Logger_1.logger.cli('');
+        Logger_1.logger.cli('EXAMPLES:', 'info');
+        Logger_1.logger.cli('  gassapi-mcp start                    # Start with auto-detected config', 'info');
+        Logger_1.logger.cli('  gassapi-mcp init "My API Project"    # Create sample config', 'info');
+        Logger_1.logger.cli('  gassapi-mcp status                    # Show current status', 'info');
+        Logger_1.logger.cli('  gassapi-mcp validate                   # Validate configuration', 'info');
+        Logger_1.logger.cli('');
+        Logger_1.logger.cli('CONFIGURATION:', 'info');
+        Logger_1.logger.cli('  GASSAPI configuration is loaded from gassapi.json', 'info');
+        Logger_1.logger.cli('  File should be in project root or parent directory', 'info');
+        Logger_1.logger.cli('  Contains project info, MCP token, and environment settings', 'info');
+        Logger_1.logger.cli('');
+        Logger_1.logger.cli('CLAUDE DESKTOP SETUP:', 'info');
+        Logger_1.logger.cli('  Add to ~/.claude/claude_desktop_config.json:', 'info');
+        Logger_1.logger.cli('  {', 'info');
+        Logger_1.logger.cli('    "mcpServers": {', 'info');
+        Logger_1.logger.cli('      "gassapi-local": {', 'info');
+        Logger_1.logger.cli('        "command": "gassapi-mcp"', 'info');
+        Logger_1.logger.cli('      }', 'info');
+        Logger_1.logger.cli('    }', 'info');
+        Logger_1.logger.cli('  }', 'info');
+        Logger_1.logger.cli('');
+        Logger_1.logger.cli('LEARN MORE:', 'info');
+        Logger_1.logger.cli('  📖 Documentation: https://docs.gassapi.com/mcp-client', 'info');
+        Logger_1.logger.cli('  🛠️ GitHub: https://github.com/gassapi/mcp-client', 'info');
+        Logger_1.logger.cli('  💬 Discord: https://discord.gg/gassapi', 'info');
+        Logger_1.logger.cli('  🐛 Issues: https://github.com/gassapi/mcp-client/issues', 'info');
     }
     /**
      * Show version information
      */
     static showVersion() {
-        console.log('🚀 GASSAPI MCP Client v1.0.0');
-        console.log('');
-        console.log('📅 Built: ' + new Date().toISOString().split('T')[0]);
-        console.log('🔗 Repository: https://github.com/gassapi/mcp-client');
-        console.log('📄 Documentation: https://docs.gassapi.com/mcp-client');
-        console.log('');
-        console.log('License: MIT');
-        console.log('Author: GASSAPI Team');
-        console.log('');
-        console.log('🤖 Powered by Model Context Protocol (MCP)');
-        console.log('🎯 Purpose: AI-powered API testing with Claude Desktop');
+        Logger_1.logger.cli('🚀 GASSAPI MCP Client v1.0.0', 'info');
+        Logger_1.logger.cli('');
+        Logger_1.logger.cli('📅 Built: ' + new Date().toISOString().split('T')[0], 'info');
+        Logger_1.logger.cli('🔗 Repository: https://github.com/gassapi/mcp-client', 'info');
+        Logger_1.logger.cli('📄 Documentation: https://docs.gassapi.com/mcp-client', 'info');
+        Logger_1.logger.cli('');
+        Logger_1.logger.cli('License: MIT', 'info');
+        Logger_1.logger.cli('Author: GASSAPI Team', 'info');
+        Logger_1.logger.cli('');
+        Logger_1.logger.cli('🤖 Powered by Model Context Protocol (MCP)', 'info');
+        Logger_1.logger.cli('🎯 Purpose: AI-powered API testing with Claude Desktop', 'info');
     }
 }
 // Run CLI if called directly
 if (import.meta.url === `file://${process.argv[1]}`) {
     GassapiMcpCli.main().catch(error => {
-        console.error('❌ Fatal CLI error:', error);
+        Logger_1.logger.cli('❌ Fatal CLI error: ' + (error instanceof Error ? error.message : 'Unknown error'), 'error');
         process.exit(1);
     });
 }

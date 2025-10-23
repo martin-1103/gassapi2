@@ -53,8 +53,8 @@ class UserProfileTest extends BaseTest {
         $this->printHeader("Get User Profile Test");
 
         if (!$this->authToken) {
-            echo "[SKIP] Get Profile - No auth token available\n";
-            return true;
+            return $this->skip("Get Profile - No auth token available");
+            
         }
 
         $result = $this->testHelper->get('profile');
@@ -85,8 +85,8 @@ class UserProfileTest extends BaseTest {
         $this->printHeader("Update Profile Name Test");
 
         if (!$this->authToken) {
-            echo "[SKIP] Update Profile Name - No auth token available\n";
-            return true;
+            return $this->skip("Update Profile Name - No auth token available");
+            
         }
 
         $newName = 'Updated Profile Name ' . time();
@@ -123,8 +123,8 @@ class UserProfileTest extends BaseTest {
         $this->printHeader("Update Profile Email Test");
 
         if (!$this->authToken) {
-            echo "[SKIP] Update Profile Email - No auth token available\n";
-            return true;
+            return $this->skip("Update Profile Email - No auth token available");
+            
         }
 
         $newEmail = 'updated_' . time() . '@example.com';
@@ -141,10 +141,10 @@ class UserProfileTest extends BaseTest {
             $this->testEmail = $newEmail; // Update test email for future tests
         } elseif ($result['status'] === 400) {
             echo "[INFO] Email update might require verification or not allowed\n";
-            return true;
+            
         } elseif ($result['status'] === 404) {
             echo "[INFO] Email update endpoint not implemented\n";
-            return true;
+            
         }
 
         return $result['status'] === 200 || $result['status'] === 400 || $result['status'] === 404;
@@ -157,8 +157,8 @@ class UserProfileTest extends BaseTest {
         $this->printHeader("Update Profile Name and Email Test");
 
         if (!$this->authToken) {
-            echo "[SKIP] Update Profile Both - No auth token available\n";
-            return true;
+            return $this->skip("Update Profile Both - No auth token available");
+            
         }
 
         $updateData = [
@@ -184,8 +184,8 @@ class UserProfileTest extends BaseTest {
         $this->printHeader("Update Profile Invalid Email Test");
 
         if (!$this->authToken) {
-            echo "[SKIP] Update Profile Invalid Email - No auth token available\n";
-            return true;
+            return $this->skip("Update Profile Invalid Email - No auth token available");
+            
         }
 
         $invalidEmails = [
@@ -219,8 +219,8 @@ class UserProfileTest extends BaseTest {
         $this->printHeader("Update Profile Duplicate Email Test");
 
         if (!$this->authToken) {
-            echo "[SKIP] Update Profile Duplicate - No auth token available\n";
-            return true;
+            return $this->skip("Update Profile Duplicate - No auth token available");
+            
         }
 
         // Create another user first
@@ -247,8 +247,8 @@ class UserProfileTest extends BaseTest {
             return $result['status'] === 400;
         }
 
-        echo "[SKIP] Duplicate email test - Could not create other user\n";
-        return true;
+        return $this->skip("Duplicate email test - Could not create other user");
+        
     }
 
     /**
@@ -258,8 +258,8 @@ class UserProfileTest extends BaseTest {
         $this->printHeader("Update Profile Empty Name Test");
 
         if (!$this->authToken) {
-            echo "[SKIP] Update Profile Empty Name - No auth token available\n";
-            return true;
+            return $this->skip("Update Profile Empty Name - No auth token available");
+            
         }
 
         $updateData = [
@@ -283,8 +283,8 @@ class UserProfileTest extends BaseTest {
         $this->printHeader("Update Profile XSS Test");
 
         if (!$this->authToken) {
-            echo "[SKIP] Update Profile XSS - No auth token available\n";
-            return true;
+            return $this->skip("Update Profile XSS - No auth token available");
+            
         }
 
         $xssPayloads = [
@@ -360,8 +360,8 @@ class UserProfileTest extends BaseTest {
         $this->printHeader("Update Profile Empty Data Test");
 
         if (!$this->authToken) {
-            echo "[SKIP] Update Profile Empty Data - No auth token available\n";
-            return true;
+            return $this->skip("Update Profile Empty Data - No auth token available");
+            
         }
 
         $result = $this->testHelper->post('profile', []);
@@ -370,10 +370,10 @@ class UserProfileTest extends BaseTest {
         // Some APIs might accept empty data (no-op), others might require at least one field
         if ($result['status'] === 200) {
             echo "[INFO] Empty update accepted (no-op)\n";
-            return true;
+            
         } elseif ($result['status'] === 400) {
             echo "[INFO] Empty update rejected (validation)\n";
-            return true;
+            
         }
 
         return $result['status'] === 200 || $result['status'] === 400;
@@ -386,8 +386,8 @@ class UserProfileTest extends BaseTest {
         $this->printHeader("Update Profile Unknown Fields Test");
 
         if (!$this->authToken) {
-            echo "[SKIP] Update Profile Unknown Fields - No auth token available\n";
-            return true;
+            return $this->skip("Update Profile Unknown Fields - No auth token available");
+            
         }
 
         $updateData = [
@@ -403,10 +403,10 @@ class UserProfileTest extends BaseTest {
         // API should ignore unknown fields or reject them
         if ($result['status'] === 200) {
             echo "[INFO] Unknown fields ignored (good)\n";
-            return true;
+            
         } elseif ($result['status'] === 400) {
             echo "[INFO] Unknown fields rejected (also acceptable)\n";
-            return true;
+            
         }
 
         return $result['status'] === 200 || $result['status'] === 400;
@@ -419,8 +419,8 @@ class UserProfileTest extends BaseTest {
         $this->printHeader("Profile Update Performance Test");
 
         if (!$this->authToken) {
-            echo "[SKIP] Profile Performance - No auth token available\n";
-            return true;
+            return $this->skip("Profile Performance - No auth token available");
+            
         }
 
         $results = [];
@@ -457,8 +457,8 @@ class UserProfileTest extends BaseTest {
         $this->printHeader("Profile Consistency Test");
 
         if (!$this->authToken) {
-            echo "[SKIP] Profile Consistency - No auth token available\n";
-            return true;
+            return $this->skip("Profile Consistency - No auth token available");
+            
         }
 
         $results = [];

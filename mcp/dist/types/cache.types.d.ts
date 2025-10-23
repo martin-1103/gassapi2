@@ -99,16 +99,53 @@ export interface TokenValidationCache {
     /** Unix timestamp when this validation expires */
     expiresAt: number;
 }
+/**
+ * Cache performance statistics
+ */
 export interface CacheStats {
+    /** Number of successful cache hits */
     hits: number;
+    /** Number of cache misses */
     misses: number;
+    /** Current number of entries in cache */
     size: number;
+    /** Unix timestamp of last cache cleanup */
     lastCleanup: number;
 }
+/**
+ * Cache key type (string-based)
+ */
 export type CacheKey = string;
-export type CacheValue = any;
+/**
+ * Generic cache value type
+ */
+export type CacheValue = unknown;
+/**
+ * Cache configuration options
+ */
 export interface CacheOptions {
+    /** Time-to-live in milliseconds (default: 5 minutes) */
     ttlMs?: number;
+    /** Whether to compress cached data (default: false) */
     compress?: boolean;
+}
+/**
+ * Cache entry operations
+ */
+export type CacheOperation = 'get' | 'set' | 'delete' | 'clear' | 'cleanup';
+/**
+ * Cache operation result
+ */
+export interface CacheOperationResult {
+    /** Type of operation performed */
+    operation: CacheOperation;
+    /** Whether operation was successful */
+    success: boolean;
+    /** Data value (for get operations) */
+    value?: CacheValue;
+    /** Error message if operation failed */
+    error?: string;
+    /** Unix timestamp when operation was performed */
+    timestamp: number;
 }
 //# sourceMappingURL=cache.types.d.ts.map

@@ -52,8 +52,8 @@ class UserTest extends BaseTest {
         $this->printHeader("Get User Profile Test");
 
         if (!$this->authToken) {
-            echo "[SKIP] Get Profile - No auth token available\n";
-            return true;
+            return $this->skip("Get Profile - No auth token available");
+            
         }
 
         $result = $this->testHelper->get('profile');
@@ -75,8 +75,8 @@ class UserTest extends BaseTest {
         $this->printHeader("Get All Users Test");
 
         if (!$this->authToken) {
-            echo "[SKIP] Get All Users - No auth token available\n";
-            return true;
+            return $this->skip("Get All Users - No auth token available");
+            
         }
 
         $result = $this->testHelper->get('users');
@@ -101,8 +101,8 @@ class UserTest extends BaseTest {
         $this->printHeader("Get User by ID Test");
 
         if (!$this->authToken || !$this->testUserId) {
-            echo "[SKIP] Get User by ID - No auth token or user ID available\n";
-            return true;
+            return $this->skip("Get User by ID - No auth token or user ID available");
+            
         }
 
         $result = $this->testHelper->get('user_by_id', [], $this->testUserId);
@@ -124,8 +124,8 @@ class UserTest extends BaseTest {
         $this->printHeader("Get Non-existent User Test");
 
         if (!$this->authToken) {
-            echo "[SKIP] Get Non-existent User - No auth token available\n";
-            return true;
+            return $this->skip("Get Non-existent User - No auth token available");
+            
         }
 
         $result = $this->testHelper->get('user_by_id', [], 99999);
@@ -145,8 +145,8 @@ class UserTest extends BaseTest {
         $this->printHeader("Update Profile Test");
 
         if (!$this->authToken) {
-            echo "[SKIP] Update Profile - No auth token available\n";
-            return true;
+            return $this->skip("Update Profile - No auth token available");
+            
         }
 
         $updateData = [
@@ -171,8 +171,8 @@ class UserTest extends BaseTest {
         $this->printHeader("Update Profile Invalid Data Test");
 
         if (!$this->authToken) {
-            echo "[SKIP] Update Profile Invalid - No auth token available\n";
-            return true;
+            return $this->skip("Update Profile Invalid - No auth token available");
+            
         }
 
         // Test with invalid email
@@ -196,8 +196,8 @@ class UserTest extends BaseTest {
         $this->printHeader("Change Password Test");
 
         if (!$this->authToken) {
-            echo "[SKIP] Change Password - No auth token available\n";
-            return true;
+            return $this->skip("Change Password - No auth token available");
+            
         }
 
         $passwordData = [
@@ -240,8 +240,8 @@ class UserTest extends BaseTest {
         $this->printHeader("Logout All Devices Test");
 
         if (!$this->authToken) {
-            echo "[SKIP] Logout All - No auth token available\n";
-            return true;
+            return $this->skip("Logout All - No auth token available");
+            
         }
 
         $result = $this->testHelper->post('logout-all');
@@ -262,8 +262,8 @@ class UserTest extends BaseTest {
         $this->printHeader("Update User by ID Test");
 
         if (!$this->authToken || !$this->testUserId) {
-            echo "[SKIP] Update User - No auth token or user ID available\n";
-            return true;
+            return $this->skip("Update User - No auth token or user ID available");
+            
         }
 
         $updateData = [
@@ -295,8 +295,8 @@ class UserTest extends BaseTest {
         $this->printHeader("Update User Invalid Data Test");
 
         if (!$this->authToken || !$this->testUserId) {
-            echo "[SKIP] Update User Invalid - No auth token or user ID available\n";
-            return true;
+            return $this->skip("Update User Invalid - No auth token or user ID available");
+            
         }
 
         // Test with invalid email
@@ -324,8 +324,8 @@ class UserTest extends BaseTest {
         $this->printHeader("Toggle User Status Test");
 
         if (!$this->authToken || !$this->testUserId) {
-            echo "[SKIP] Toggle Status - No auth token or user ID available\n";
-            return true;
+            return $this->skip("Toggle Status - No auth token or user ID available");
+            
         }
 
         // Test PUT request to toggle status
@@ -355,8 +355,8 @@ class UserTest extends BaseTest {
         $this->printHeader("Delete User Test");
 
         if (!$this->authToken) {
-            echo "[SKIP] Delete User - No auth token available\n";
-            return true;
+            return $this->skip("Delete User - No auth token available");
+            
         }
 
         // Create a temporary user for deletion test
@@ -373,8 +373,8 @@ class UserTest extends BaseTest {
         $registerResult = $this->testHelper->post('register', $userData);
         
         if ($registerResult['status'] !== 201 && $registerResult['status'] !== 200) {
-            echo "[SKIP] Delete User - Could not create temporary user\n";
-            return true;
+            return $this->skip("Delete User - Could not create temporary user");
+            
         }
 
         // Get temp user ID (might need to login first or extract from response)
@@ -411,8 +411,8 @@ class UserTest extends BaseTest {
         $this->printHeader("Delete Non-existent User Test");
 
         if (!$this->authToken) {
-            echo "[SKIP] Delete Non-existent User - No auth token available\n";
-            return true;
+            return $this->skip("Delete Non-existent User - No auth token available");
+            
         }
 
         $result = $this->testHelper->delete('user_delete', [], 99999);
@@ -434,8 +434,8 @@ class UserTest extends BaseTest {
         $this->printHeader("User Statistics Test");
 
         if (!$this->authToken) {
-            echo "[SKIP] User Stats - No auth token available\n";
-            return true;
+            return $this->skip("User Stats - No auth token available");
+            
         }
 
         // This would typically be an endpoint like ?act=users_stats

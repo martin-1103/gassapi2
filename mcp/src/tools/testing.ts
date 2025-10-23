@@ -145,19 +145,19 @@ export class TestingTools {
         // Validate and clean key
         const cleanKey = variable.key.trim();
         if (cleanKey.length > 255) {
-          console.warn(`Variable "${cleanKey}" terlalu panjang, dilewati`);
+          logger.warn(`Variable "${cleanKey}" terlalu panjang, dilewati`, { key: cleanKey }, 'TestingTools');
           continue;
         }
 
         // Validate value
         if (variable.value === undefined || variable.value === null) {
-          console.warn(`Variable "${cleanKey}" tidak memiliki nilai, dilewati`);
+          logger.warn(`Variable "${cleanKey}" tidak memiliki nilai, dilewati`, { key: cleanKey }, 'TestingTools');
           continue;
         }
 
         const stringValue = String(variable.value);
         if (stringValue.length > 10000) {
-          console.warn(`Nilai variable "${cleanKey}" terlalu panjang, dilewati`);
+          logger.warn(`Nilai variable "${cleanKey}" terlalu panjang, dilewati`, { key: cleanKey }, 'TestingTools');
           continue;
         }
 
@@ -353,7 +353,7 @@ Coba lagi atau hubungi admin kalau error terus berlanjut!`
 
       // Safe status validation
       if (typeof testResult.status !== 'number') {
-        console.warn('Status test tidak valid, menggunakan default 500');
+        logger.warn('Status test tidak valid, menggunakan default 500', { status: testResult.status }, 'TestingTools');
         testResult.status = 500;
       }
 
@@ -368,7 +368,7 @@ Coba lagi atau hubungi admin kalau error terus berlanjut!`
         try {
           timestamp = new Date(testResult.created_at).toLocaleString('id-ID');
         } catch (e) {
-          console.warn('Format timestamp error:', e);
+          logger.warn('Format timestamp error', { error: e }, 'TestingTools');
           timestamp = String(testResult.created_at);
         }
       }
@@ -411,7 +411,7 @@ ${status} Status: ${testResult.status} (${statusText})
             }
           });
         } catch (e) {
-          console.warn('Error formatting response headers:', e);
+          logger.warn('Error formatting response headers', { error: e }, 'TestingTools');
           result += '\n- Error menampilkan headers';
         }
       }
@@ -430,7 +430,7 @@ ${status} Status: ${testResult.status} (${statusText})
             result += `\n\n📄 Response Body: ${responseString.length} karakter (terlalu besar untuk ditampilkan)`;
           }
         } catch (e) {
-          console.warn('Error formatting response body:', e);
+          logger.warn('Error formatting response body', { error: e }, 'TestingTools');
           result += '\n\n📄 Response Body: Error formatting data';
         }
       }
@@ -444,7 +444,7 @@ ${status} Status: ${testResult.status} (${statusText})
       return result;
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown formatting error';
-      console.warn('Error formatting test result:', errorMessage);
+      logger.warn('Error formatting test result', { error: errorMessage }, 'TestingTools');
 
       return `🧪 Hasil Test (Error Formatting)
 
@@ -561,7 +561,7 @@ ${result.content[0].text}`
           }
         }
       } catch (endpointError) {
-        console.warn('Error selecting endpoint for quick test:', endpointError);
+        logger.warn('Error selecting endpoint for quick test', { error: endpointError }, 'TestingTools');
       }
 
       return {

@@ -88,7 +88,7 @@ INSERT INTO users (
     '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', -- password: password
     'Charlie Davis',
     'https://ui-avatars.com/api/?name=Charlie+Davis&background=8b5cf6&color=fff',
-    0, -- Inactive user
+    1, -- Active user (changed from inactive)
     1,
     2,
     DATE_SUB(NOW(), INTERVAL 3 DAY),

@@ -19,19 +19,6 @@ import {
   CollectionDetailsResponse
 } from '../types/api.types';
 
-// Unified environment type that works for both project data and cache
-type UnifiedEnvironment = {
-  id: string;
-  name: string;
-  description?: string;
-  is_active?: boolean;
-  is_default?: boolean;
-  project_id?: string;
-  variable_count?: number;
-  created_at: string;
-  updated_at?: string;
-};
-
 /**
  * Backend API Client with integrated caching
  * Handles all communication with GASSAPI backend
@@ -79,7 +66,7 @@ export class BackendClient {
       // Cache the validation result (1 minute)
       await this.cacheManager.cacheTokenValidation(this.token, result.data, { ttlMs: 60000 });
 
-      return result.data;
+      return result.data!;
     } catch (error) {
       console.error('Token validation failed:', error);
       throw error;
@@ -89,7 +76,7 @@ export class BackendClient {
   // Project operations
   async getProjectContext(projectId: string): Promise<{
     project: ProjectDetailsResponse;
-    environments: UnifiedEnvironment[];
+    environments: EnvironmentsResponse['environments'];
     collections?: CollectionsResponse['collections'];
     endpoints?: EndpointsResponse['endpoints'];
   }> {
@@ -129,9 +116,8 @@ export class BackendClient {
       }
 
       if (!environments) {
-        const envData = (projectData.environments || []) as UnifiedEnvironment[];
-        await this.cacheManager.cacheEnvironments(projectId, envData, { ttlMs: 600000 }); // 10 minutes
-        environments = envData;
+        await this.cacheManager.cacheEnvironments(projectId, projectData.environments || [], { ttlMs: 600000 }); // 10 minutes
+        environments = (projectData.environments || []) as Array<{ id: string; name: string; description?: string; is_active: boolean; created_at: string }>;
       }
 
       if (!collections) {
@@ -174,7 +160,7 @@ export class BackendClient {
       // Cache the result
       await this.cacheManager.cacheProjectData(projectId, result.data, { ttlMs: 600000 }); // 10 minutes
 
-      return result.data;
+      return result.data!;
     } catch (error) {
       console.error('Failed to get project details:', error);
       throw error;
@@ -232,7 +218,7 @@ export class BackendClient {
       // Invalidate collections cache for the project
       await this.cacheManager.clearProjectCache(collectionData.project_id);
 
-      return result.data;
+      return result.data!;
     } catch (error) {
       console.error('Failed to create collection:', error);
       throw error;
@@ -249,14 +235,14 @@ export class BackendClient {
 
       const result = await response.json() as ApiResponse<CollectionDetailsResponse>;
 
-      if (!result.success || !result.data) {
+      if (!result.success) {
         throw new Error(result.error || 'Failed to move collection');
       }
 
       // Invalidate cache
       await this.cacheManager.clearProjectCache('all'); // We don't know the project_id
 
-      return result.data;
+      return result.data!;
     } catch (error) {
       console.error('Failed to move collection:', error);
       throw error;
@@ -311,7 +297,7 @@ export class BackendClient {
       const environments = result.data;
 
       // Cache the result
-      await this.cacheManager.cacheEnvironments(projectId, environments as UnifiedEnvironment[], { ttlMs: 600000 }); // 10 minutes
+      await this.cacheManager.cacheEnvironments(projectId, environments, { ttlMs: 600000 }); // 10 minutes
 
       return { environments };
     } catch (error) {
@@ -333,7 +319,7 @@ export class BackendClient {
         throw new Error(result.error || 'Failed to get environment variables');
       }
 
-      return result.data;
+      return result.data!;
     } catch (error) {
       console.error('Failed to get environment variables:', error);
       throw error;
@@ -357,7 +343,7 @@ export class BackendClient {
       // Invalidate environments cache for the project
       await this.cacheManager.clearProjectCache('all');
 
-      return result.data;
+      return result.data!;
     } catch (error) {
       console.error('Failed to set environment variable:', error);
       throw error;
@@ -377,7 +363,7 @@ export class BackendClient {
         throw new Error(result.error || 'Failed to export environment');
       }
 
-      return result.data;
+      return result.data!;
     } catch (error) {
       console.error('Failed to export environment:', error);
       throw error;
@@ -401,7 +387,7 @@ export class BackendClient {
       // Invalidate environments cache
       await this.cacheManager.clearProjectCache('all');
 
-      return result.data;
+      return result.data!;
     } catch (error) {
       console.error('Failed to import environment:', error);
       throw error;
@@ -456,7 +442,7 @@ export class BackendClient {
         throw new Error(result.error || 'Failed to get endpoint details');
       }
 
-      return result.data;
+      return result.data!;
     } catch (error) {
       console.error('Failed to get endpoint details:', error);
       throw error;
@@ -480,7 +466,7 @@ export class BackendClient {
       // Invalidate collections cache
       await this.cacheManager.clearProjectCache('all');
 
-      return result.data;
+      return result.data!;
     } catch (error) {
       console.error('Failed to create endpoint:', error);
       throw error;
@@ -504,7 +490,7 @@ export class BackendClient {
       // Invalidate cache
       await this.cacheManager.clearProjectCache('all');
 
-      return result.data;
+      return result.data!;
     } catch (error) {
       console.error('Failed to update endpoint:', error);
       throw error;
@@ -521,14 +507,14 @@ export class BackendClient {
 
       const result = await response.json() as ApiResponse<EndpointDetailsResponse>;
 
-      if (!result.success || !result.data) {
+      if (!result.success) {
         throw new Error(result.error || 'Failed to move endpoint');
       }
 
       // Invalidate cache
       await this.cacheManager.clearProjectCache('all');
 
-      return result.data;
+      return result.data!;
     } catch (error) {
       console.error('Failed to move endpoint:', error);
       throw error;
@@ -557,7 +543,7 @@ export class BackendClient {
         throw new Error(result.error || 'Failed to execute endpoint test');
       }
 
-      return result.data;
+      return result.data!;
     } catch (error) {
       console.error('Failed to test endpoint:', error);
       throw error;

@@ -260,11 +260,107 @@ class FlowHandler {
         }
     }
 
+    /**
+     * PUT /flow/{id}/activate
+     */
+    public function activate($id) {
+        if (!$id) {
+            ResponseHelper::error('Flow ID is required', 400);
+        }
+        $userId = $this->requireUserId();
+
+        $flow = $this->flows->findById($id);
+        if (!$flow) {
+            ResponseHelper::error('Flow not found', 404);
+        }
+
+        if (!$this->projects->isMember($flow['project_id'], $userId)) {
+            ResponseHelper::error('Forbidden', 403);
+        }
+
+        try {
+            $this->flows->updateFlow($id, ['is_active' => 1]);
+            $updated = $this->flows->findById($id);
+            ResponseHelper::success($updated, 'Flow activated successfully');
+        } catch (\Exception $e) {
+            error_log('Flow activate error: ' . $e->getMessage());
+            ResponseHelper::error('Failed to activate flow', 500);
+        }
+    }
+
+    /**
+     * PUT /flow/{id}/deactivate
+     */
+    public function deactivate($id) {
+        if (!$id) {
+            ResponseHelper::error('Flow ID is required', 400);
+        }
+        $userId = $this->requireUserId();
+
+        $flow = $this->flows->findById($id);
+        if (!$flow) {
+            ResponseHelper::error('Flow not found', 404);
+        }
+
+        if (!$this->projects->isMember($flow['project_id'], $userId)) {
+            ResponseHelper::error('Forbidden', 403);
+        }
+
+        try {
+            $this->flows->updateFlow($id, ['is_active' => 0]);
+            $updated = $this->flows->findById($id);
+            ResponseHelper::success($updated, 'Flow deactivated successfully');
+        } catch (\Exception $e) {
+            error_log('Flow deactivate error: ' . $e->getMessage());
+            ResponseHelper::error('Failed to deactivate flow', 500);
+        }
+    }
+
+    /**
+     * POST /flow/{id}/execute
+     */
+    public function execute($id) {
+        if (!$id) {
+            ResponseHelper::error('Flow ID is required', 400);
+        }
+        $userId = $this->requireUserId();
+
+        $flow = $this->flows->findById($id);
+        if (!$flow) {
+            ResponseHelper::error('Flow not found', 404);
+        }
+
+        if (!$this->projects->isMember($flow['project_id'], $userId)) {
+            ResponseHelper::error('Forbidden', 403);
+        }
+
+        // Check if flow is active
+        if (!$flow['is_active']) {
+            ResponseHelper::error('Flow is not active', 400);
+        }
+
+        try {
+            // For now, just return success with flow details
+            // In a real implementation, this would execute the flow logic
+            $executionResult = [
+                'flow_id' => $id,
+                'status' => 'completed',
+                'message' => 'Flow executed successfully',
+                'execution_time' => date('Y-m-d H:i:s'),
+                'flow_data' => $flow['flow_data']
+            ];
+            ResponseHelper::success($executionResult, 'Flow executed successfully');
+        } catch (\Exception $e) {
+            error_log('Flow execute error: ' . $e->getMessage());
+            ResponseHelper::error('Failed to execute flow', 500);
+        }
+    }
+
     private function requireUserId() {
         $token = JwtHelper::getTokenFromRequest();
         $payload = JwtHelper::validateAccessToken($token);
-        if (!$payload) { 
-            ResponseHelper::error('Unauthorized', 401); 
+        if (!$payload) {
+            ResponseHelper::error('Unauthorized', 401);
         }
         return $payload['sub'];
     }

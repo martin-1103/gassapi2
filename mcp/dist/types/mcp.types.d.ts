@@ -12,12 +12,20 @@ export interface McpToolInputSchema {
     properties: Record<string, McpParameter>;
     required?: string[];
 }
+/**
+ * Parameter definition for MCP tool input schema
+ */
 export interface McpParameter {
+    /** Parameter data type */
     type: 'string' | 'number' | 'boolean' | 'array' | 'object';
+    /** Human-readable parameter description */
     description: string;
+    /** Allowed values for this parameter */
     enum?: string[];
+    /** Type definition for array items */
     items?: McpParameter;
-    default?: any;
+    /** Default value if parameter is optional */
+    default?: string | number | boolean | null | Record<string, unknown> | unknown[];
 }
 export interface McpResource {
     uri: string;
@@ -55,8 +63,13 @@ export interface McpInitializeRequest {
     capabilities: McpClientCapabilities;
     clientInfo: McpClientInfo;
 }
+/**
+ * Client capabilities advertised during MCP initialization
+ */
 export interface McpClientCapabilities {
-    experimental?: Record<string, any>;
+    /** Experimental features supported by the client */
+    experimental?: Record<string, unknown>;
+    /** Sampling capabilities for AI model interaction */
     sampling?: McpSamplingCapability;
 }
 export interface McpSamplingCapability {
@@ -71,10 +84,17 @@ export interface McpInitializeResult {
     capabilities: McpServerCapabilities;
     serverInfo: McpServerInfo;
 }
+/**
+ * Server status information for health checks
+ */
 export interface McpServerStatus {
+    /** Overall server health status */
     status: "error" | "ok";
-    details?: any;
+    /** Additional status context or metrics */
+    details?: Record<string, unknown>;
+    /** Unix timestamp of status report */
     timestamp: number;
+    /** Error message if status is 'error' */
     error?: string;
 }
 export interface McpServerInfo {
@@ -148,26 +168,91 @@ export interface GassapiCollection {
     created_at: string;
     updated_at: string;
 }
+/**
+ * GASSAPI endpoint representation for MCP tools
+ */
 export interface GassapiEndpoint {
+    /** Unique endpoint identifier */
     id: string;
+    /** Parent collection identifier */
     collection_id: string;
+    /** Human-readable endpoint name */
     name: string;
+    /** HTTP method for this endpoint */
     method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' | 'HEAD' | 'OPTIONS';
+    /** Endpoint URL path */
     url: string;
+    /** Default headers for endpoint requests */
     headers?: Record<string, string>;
-    body?: any;
+    /** Default request body template */
+    body?: Record<string, unknown> | unknown[] | string | null;
+    /** Optional description of endpoint purpose */
     description?: string;
+    /** ISO timestamp when endpoint was created */
     created_at: string;
+    /** ISO timestamp when endpoint was last updated */
     updated_at: string;
 }
+/**
+ * GASSAPI test execution result for MCP tools
+ */
 export interface GassapiTestResult {
+    /** Test execution identifier */
     id: string;
+    /** Endpoint that was tested */
     endpoint_id: string;
+    /** Environment used for testing */
     environment_id: string;
+    /** HTTP status code received */
     status: number;
+    /** Response time in milliseconds */
     response_time: number;
-    response_body?: any;
+    /** Raw response body (parsed if JSON) */
+    response_body?: Record<string, unknown> | unknown[] | string | null;
+    /** Error message if test failed */
     error?: string;
+    /** ISO timestamp when test was executed */
     created_at: string;
+}
+/**
+ * MCP message types for protocol communication
+ */
+export type McpMessageType = 'initialize' | 'initialized' | 'list_tools' | 'call_tool' | 'list_resources' | 'read_resource' | 'list_prompts' | 'get_prompt' | 'ping' | 'error';
+/**
+ * Base MCP message structure
+ */
+export interface McpMessage {
+    /** JSON-RPC protocol version (always "2.0") */
+    jsonrpc: "2.0";
+    /** Unique message identifier */
+    id?: string | number;
+    /** Message method/type */
+    method: McpMessageType;
+    /** Message parameters (method-specific) */
+    params?: Record<string, unknown>;
+}
+/**
+ * MCP error response structure
+ */
+export interface McpError {
+    /** Error code (JSON-RPC standard) */
+    code: number;
+    /** Human-readable error message */
+    message: string;
+    /** Additional error data */
+    data?: unknown;
+}
+/**
+ * MCP tool call context information
+ */
+export interface McpToolCallContext {
+    /** User identifier making the request */
+    userId?: string;
+    /** Session identifier for the conversation */
+    sessionId?: string;
+    /** Request identifier for tracking */
+    requestId?: string;
+    /** Additional context metadata */
+    metadata?: Record<string, unknown>;
 }
 //# sourceMappingURL=mcp.types.d.ts.map

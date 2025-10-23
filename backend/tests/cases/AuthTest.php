@@ -150,8 +150,7 @@ class AuthTest extends BaseTest {
         $this->printHeader("Logout Test");
 
         if (!$this->authToken) {
-            echo "[SKIP] Logout - No auth token available\n";
-            return true;
+            return $this->skip("Logout - No auth token available");
         }
 
         // Logout tidak memerlukan refresh_token, bisa langsung POST
@@ -247,8 +246,7 @@ class AuthTest extends BaseTest {
         }
 
         if (!$this->authToken) {
-            echo "[SKIP] Refresh Token - No auth token available\n";
-            return true;
+            return $this->skip("Refresh Token - No auth token available");
         }
 
         $result = $this->testHelper->post('refresh');

@@ -105,8 +105,8 @@ class TestHelper {
     /**
      * POST request
      */
-    public function post($endpoint, $data = null, $headers = []) {
-        return $this->request('POST', $endpoint, $data, $headers);
+    public function post($endpoint, $data = null, $headers = [], $id = null) {
+        return $this->request('POST', $endpoint, $data, $headers, $id);
     }
 
     /**

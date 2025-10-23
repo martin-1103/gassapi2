@@ -53,8 +53,8 @@ class XssProtectionTest extends BaseTest {
         $this->printHeader("Basic Script Injection Test");
 
         if (!$this->authToken) {
-            echo "[SKIP] Basic Script Injection - No auth token available\n";
-            return true;
+            return $this->skip("Basic Script Injection - No auth token available");
+            
         }
 
         $xssPayloads = [
@@ -87,8 +87,8 @@ class XssProtectionTest extends BaseTest {
         $this->printHeader("JavaScript Protocol Injection Test");
 
         if (!$this->authToken) {
-            echo "[SKIP] JavaScript Protocol - No auth token available\n";
-            return true;
+            return $this->skip("JavaScript Protocol - No auth token available");
+            
         }
 
         $xssPayloads = [
@@ -121,8 +121,8 @@ class XssProtectionTest extends BaseTest {
         $this->printHeader("Event Handler Injection Test");
 
         if (!$this->authToken) {
-            echo "[SKIP] Event Handler - No auth token available\n";
-            return true;
+            return $this->skip("Event Handler - No auth token available");
+            
         }
 
         $xssPayloads = [
@@ -157,8 +157,8 @@ class XssProtectionTest extends BaseTest {
         $this->printHeader("Encoded/Obfuscated Attacks Test");
 
         if (!$this->authToken) {
-            echo "[SKIP] Encoded Attacks - No auth token available\n";
-            return true;
+            return $this->skip("Encoded Attacks - No auth token available");
+            
         }
 
         $xssPayloads = [
@@ -193,8 +193,8 @@ class XssProtectionTest extends BaseTest {
         $this->printHeader("CSS-Based XSS Attacks Test");
 
         if (!$this->authToken) {
-            echo "[SKIP] CSS Attacks - No auth token available\n";
-            return true;
+            return $this->skip("CSS Attacks - No auth token available");
+            
         }
 
         $xssPayloads = [
@@ -228,8 +228,8 @@ class XssProtectionTest extends BaseTest {
         $this->printHeader("DOM-Based XSS Attacks Test");
 
         if (!$this->authToken) {
-            echo "[SKIP] DOM Attacks - No auth token available\n";
-            return true;
+            return $this->skip("DOM Attacks - No auth token available");
+            
         }
 
         $xssPayloads = [
@@ -264,8 +264,8 @@ class XssProtectionTest extends BaseTest {
         $this->printHeader("Data URL Attacks Test");
 
         if (!$this->authToken) {
-            echo "[SKIP] Data URL - No auth token available\n";
-            return true;
+            return $this->skip("Data URL - No auth token available");
+            
         }
 
         $xssPayloads = [
@@ -297,8 +297,8 @@ class XssProtectionTest extends BaseTest {
         $this->printHeader("Advanced Obfuscation Test");
 
         if (!$this->authToken) {
-            echo "[SKIP] Advanced Obfuscation - No auth token available\n";
-            return true;
+            return $this->skip("Advanced Obfuscation - No auth token available");
+            
         }
 
         $xssPayloads = [
@@ -332,8 +332,8 @@ class XssProtectionTest extends BaseTest {
         $this->printHeader("Valid Inputs Test");
 
         if (!$this->authToken) {
-            echo "[SKIP] Valid Inputs - No auth token available\n";
-            return true;
+            return $this->skip("Valid Inputs - No auth token available");
+            
         }
 
         $validInputs = [
@@ -375,8 +375,8 @@ class XssProtectionTest extends BaseTest {
         $this->printHeader("Boundary Cases Test");
 
         if (!$this->authToken) {
-            echo "[SKIP] Boundary Cases - No auth token available\n";
-            return true;
+            return $this->skip("Boundary Cases - No auth token available");
+            
         }
 
         $boundaryInputs = [

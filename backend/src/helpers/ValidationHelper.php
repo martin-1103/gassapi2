@@ -14,7 +14,12 @@ class ValidationHelper {
 
         // Validasi ukuran input untuk mencegah DoS
         if (strlen($input) > 1024 * 1024) { // 1MB limit
-            ResponseHelper::error('Input terlalu besar', 413);
+            ResponseHelper::error(MessageHelper::VALIDATION_INPUT_TOO_LARGE, 413);
+        }
+
+        // Handle empty request body (valid untuk DELETE requests dan lainnya)
+        if (empty($input) || trim($input) === '') {
+            return [];
         }
 
         $decoded = json_decode($input, true);
@@ -22,7 +27,7 @@ class ValidationHelper {
         // Handle JSON decode errors
         if (json_last_error() !== JSON_ERROR_NONE) {
             error_log("JSON decode error: " . json_last_error_msg() . " | Input: " . substr($input, 0, 200));
-            ResponseHelper::error('Format JSON tidak valid', 400);
+            ResponseHelper::error(MessageHelper::VALIDATION_INVALID_JSON, 400);
         }
 
         return $decoded ?? [];
@@ -40,7 +45,7 @@ class ValidationHelper {
         }
 
         if (!empty($missing)) {
-            ResponseHelper::error('Field wajib diisi: ' . implode(', ', $missing), 400);
+            ResponseHelper::error(implode(', ', array_map([MessageHelper::class, 'requiredField'], $missing)), 400);
         }
     }
 
@@ -50,7 +55,7 @@ class ValidationHelper {
     public static function email($email) {
         // Basic format validation
         if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            ResponseHelper::error('Format email tidak valid', 400);
+            ResponseHelper::error(MessageHelper::VALIDATION_INVALID_EMAIL, 400);
         }
 
         // Additional security checks
@@ -58,12 +63,12 @@ class ValidationHelper {
 
         // Prevent dangerous characters
         if (preg_match('/[<>"\'\x00-\x1f\x7f-\x9f]/', $email)) {
-            ResponseHelper::error('Email mengandung karakter tidak valid', 400);
+            ResponseHelper::error(MessageHelper::VALIDATION_EMAIL_CONTAINS_INVALID_CHARS, 400);
         }
 
         // Length validation
         if (strlen($email) > 254) {
-            ResponseHelper::error('Email terlalu panjang (maksimal 254 karakter)', 400);
+            ResponseHelper::error(MessageHelper::VALIDATION_EMAIL_TOO_LONG, 400);
         }
 
         return filter_var($email, FILTER_SANITIZE_EMAIL);
@@ -82,7 +87,7 @@ class ValidationHelper {
 
         // Length validation
         if (strlen($string) > $maxLength) {
-            ResponseHelper::error("Input terlalu panjang (maksimal {$maxLength} karakter)", 400);
+            ResponseHelper::error(MessageHelper::inputTooLong($maxLength), 400);
         }
 
         // Convert to lowercase for case-insensitive checks
@@ -100,7 +105,7 @@ class ValidationHelper {
             if (strpos($lowerString, '<' . $tag) !== false ||
                 strpos($lowerString, $tag . '>') !== false ||
                 strpos($lowerString, '<' . $tag . '>') !== false) {
-                ResponseHelper::error('Input mengandung konten tidak valid', 400);
+                ResponseHelper::error(MessageHelper::VALIDATION_CONTAINS_INVALID_CONTENT, 400);
             }
         }
 
@@ -112,7 +117,7 @@ class ValidationHelper {
 
         foreach ($dangerousProtocols as $protocol) {
             if (strpos($lowerString, $protocol) !== false) {
-                ResponseHelper::error('Input mengandung konten tidak valid', 400);
+                ResponseHelper::error(MessageHelper::VALIDATION_CONTAINS_INVALID_CONTENT, 400);
             }
         }
 
@@ -135,7 +140,7 @@ class ValidationHelper {
 
         foreach ($dangerousEvents as $event) {
             if (strpos($lowerString, $event) !== false) {
-                ResponseHelper::error('Input mengandung konten tidak valid', 400);
+                ResponseHelper::error(MessageHelper::VALIDATION_CONTAINS_INVALID_CONTENT, 400);
             }
         }
 
@@ -149,7 +154,7 @@ class ValidationHelper {
 
         foreach ($dangerousAttributes as $attr) {
             if (strpos($lowerString, $attr) !== false) {
-                ResponseHelper::error('Input mengandung konten tidak valid', 400);
+                ResponseHelper::error(MessageHelper::VALIDATION_CONTAINS_INVALID_CONTENT, 400);
             }
         }
 
@@ -166,7 +171,7 @@ class ValidationHelper {
 
         foreach ($xssPatterns as $pattern) {
             if (preg_match($pattern, $string)) {
-                ResponseHelper::error('Input mengandung pola tidak valid', 400);
+                ResponseHelper::error(MessageHelper::VALIDATION_CONTAINS_INVALID_PATTERN, 400);
             }
         }
 
@@ -189,15 +194,15 @@ class ValidationHelper {
      */
     public static function password($password) {
         if (empty($password)) {
-            ResponseHelper::error('Password wajib diisi', 400);
+            ResponseHelper::error(MessageHelper::VALIDATION_PASSWORD_REQUIRED, 400);
         }
 
         if (strlen($password) < 8) {
-            ResponseHelper::error('Password minimal 8 karakter', 400);
+            ResponseHelper::error(MessageHelper::VALIDATION_PASSWORD_TOO_SHORT, 400);
         }
 
         if (strlen($password) > 128) {
-            ResponseHelper::error('Password maksimal 128 karakter', 400);
+            ResponseHelper::error(MessageHelper::VALIDATION_PASSWORD_TOO_LONG, 400);
         }
 
         // Password complexity requirements
@@ -207,13 +212,13 @@ class ValidationHelper {
         $hasSpecial = preg_match('/[!@#$%^&*()_+\-=\[\]{};:\'",.<>\/\\\\?]/', $password);
 
         if (!$hasUpper || !$hasLower || !$hasNumber) {
-            ResponseHelper::error('Password harus mengandung huruf besar, huruf kecil, dan angka', 400);
+            ResponseHelper::error(MessageHelper::VALIDATION_PASSWORD_MISSING_COMPLEXITY, 400);
         }
 
         // Check for exact common passwords (not containing them)
         $commonPasswords = ['password', '123456', 'qwerty', 'admin', 'letmein'];
         if (in_array(strtolower($password), $commonPasswords)) {
-            ResponseHelper::error('Password tidak boleh menggunakan kata yang umum', 400);
+            ResponseHelper::error(MessageHelper::VALIDATION_PASSWORD_TOO_COMMON, 400);
         }
 
         return $password;
@@ -224,12 +229,12 @@ class ValidationHelper {
      */
     public static function name($name, $maxLength = 100) {
         if (empty($name)) {
-            ResponseHelper::error('Nama wajib diisi', 400);
+            ResponseHelper::error(MessageHelper::VALIDATION_NAME_REQUIRED, 400);
         }
 
         $trimmedName = trim($name);
         if (strlen($trimmedName) < 2) {
-            ResponseHelper::error('Nama minimal 2 karakter', 400);
+            ResponseHelper::error(MessageHelper::VALIDATION_NAME_TOO_SHORT, 400);
         }
 
         return self::sanitize($trimmedName, $maxLength);
@@ -240,17 +245,17 @@ class ValidationHelper {
      */
     public static function numeric($value, $min = null, $max = null) {
         if (!is_numeric($value)) {
-            ResponseHelper::error('Input harus berupa angka', 400);
+            ResponseHelper::error(MessageHelper::VALIDATION_INVALID_NUMBER, 400);
         }
 
         $numValue = (float)$value;
 
         if ($min !== null && $numValue < $min) {
-            ResponseHelper::error("Nilai minimal adalah {$min}", 400);
+            ResponseHelper::error(MessageHelper::minValue($min), 400);
         }
 
         if ($max !== null && $numValue > $max) {
-            ResponseHelper::error("Nilai maksimal adalah {$max}", 400);
+            ResponseHelper::error(MessageHelper::maxValue($max), 400);
         }
 
         return $numValue;
@@ -261,20 +266,59 @@ class ValidationHelper {
      */
     public static function integer($value, $min = null, $max = null) {
         if (!filter_var($value, FILTER_VALIDATE_INT)) {
-            ResponseHelper::error('Input harus berupa bilangan bulat', 400);
+            ResponseHelper::error(MessageHelper::VALIDATION_INVALID_INTEGER, 400);
         }
 
         $intValue = (int)$value;
 
         if ($min !== null && $intValue < $min) {
-            ResponseHelper::error("Nilai minimal adalah {$min}", 400);
+            ResponseHelper::error(MessageHelper::minValue($min), 400);
         }
 
         if ($max !== null && $intValue > $max) {
-            ResponseHelper::error("Nilai maksimal adalah {$max}", 400);
+            ResponseHelper::error(MessageHelper::maxValue($max), 400);
         }
 
         return $intValue;
+    }
+
+    /**
+     * Validate ID yang bisa berupa string atau integer
+     * Flexible validation untuk user ID yang bisa dikirim sebagai "user_123_hash" atau 123
+     */
+    public static function flexibleId($value, $min = 1) {
+        // Handle null/empty values
+        if ($value === null || $value === '') {
+            ResponseHelper::error(MessageHelper::ERROR_ID_REQUIRED, 400);
+        }
+
+        // Convert to string for consistent processing
+        $stringValue = (string)$value;
+
+        // Support string IDs like "user_123456_abc123"
+        if (preg_match('/^[a-zA-Z0-9_-]+$/', $stringValue)) {
+            // String IDs are valid if they match the pattern
+            return $stringValue;
+        }
+
+        // Check if it's a valid numeric string or integer (legacy support)
+        if (is_numeric($stringValue)) {
+            // Check for decimal points (not allowed for IDs)
+            if (strpos($stringValue, '.') !== false) {
+                ResponseHelper::error(MessageHelper::VALIDATION_INVALID_INTEGER, 400);
+            }
+
+            $intValue = (int)$stringValue;
+
+            // Validasi nilai minimal
+            if ($intValue < $min) {
+                ResponseHelper::error(MessageHelper::minValue($min), 400);
+            }
+
+            return $intValue;
+        }
+
+        ResponseHelper::error(MessageHelper::ERROR_VALIDATION_FAILED, 400);
     }
 
     /**
@@ -288,13 +332,13 @@ class ValidationHelper {
         $url = trim($url);
 
         if (!filter_var($url, FILTER_VALIDATE_URL)) {
-            ResponseHelper::error('Format URL tidak valid', 400);
+            ResponseHelper::error(MessageHelper::VALIDATION_INVALID_URL, 400);
         }
 
         // Additional security checks
         $parsed = parse_url($url);
         if (!isset($parsed['scheme']) || !in_array($parsed['scheme'], ['http', 'https'])) {
-            ResponseHelper::error('Hanya URL HTTP/HTTPS yang diizinkan', 400);
+            ResponseHelper::error(MessageHelper::VALIDATION_INVALID_URL_SCHEME, 400);
         }
 
         return $url;
@@ -312,11 +356,11 @@ class ValidationHelper {
         $length = strlen($trimmedText);
 
         if ($length < $minLength) {
-            ResponseHelper::error("Text minimal {$minLength} karakter", 400);
+            ResponseHelper::error(MessageHelper::textTooShort($minLength), 400);
         }
 
         if ($length > $maxLength) {
-            ResponseHelper::error("Text maksimal {$maxLength} karakter", 400);
+            ResponseHelper::error(MessageHelper::textTooLong($maxLength), 400);
         }
 
         return self::sanitize($trimmedText, $maxLength);
@@ -338,11 +382,11 @@ class ValidationHelper {
      */
     public static function array($value, $maxItems = 100) {
         if (!is_array($value)) {
-            ResponseHelper::error('Input harus berupa array', 400);
+            ResponseHelper::error(MessageHelper::VALIDATION_INVALID_ARRAY, 400);
         }
 
         if (count($value) > $maxItems) {
-            ResponseHelper::error("Array maksimal {$maxItems} item", 400);
+            ResponseHelper::error(MessageHelper::arrayTooManyItems($maxItems), 400);
         }
 
         return $value;

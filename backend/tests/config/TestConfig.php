@@ -54,7 +54,7 @@ class TestConfig {
         'project_delete' => '?act=project_delete&id=',
         'project_add_member' => '?act=project_add_member&id=',
         'environment' => '?act=environment&id=',
-        'environment_create' => '?act=environment_create',
+        'environment_create' => '?act=environment_create&id=',
         'environment_update' => '?act=environment_update&id=',
         'environment_delete' => '?act=environment_delete&id=',
         'mcp_generate_config' => '?act=mcp_generate_config&id=',
@@ -127,7 +127,7 @@ class TestConfig {
             }
 
             // Project endpoints
-            if (in_array($endpoint, ['project', 'project_environments', 'project_update', 'project_delete', 'project_add_member'])) {
+            if (in_array($endpoint, ['project', 'project_environments', 'project_update', 'project_delete', 'project_add_member', 'environment_create'])) {
                 $url .= $id;
             }
 

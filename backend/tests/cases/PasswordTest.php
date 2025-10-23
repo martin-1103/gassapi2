@@ -53,8 +53,8 @@ class PasswordTest extends BaseTest {
         $this->printHeader("Change Password Test");
 
         if (!$this->authToken) {
-            echo "[SKIP] Change Password - No auth token available\n";
-            return true;
+            return $this->skip("Change Password - No auth token available");
+            
         }
 
         $newPassword = 'NewPassword123456';
@@ -111,8 +111,8 @@ class PasswordTest extends BaseTest {
         $this->printHeader("Change Password Wrong Current Password");
 
         if (!$this->authToken) {
-            echo "[SKIP] Change Password Wrong - No auth token available\n";
-            return true;
+            return $this->skip("Change Password Wrong - No auth token available");
+            
         }
 
         $passwordData = [
@@ -151,8 +151,8 @@ class PasswordTest extends BaseTest {
         $this->printHeader("Change Password Mismatch Confirmation");
 
         if (!$this->authToken) {
-            echo "[SKIP] Change Password Mismatch - No auth token available\n";
-            return true;
+            return $this->skip("Change Password Mismatch - No auth token available");
+            
         }
 
         $newPassword = 'MismatchPassword123456';
@@ -191,7 +191,7 @@ class PasswordTest extends BaseTest {
         // Jika endpoint tidak ada, skip
         if ($result['status'] === 404) {
             echo "[INFO] Change password endpoint not found (expected)\n";
-            return true;
+            
         }
         
         // Karena API tidak validate confirm_password, test ini berhasil jika 200 atau 400
@@ -205,14 +205,14 @@ class PasswordTest extends BaseTest {
         $this->printHeader("Change Password Weak New Password");
 
         if (!$this->authToken) {
-            echo "[SKIP] Change Password Weak - No auth token available\n";
-            return true;
+            return $this->skip("Change Password Weak - No auth token available");
+            
         }
 
         // Check if token is still valid, re-authenticate if needed
         if (!$this->testHelper->reauthenticateIfNeeded($this->testEmail, $this->testPassword)) {
-            echo "[SKIP] Change Password Weak - Re-authentication failed\n";
-            return true;
+            return $this->skip("Change Password Weak - Re-authentication failed");
+            
         }
 
         $passwordData = [
@@ -249,14 +249,14 @@ class PasswordTest extends BaseTest {
         $this->printHeader("Change Password Same as Current");
 
         if (!$this->authToken) {
-            echo "[SKIP] Change Password Same - No auth token available\n";
-            return true;
+            return $this->skip("Change Password Same - No auth token available");
+            
         }
 
         // Check if token is still valid, re-authenticate if needed
         if (!$this->testHelper->reauthenticateIfNeeded($this->testEmail, $this->testPassword)) {
-            echo "[SKIP] Change Password Same - Re-authentication failed\n";
-            return true;
+            return $this->skip("Change Password Same - Re-authentication failed");
+            
         }
 
         $passwordData = [
@@ -292,8 +292,8 @@ class PasswordTest extends BaseTest {
         $this->printHeader("Change Password Missing Fields");
 
         if (!$this->authToken) {
-            echo "[SKIP] Change Password Missing - No auth token available\n";
-            return true;
+            return $this->skip("Change Password Missing - No auth token available");
+            
         }
 
         $results = [];
@@ -385,7 +385,7 @@ class PasswordTest extends BaseTest {
         // Endpoint ini mungkin belum diimplementasi
         if ($result['status'] === 404) {
             echo "[INFO] Forgot password endpoint not found (expected)\n";
-            return true;
+            
         } elseif ($result['status'] === 200) {
             // Accept both forgot password success messages
             $expectedMessages = [
@@ -439,11 +439,11 @@ class PasswordTest extends BaseTest {
         // Endpoint ini mungkin belum diimplementasi
         if ($result['status'] === 404) {
             echo "[INFO] Reset password endpoint not found (expected)\n";
-            return true;
+            
         } elseif ($result['status'] === 400) {
             // Token invalid atau expired - ini expected behavior karena kita pakai fake token
             echo "[INFO] Reset token validation working (invalid token as expected)\n";
-            return true;
+            
         } elseif ($result['status'] === 200) {
             // Accept both reset password success messages
             $expectedMessages = [
@@ -467,8 +467,8 @@ class PasswordTest extends BaseTest {
         $this->printHeader("Password Security Test");
 
         if (!$this->authToken) {
-            echo "[SKIP] Password Security - No auth token available\n";
-            return true;
+            return $this->skip("Password Security - No auth token available");
+            
         }
 
         $results = [];
@@ -520,8 +520,8 @@ class PasswordTest extends BaseTest {
         $this->printHeader("Password Complexity Test");
 
         if (!$this->authToken) {
-            echo "[SKIP] Password Complexity - No auth token available\n";
-            return true;
+            return $this->skip("Password Complexity - No auth token available");
+            
         }
 
         $testCases = [

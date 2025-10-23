@@ -64,6 +64,7 @@ $allowedActions = [
     'project_endpoints', 'project_endpoints_grouped',
     // Flows
     'flows', 'flows_active', 'flow', 'flow_update', 'flow_delete', 'flow_create', 'flow_toggle_active', 'flow_duplicate',
+    'flow_list', 'flow_get', 'flow_activate', 'flow_deactivate', 'flow_execute',
     // MCP
     'mcp_validate', 'mcp_generate_config'
 ];
@@ -140,6 +141,11 @@ function resolveRoutePath($action, $id = null) {
         'flow_create' => $id ? "/project/$id/flows" : '/project/flows',
         'flow_toggle_active' => $id ? "/flow/$id/toggle-active" : '/flow/toggle-active',
         'flow_duplicate' => $id ? "/flow/$id/duplicate" : '/flow/duplicate',
+        'flow_list' => $id ? "/project/$id/flows" : '/project/flows',
+        'flow_get' => $id ? "/flow/$id" : '/flow',
+        'flow_activate' => $id ? "/flow/$id/activate" : '/flow/activate',
+        'flow_deactivate' => $id ? "/flow/$id/deactivate" : '/flow/deactivate',
+        'flow_execute' => $id ? "/flow/$id/execute" : '/flow/execute',
         // MCP
         'mcp_validate' => '/mcp/validate',
         'mcp_generate_config' => $id ? "/project/$id/generate-config" : '/project/generate-config'

@@ -3,17 +3,21 @@ namespace App\Handlers;
 
 use App\Helpers\ResponseHelper;
 use App\Helpers\ValidationHelper;
+use App\Helpers\MessageHelper;
 use App\Helpers\JwtHelper;
+use App\Services\AuthService;
 use App\Repositories\ProjectRepository;
 use App\Repositories\EnvironmentRepository;
 
 class ProjectHandler {
     private $projects;
     private $envs;
+    private $authService;
 
     public function __construct() {
         $this->projects = new ProjectRepository();
         $this->envs = new EnvironmentRepository();
+        $this->authService = new AuthService();
     }
 
     /**
@@ -21,11 +25,15 @@ class ProjectHandler {
      */
     public function create() {
         $token = JwtHelper::getTokenFromRequest();
-        $payload = JwtHelper::validateAccessToken($token);
-        if (!$payload) {
-            ResponseHelper::error('Unauthorized', 401);
+        if (!$token) {
+            ResponseHelper::error(MessageHelper::ERROR_AUTH_REQUIRED, 401);
         }
-        $userId = $payload['sub'];
+
+        $user = $this->authService->validateAccessToken($token);
+        if (!$user) {
+            ResponseHelper::error(MessageHelper::ERROR_AUTH_REQUIRED, 401);
+        }
+        $userId = $user['id'];
 
         $input = ValidationHelper::getJsonInput();
         ValidationHelper::required($input, ['name']);
@@ -60,11 +68,15 @@ class ProjectHandler {
      */
     public function getAll() {
         $token = JwtHelper::getTokenFromRequest();
-        $payload = JwtHelper::validateAccessToken($token);
-        if (!$payload) {
-            ResponseHelper::error('Unauthorized', 401);
+        if (!$token) {
+            ResponseHelper::error(MessageHelper::ERROR_AUTH_REQUIRED, 401);
         }
-        $userId = $payload['sub'];
+
+        $user = $this->authService->validateAccessToken($token);
+        if (!$user) {
+            ResponseHelper::error(MessageHelper::ERROR_AUTH_REQUIRED, 401);
+        }
+        $userId = $user['id'];
         $list = $this->projects->listForUser($userId, 100, 0);
         ResponseHelper::success($list, 'Projects fetched');
     }
@@ -73,14 +85,16 @@ class ProjectHandler {
      * GET /project/{id}
      */
     public function getById($id) {
-        if (!$id) { ResponseHelper::error('Project ID is required', 400); }
+        if (!$id) { ResponseHelper::error(MessageHelper::ERROR_ID_REQUIRED, 400); }
         $token = JwtHelper::getTokenFromRequest();
-        $payload = JwtHelper::validateAccessToken($token);
-        if (!$payload) { ResponseHelper::error('Unauthorized', 401); }
-        $userId = $payload['sub'];
+        if (!$token) { ResponseHelper::error(MessageHelper::ERROR_AUTH_REQUIRED, 401); }
+
+        $user = $this->authService->validateAccessToken($token);
+        if (!$user) { ResponseHelper::error(MessageHelper::ERROR_AUTH_REQUIRED, 401); }
+        $userId = $user['id'];
 
         $project = $this->projects->findForUser($id, $userId);
-        if (!$project) { ResponseHelper::error('Project not found', 404); }
+        if (!$project) { ResponseHelper::error(MessageHelper::ERROR_NOT_FOUND, 404); }
 
         // add member count
         $project['member_count'] = $this->projects->countMembers($id);
@@ -91,14 +105,16 @@ class ProjectHandler {
      * PUT /project/{id}
      */
     public function update($id) {
-        if (!$id) { ResponseHelper::error('Project ID is required', 400); }
+        if (!$id) { ResponseHelper::error(MessageHelper::ERROR_ID_REQUIRED, 400); }
         $token = JwtHelper::getTokenFromRequest();
-        $payload = JwtHelper::validateAccessToken($token);
-        if (!$payload) { ResponseHelper::error('Unauthorized', 401); }
-        $userId = $payload['sub'];
+        if (!$token) { ResponseHelper::error(MessageHelper::ERROR_AUTH_REQUIRED, 401); }
+
+        $user = $this->authService->validateAccessToken($token);
+        if (!$user) { ResponseHelper::error(MessageHelper::ERROR_AUTH_REQUIRED, 401); }
+        $userId = $user['id'];
 
         if (!$this->projects->isOwner($id, $userId)) {
-            ResponseHelper::error('Forbidden: owner only', 403);
+            ResponseHelper::error(MessageHelper::ERROR_FORBIDDEN, 403);
         }
 
         $input = ValidationHelper::getJsonInput();
@@ -108,7 +124,7 @@ class ProjectHandler {
         if (isset($input['is_public'])) { $data['is_public'] = (int)!!$input['is_public']; }
 
         if (empty($data)) {
-            ResponseHelper::error('No valid fields to update', 400);
+            ResponseHelper::error(MessageHelper::ERROR_NO_DATA_TO_UPDATE, 400);
         }
 
         try {
@@ -125,14 +141,16 @@ class ProjectHandler {
      * DELETE /project/{id}
      */
     public function delete($id) {
-        if (!$id) { ResponseHelper::error('Project ID is required', 400); }
+        if (!$id) { ResponseHelper::error(MessageHelper::ERROR_ID_REQUIRED, 400); }
         $token = JwtHelper::getTokenFromRequest();
-        $payload = JwtHelper::validateAccessToken($token);
-        if (!$payload) { ResponseHelper::error('Unauthorized', 401); }
-        $userId = $payload['sub'];
+        if (!$token) { ResponseHelper::error(MessageHelper::ERROR_AUTH_REQUIRED, 401); }
+
+        $user = $this->authService->validateAccessToken($token);
+        if (!$user) { ResponseHelper::error(MessageHelper::ERROR_AUTH_REQUIRED, 401); }
+        $userId = $user['id'];
 
         if (!$this->projects->isOwner($id, $userId)) {
-            ResponseHelper::error('Forbidden: owner only', 403);
+            ResponseHelper::error(MessageHelper::ERROR_FORBIDDEN, 403);
         }
 
         try {
@@ -150,13 +168,15 @@ class ProjectHandler {
     public function addMember($projectId) {
         if (!$projectId) { ResponseHelper::error('Project ID is required', 400); }
         $token = JwtHelper::getTokenFromRequest();
-        $payload = JwtHelper::validateAccessToken($token);
-        if (!$payload) { ResponseHelper::error('Unauthorized', 401); }
-        $userId = $payload['sub'];
+        if (!$token) { ResponseHelper::error(MessageHelper::ERROR_AUTH_REQUIRED, 401); }
+
+        $user = $this->authService->validateAccessToken($token);
+        if (!$user) { ResponseHelper::error(MessageHelper::ERROR_AUTH_REQUIRED, 401); }
+        $userId = $user['id'];
 
         // inviter must be member
         if (!$this->projects->isMember($projectId, $userId)) {
-            ResponseHelper::error('Forbidden: members only', 403);
+            ResponseHelper::error(MessageHelper::ERROR_FORBIDDEN, 403);
         }
 
         $input = ValidationHelper::getJsonInput();
@@ -164,7 +184,7 @@ class ProjectHandler {
         $invitee = $input['user_id'];
 
         if ($invitee === $userId) {
-            ResponseHelper::error('Cannot invite yourself', 400);
+            ResponseHelper::error(MessageHelper::ERROR_BAD_REQUEST, 400);
         }
 
         try {

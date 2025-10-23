@@ -93,8 +93,8 @@ class FlowTest extends BaseTest {
         $this->printHeader("Create Flow Test");
 
         if (!$this->projectId) {
-            echo "[SKIP] Create Flow - No project available\n";
-            return true;
+            return $this->skip("Create Flow - No project available");
+            
         }
 
         $flowData = [
@@ -154,8 +154,8 @@ class FlowTest extends BaseTest {
         $this->printHeader("Create Simple Flow Test");
 
         if (!$this->projectId) {
-            echo "[SKIP] Create Simple Flow - No project available\n";
-            return true;
+            return $this->skip("Create Simple Flow - No project available");
+            
         }
 
         $flowData = [
@@ -184,8 +184,8 @@ class FlowTest extends BaseTest {
         $this->printHeader("List Flows Test");
 
         if (!$this->projectId) {
-            echo "[SKIP] List Flows - No project available\n";
-            return true;
+            return $this->skip("List Flows - No project available");
+            
         }
 
         $result = $this->testHelper->get('flow_list', [], $this->projectId);
@@ -209,8 +209,8 @@ class FlowTest extends BaseTest {
         $this->printHeader("Get Flow Test");
 
         if (empty($this->testFlows)) {
-            echo "[SKIP] Get Flow - No test flows available\n";
-            return true;
+            return $this->skip("Get Flow - No test flows available");
+            
         }
 
         $flow = $this->testFlows[0];
@@ -233,8 +233,8 @@ class FlowTest extends BaseTest {
         $this->printHeader("Update Flow Test");
 
         if (empty($this->testFlows)) {
-            echo "[SKIP] Update Flow - No test flows available\n";
-            return true;
+            return $this->skip("Update Flow - No test flows available");
+            
         }
 
         $flow = $this->testFlows[0];
@@ -275,8 +275,8 @@ class FlowTest extends BaseTest {
         $this->printHeader("Toggle Flow Active Test");
 
         if (empty($this->testFlows)) {
-            echo "[SKIP] Toggle Flow Active - No test flows available\n";
-            return true;
+            return $this->skip("Toggle Flow Active - No test flows available");
+            
         }
 
         $flow = $this->testFlows[0];
@@ -297,8 +297,8 @@ class FlowTest extends BaseTest {
         $this->printHeader("Duplicate Flow Test");
 
         if (empty($this->testFlows)) {
-            echo "[SKIP] Duplicate Flow - No test flows available\n";
-            return true;
+            return $this->skip("Duplicate Flow - No test flows available");
+            
         }
 
         $flow = $this->testFlows[0];
@@ -327,8 +327,8 @@ class FlowTest extends BaseTest {
         $this->printHeader("Delete Flow Test");
 
         if (empty($this->testFlows)) {
-            echo "[SKIP] Delete Flow - No test flows available\n";
-            return true;
+            return $this->skip("Delete Flow - No test flows available");
+            
         }
 
         // Use the last flow for deletion test
@@ -350,8 +350,8 @@ class FlowTest extends BaseTest {
         $this->printHeader("Create Flow Invalid Collection Test");
 
         if (!$this->projectId) {
-            echo "[SKIP] Create Flow Invalid Collection - No project available\n";
-            return true;
+            return $this->skip("Create Flow Invalid Collection - No project available");
+            
         }
 
         $flowData = [
@@ -378,8 +378,8 @@ class FlowTest extends BaseTest {
         $this->printHeader("Create Flow Missing Fields Test");
 
         if (!$this->projectId) {
-            echo "[SKIP] Create Flow Missing Fields - No project available\n";
-            return true;
+            return $this->skip("Create Flow Missing Fields - No project available");
+            
         }
 
         $results = [];
@@ -409,8 +409,8 @@ class FlowTest extends BaseTest {
         $this->printHeader("Create Complex Flow Test");
 
         if (!$this->projectId) {
-            echo "[SKIP] Create Complex Flow - No project available\n";
-            return true;
+            return $this->skip("Create Complex Flow - No project available");
+            
         }
 
         $flowData = [
@@ -522,8 +522,8 @@ class FlowTest extends BaseTest {
         $this->printHeader("Flow Without Authentication Test");
 
         if (!$this->projectId) {
-            echo "[SKIP] Flow Unauthorized - No project available\n";
-            return true;
+            return $this->skip("Flow Unauthorized - No project available");
+            
         }
 
         // Clear token for unauthorized test
@@ -561,8 +561,8 @@ class FlowTest extends BaseTest {
         $this->printHeader("Execute Flow Test");
 
         if (empty($this->testFlows)) {
-            echo "[SKIP] Execute Flow - No test flows available\n";
-            return true;
+            return $this->skip("Execute Flow - No test flows available");
+            
         }
 
         $flow = $this->testFlows[0];
@@ -573,7 +573,7 @@ class FlowTest extends BaseTest {
 
         if ($result['status'] === 404) {
             echo "[INFO] Flow execution endpoint not implemented (expected)\n";
-            return true;
+            
         } elseif ($result['status'] === 200) {
             $this->testHelper->assertEquals($result, 'message', 'Flow executed successfully');
         }
@@ -588,8 +588,8 @@ class FlowTest extends BaseTest {
         $this->printHeader("Flow Permission Test");
 
         if (empty($this->testFlows)) {
-            echo "[SKIP] Flow Permission - No test flows available\n";
-            return true;
+            return $this->skip("Flow Permission - No test flows available");
+            
         }
 
         // Create a different user and try to access our flow
@@ -621,13 +621,13 @@ class FlowTest extends BaseTest {
 
                 if ($result['status'] === 403) {
                     echo "[INFO] Permission test passed - Cannot access other user's flow\n";
-                    return true;
+                    
                 }
             }
         }
 
-        echo "[SKIP] Permission test - Could not create different user\n";
-        return true;
+        return $this->skip("Permission test - Could not create different user");
+        
     }
 
     /**
@@ -637,8 +637,8 @@ class FlowTest extends BaseTest {
         $this->printHeader("Flow Status Management Test");
 
         if (empty($this->testFlows)) {
-            echo "[SKIP] Flow Status - No test flows available\n";
-            return true;
+            return $this->skip("Flow Status - No test flows available");
+            
         }
 
         $flow = $this->testFlows[0];

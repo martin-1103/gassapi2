@@ -78,9 +78,8 @@ class BackendClient {
                 project = projectData;
             }
             if (!environments) {
-                const envData = (projectData.environments || []);
-                await this.cacheManager.cacheEnvironments(projectId, envData, { ttlMs: 600000 }); // 10 minutes
-                environments = envData;
+                await this.cacheManager.cacheEnvironments(projectId, projectData.environments || [], { ttlMs: 600000 }); // 10 minutes
+                environments = (projectData.environments || []);
             }
             if (!collections) {
                 const collectionsData = await this.getCollections(projectId);
@@ -177,7 +176,7 @@ class BackendClient {
                 body: JSON.stringify({ parent_id: newParentId })
             });
             const result = await response.json();
-            if (!result.success || !result.data) {
+            if (!result.success) {
                 throw new Error(result.error || 'Failed to move collection');
             }
             // Invalidate cache
@@ -201,7 +200,7 @@ class BackendClient {
             }
             // Invalidate cache
             await this.cacheManager.clearProjectCache('all');
-            return result.data || { success: true };
+            return result.data;
         }
         catch (error) {
             console.error('Failed to delete collection:', error);
@@ -376,6 +375,7 @@ class BackendClient {
         }
     }
     async updateEndpoint(endpointId, updateData) {
+        api_types_1.CollectionDetailsResponse;
         try {
             const response = await this.fetchWithTimeout(`/endpoints/${endpointId}`, {
                 method: 'PUT',
@@ -403,7 +403,7 @@ class BackendClient {
                 body: JSON.stringify({ collection_id: newCollectionId })
             });
             const result = await response.json();
-            if (!result.success || !result.data) {
+            if (!result.success) {
                 throw new Error(result.error || 'Failed to move endpoint');
             }
             // Invalidate cache
@@ -491,4 +491,4 @@ class BackendClient {
     }
 }
 exports.BackendClient = BackendClient;
-//# sourceMappingURL=BackendClient.js.map
+//# sourceMappingURL=BackendClient_original.js.map

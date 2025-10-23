@@ -334,7 +334,7 @@ class SecurityTest extends BaseTest {
         echo "[INFO] Rate Limiting Tests: {$passedTests}/{$totalTests} passed ({$blockedRequests} requests blocked)\n";
 
         // Rate limiting is optional, so we don't fail the test if not implemented
-        return true;
+        
     }
 
     protected function tearDown() {

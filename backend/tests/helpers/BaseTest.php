@@ -97,6 +97,15 @@ abstract class BaseTest {
     }
 
     /**
+     * Skip test dengan reason
+     * Returns false karena test belum dijalankan (untested = fail)
+     */
+    protected function skip($reason) {
+        echo "[SKIP] $reason\n";
+        return false;
+    }
+
+    /**
      * Get test results summary
      */
     public function getResults() {

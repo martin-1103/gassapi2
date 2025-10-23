@@ -53,8 +53,8 @@ class UserManagementTest extends BaseTest {
         $this->printHeader("Get All Users Test");
 
         if (!$this->authToken) {
-            echo "[SKIP] Get All Users - No auth token available\n";
-            return true;
+            return $this->skip("Get All Users - No auth token available");
+            
         }
 
         $result = $this->testHelper->get('users');
@@ -94,8 +94,8 @@ class UserManagementTest extends BaseTest {
         $this->printHeader("Get All Users Paginated Test");
 
         if (!$this->authToken) {
-            echo "[SKIP] Get All Users Paginated - No auth token available\n";
-            return true;
+            return $this->skip("Get All Users Paginated - No auth token available");
+            
         }
 
         $results = [];
@@ -129,15 +129,15 @@ class UserManagementTest extends BaseTest {
         $this->printHeader("Get User by ID Test");
 
         if (!$this->authToken) {
-            echo "[SKIP] Get User by ID - No auth token available\n";
-            return true;
+            return $this->skip("Get User by ID - No auth token available");
+            
         }
 
         // Create a test user first
         $testUser = $this->createTestUser();
         if (!$testUser) {
-            echo "[SKIP] Get User by ID - Could not create test user\n";
-            return true;
+            return $this->skip("Get User by ID - Could not create test user");
+            
         }
 
         $result = $this->testHelper->get('user_by_id', [], $testUser['id']);
@@ -163,8 +163,8 @@ class UserManagementTest extends BaseTest {
         $this->printHeader("Get Non-existent User Test");
 
         if (!$this->authToken) {
-            echo "[SKIP] Get Non-existent User - No auth token available\n";
-            return true;
+            return $this->skip("Get Non-existent User - No auth token available");
+            
         }
 
         $result = $this->testHelper->get('user_by_id', [], 99999);
@@ -173,7 +173,7 @@ class UserManagementTest extends BaseTest {
         // Accept 404 (not found) atau 403 (not admin)
         if ($result['status'] === 403) {
             echo "[INFO] Get Non-existent User - User is not admin (expected)\n";
-            return true;
+            
         }
 
         return $success;
@@ -186,15 +186,15 @@ class UserManagementTest extends BaseTest {
         $this->printHeader("Update User by ID Test");
 
         if (!$this->authToken) {
-            echo "[SKIP] Update User - No auth token available\n";
-            return true;
+            return $this->skip("Update User - No auth token available");
+            
         }
 
         // Create a test user first
         $testUser = $this->createTestUser();
         if (!$testUser) {
-            echo "[SKIP] Update User - Could not create test user\n";
-            return true;
+            return $this->skip("Update User - Could not create test user");
+            
         }
 
         $updateData = [
@@ -225,15 +225,15 @@ class UserManagementTest extends BaseTest {
         $this->printHeader("Update User Invalid Data Test");
 
         if (!$this->authToken) {
-            echo "[SKIP] Update User Invalid - No auth token available\n";
-            return true;
+            return $this->skip("Update User Invalid - No auth token available");
+            
         }
 
         // Create a test user first
         $testUser = $this->createTestUser();
         if (!$testUser) {
-            echo "[SKIP] Update User Invalid - Could not create test user\n";
-            return true;
+            return $this->skip("Update User Invalid - Could not create test user");
+            
         }
 
         // Test with invalid email
@@ -263,15 +263,15 @@ class UserManagementTest extends BaseTest {
         $this->printHeader("Toggle User Status Test");
 
         if (!$this->authToken) {
-            echo "[SKIP] Toggle Status - No auth token available\n";
-            return true;
+            return $this->skip("Toggle Status - No auth token available");
+            
         }
 
         // Create a test user first
         $testUser = $this->createTestUser();
         if (!$testUser) {
-            echo "[SKIP] Toggle Status - Could not create test user\n";
-            return true;
+            return $this->skip("Toggle Status - Could not create test user");
+            
         }
 
         $result = $this->testHelper->put('user_toggle_status', [], [], $testUser['id']);
@@ -299,15 +299,15 @@ class UserManagementTest extends BaseTest {
         $this->printHeader("Delete User Test");
 
         if (!$this->authToken) {
-            echo "[SKIP] Delete User - No auth token available\n";
-            return true;
+            return $this->skip("Delete User - No auth token available");
+            
         }
 
         // Create a test user first
         $testUser = $this->createTestUser();
         if (!$testUser) {
-            echo "[SKIP] Delete User - Could not create test user\n";
-            return true;
+            return $this->skip("Delete User - Could not create test user");
+            
         }
 
         $result = $this->testHelper->delete('user_delete', [], $testUser['id']);
@@ -338,8 +338,8 @@ class UserManagementTest extends BaseTest {
         $this->printHeader("Delete Non-existent User Test");
 
         if (!$this->authToken) {
-            echo "[SKIP] Delete Non-existent User - No auth token available\n";
-            return true;
+            return $this->skip("Delete Non-existent User - No auth token available");
+            
         }
 
         $result = $this->testHelper->delete('user_delete', [], 99999);
@@ -350,7 +350,7 @@ class UserManagementTest extends BaseTest {
             $this->testHelper->assertEquals($result, 'message', 'User not found');
         } elseif ($result['status'] === 403) {
             echo "[INFO] Delete Non-existent User - User is not admin (expected)\n";
-            return true;
+            
         }
 
         return $result['status'] === 404;
@@ -363,8 +363,8 @@ class UserManagementTest extends BaseTest {
         $this->printHeader("User Statistics Test");
 
         if (!$this->authToken) {
-            echo "[SKIP] User Stats - No auth token available\n";
-            return true;
+            return $this->skip("User Stats - No auth token available");
+            
         }
 
         $result = $this->testHelper->get('users_stats');
@@ -434,8 +434,8 @@ class UserManagementTest extends BaseTest {
         $this->printHeader("User Management Pagination and Search Test");
 
         if (!$this->authToken) {
-            echo "[SKIP] Pagination/Search - No auth token available\n";
-            return true;
+            return $this->skip("Pagination/Search - No auth token available");
+            
         }
 
         $results = [];

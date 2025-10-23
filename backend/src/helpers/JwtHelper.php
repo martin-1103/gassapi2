@@ -17,14 +17,16 @@ class JwtHelper {
      */
     private static function getAccessSecret() {
         if (self::$accessSecret === null) {
-            self::$accessSecret = $_ENV['JWT_ACCESS_SECRET'] ?? 'default_access_secret_key_change_in_production';
+            // Gunakan JWT_SECRET dari .env untuk access token (fallback untuk compatibility)
+            self::$accessSecret = $_ENV['JWT_ACCESS_SECRET'] ?? $_ENV['JWT_SECRET'] ?? 'default_access_secret_key_change_in_production';
         }
         return self::$accessSecret;
     }
 
     private static function getRefreshSecret() {
         if (self::$refreshSecret === null) {
-            self::$refreshSecret = $_ENV['JWT_REFRESH_SECRET'] ?? 'default_refresh_secret_key_change_in_production';
+            // Gunakan JWT_SECRET dari .env untuk refresh token (fallback untuk compatibility)
+            self::$refreshSecret = $_ENV['JWT_REFRESH_SECRET'] ?? $_ENV['JWT_SECRET'] ?? 'default_refresh_secret_key_change_in_production';
         }
         return self::$refreshSecret;
     }

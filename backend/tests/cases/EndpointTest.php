@@ -94,8 +94,8 @@ class EndpointTest extends BaseTest {
         $this->printHeader("Create Endpoint Test");
 
         if (!$this->testCollection) {
-            echo "[SKIP] Create Endpoint - No collection available\n";
-            return true;
+            return $this->skip("Create Endpoint - No collection available");
+            
         }
 
         $endpointData = [
@@ -130,8 +130,8 @@ class EndpointTest extends BaseTest {
         $this->printHeader("Create POST Endpoint Test");
 
         if (!$this->testCollection) {
-            echo "[SKIP] Create POST Endpoint - No collection available\n";
-            return true;
+            return $this->skip("Create POST Endpoint - No collection available");
+            
         }
 
         $endpointData = [
@@ -169,8 +169,8 @@ class EndpointTest extends BaseTest {
         $this->printHeader("List Endpoints Test");
 
         if (!$this->testCollection) {
-            echo "[SKIP] List Endpoints - No collection available\n";
-            return true;
+            return $this->skip("List Endpoints - No collection available");
+            
         }
 
         $result = $this->testHelper->get('endpoint_list', [], $this->testCollection['id']);
@@ -194,8 +194,8 @@ class EndpointTest extends BaseTest {
         $this->printHeader("Get Endpoint Test");
 
         if (empty($this->testEndpoints)) {
-            echo "[SKIP] Get Endpoint - No test endpoints available\n";
-            return true;
+            return $this->skip("Get Endpoint - No test endpoints available");
+            
         }
 
         $endpoint = $this->testEndpoints[0];
@@ -218,8 +218,8 @@ class EndpointTest extends BaseTest {
         $this->printHeader("Update Endpoint Test");
 
         if (empty($this->testEndpoints)) {
-            echo "[SKIP] Update Endpoint - No test endpoints available\n";
-            return true;
+            return $this->skip("Update Endpoint - No test endpoints available");
+            
         }
 
         $endpoint = $this->testEndpoints[0];
@@ -253,8 +253,8 @@ class EndpointTest extends BaseTest {
         $this->printHeader("Update Endpoint Method Test");
 
         if (empty($this->testEndpoints)) {
-            echo "[SKIP] Update Endpoint Method - No test endpoints available\n";
-            return true;
+            return $this->skip("Update Endpoint Method - No test endpoints available");
+            
         }
 
         $endpoint = $this->testEndpoints[0];
@@ -285,8 +285,8 @@ class EndpointTest extends BaseTest {
         $this->printHeader("Delete Endpoint Test");
 
         if (empty($this->testEndpoints)) {
-            echo "[SKIP] Delete Endpoint - No test endpoints available\n";
-            return true;
+            return $this->skip("Delete Endpoint - No test endpoints available");
+            
         }
 
         // Use the last endpoint for deletion test
@@ -308,8 +308,8 @@ class EndpointTest extends BaseTest {
         $this->printHeader("Create Endpoint Invalid Method Test");
 
         if (!$this->testCollection) {
-            echo "[SKIP] Create Endpoint Invalid Method - No collection available\n";
-            return true;
+            return $this->skip("Create Endpoint Invalid Method - No collection available");
+            
         }
 
         $endpointData = [
@@ -337,8 +337,8 @@ class EndpointTest extends BaseTest {
         $this->printHeader("Create Endpoint Missing Fields Test");
 
         if (!$this->testCollection) {
-            echo "[SKIP] Create Endpoint Missing Fields - No collection available\n";
-            return true;
+            return $this->skip("Create Endpoint Missing Fields - No collection available");
+            
         }
 
         $results = [];
@@ -377,8 +377,8 @@ class EndpointTest extends BaseTest {
         $this->printHeader("Endpoint Variable Substitution Test");
 
         if (!$this->testCollection) {
-            echo "[SKIP] Variable Substitution - No collection available\n";
-            return true;
+            return $this->skip("Variable Substitution - No collection available");
+            
         }
 
         $endpointData = [
@@ -428,8 +428,8 @@ class EndpointTest extends BaseTest {
         $this->printHeader("Endpoint Without Authentication Test");
 
         if (!$this->testCollection) {
-            echo "[SKIP] Endpoint Unauthorized - No collection available\n";
-            return true;
+            return $this->skip("Endpoint Unauthorized - No collection available");
+            
         }
 
         // Clear token for unauthorized test
@@ -471,8 +471,8 @@ class EndpointTest extends BaseTest {
         $this->printHeader("Endpoint HTTP Methods Test");
 
         if (!$this->testCollection) {
-            echo "[SKIP] HTTP Methods - No collection available\n";
-            return true;
+            return $this->skip("HTTP Methods - No collection available");
+            
         }
 
         $methods = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD', 'OPTIONS'];
@@ -509,8 +509,8 @@ class EndpointTest extends BaseTest {
         $this->printHeader("Endpoint Permission Test");
 
         if (empty($this->testEndpoints)) {
-            echo "[SKIP] Endpoint Permission - No test endpoints available\n";
-            return true;
+            return $this->skip("Endpoint Permission - No test endpoints available");
+            
         }
 
         // Create a different user and try to access our endpoint
@@ -542,13 +542,13 @@ class EndpointTest extends BaseTest {
 
                 if ($result['status'] === 403) {
                     echo "[INFO] Permission test passed - Cannot access other user's endpoint\n";
-                    return true;
+                    
                 }
             }
         }
 
-        echo "[SKIP] Permission test - Could not create different user\n";
-        return true;
+        return $this->skip("Permission test - Could not create different user");
+        
     }
 
     /**
@@ -558,8 +558,8 @@ class EndpointTest extends BaseTest {
         $this->printHeader("Endpoint Body Handling Test");
 
         if (!$this->testCollection) {
-            echo "[SKIP] Body Handling - No collection available\n";
-            return true;
+            return $this->skip("Body Handling - No collection available");
+            
         }
 
         $testCases = [
