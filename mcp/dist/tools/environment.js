@@ -105,7 +105,11 @@ const import_environment = {
             },
             variables: {
                 type: 'array',
-                description: 'Array variabel yang mau diimport'
+                description: 'Array variabel yang mau diimport',
+                items: {
+                    type: 'object',
+                    description: 'Data variabel environment'
+                }
             },
             overwrite: {
                 type: 'boolean',
@@ -283,7 +287,10 @@ Please check:
                 description: args.description,
                 enabled: args.enabled !== undefined ? args.enabled : true
             };
-            await client.setEnvironmentVariable(variableData);
+            const result = await client.setEnvironmentVariable(variableData);
+            if (!result.success) {
+                throw new Error('Failed to set environment variable');
+            }
             return {
                 content: [
                     {
@@ -378,11 +385,19 @@ Please check:
             const client = await this.getBackendClient();
             const importData = {
                 environment_id: args.environmentId,
-                variables: args.variables,
+                variables: args.variables.map(v => ({
+                    key: v.key,
+                    value: v.value,
+                    description: v.description,
+                    enabled: v.enabled !== undefined ? v.enabled : true
+                })),
                 overwrite: args.overwrite || false
             };
-            await client.importEnvironment(importData);
-            const successCount = args.variables.length;
+            const result = await client.importEnvironment(importData);
+            if (!result.success) {
+                throw new Error('Failed to import environment variables');
+            }
+            const successCount = result.imported || args.variables.length;
             const variablesText = args.variables.map((v) => `${v.enabled !== false ? '🟢' : '🔴'} ${v.key} = "${v.value}"${v.description ? ` // ${v.description}` : ''}`).join('\n');
             return {
                 content: [

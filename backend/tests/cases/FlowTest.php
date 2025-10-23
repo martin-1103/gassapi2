@@ -63,8 +63,16 @@ class FlowTest extends BaseTest {
         ];
 
         $projectResult = $this->testHelper->post('projects', $projectData);
-        if ($projectResult['status'] === 201 && isset($projectResult['data']['data']['id'])) {
-            $this->projectId = $projectResult['data']['data']['id'];
+        if ($projectResult['status'] === 201) {
+            // Handle different response structures
+            if (isset($projectResult['data']['data']['id'])) {
+                $this->projectId = $projectResult['data']['data']['id'];
+            } elseif (isset($projectResult['data']['id'])) {
+                $this->projectId = $projectResult['data']['id'];
+            } elseif (isset($projectResult['data']['project']['id'])) {
+                $this->projectId = $projectResult['data']['project']['id'];
+            }
+            echo "[INFO] Project created with ID: {$this->projectId}\n";
 
             // Create collection
             $collectionData = [
@@ -77,11 +85,24 @@ class FlowTest extends BaseTest {
             ];
 
             $collectionResult = $this->testHelper->post('collection_create', $collectionData, [], $this->projectId);
-            if ($collectionResult['status'] === 201 && isset($collectionResult['data']['data']['id'])) {
-                $this->testCollection = [
-                    'id' => $collectionResult['data']['data']['id'],
-                    'project_id' => $this->projectId
-                ];
+            if ($collectionResult['status'] === 201) {
+                // Handle different response structures
+                $collectionId = null;
+                if (isset($collectionResult['data']['data']['id'])) {
+                    $collectionId = $collectionResult['data']['data']['id'];
+                } elseif (isset($collectionResult['data']['id'])) {
+                    $collectionId = $collectionResult['data']['id'];
+                } elseif (isset($collectionResult['data']['collection']['id'])) {
+                    $collectionId = $collectionResult['data']['collection']['id'];
+                }
+
+                if ($collectionId) {
+                    $this->testCollection = [
+                        'id' => $collectionId,
+                        'project_id' => $this->projectId
+                    ];
+                    echo "[INFO] Collection created with ID: {$collectionId}\n";
+                }
             }
         }
     }

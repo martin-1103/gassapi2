@@ -107,7 +107,7 @@ class McpTest extends BaseTest {
 
         // Test with non-existent project ID
         $res = $this->testHelper->post('mcp_generate_config', null, [], 99999);
-        $success = $this->testHelper->printResult('Generate Config Invalid Project', $res);
+        $success = $this->testHelper->printResult('Generate Config Invalid Project', $res, 404);
 
         // Accept 404 (not found), 401 (unauthorized), or endpoint not found
         if ($res['status'] === 404) {

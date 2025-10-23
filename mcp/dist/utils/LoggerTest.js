@@ -3,6 +3,7 @@ import { logger, initializeLogger } from './Logger';
  * Simple test to validate the logging infrastructure
  */
 export function testLogger() {
+    // CLI output untuk testing tetap gunakan console.log agar visible
     console.log('=== Testing Logger Infrastructure ===');
     // Initialize logger
     initializeLogger();
@@ -19,6 +20,7 @@ export function testLogger() {
     // Test child logger
     const childLogger = logger.child('ChildModule');
     childLogger.info('This is from a child logger', { child: true });
+    // CLI output untuk menandakan test selesai
     console.log('=== Logger Test Complete ===');
 }
 // Run test if called directly

@@ -1,6 +1,7 @@
-import { McpTool, GassapiEnvironmentVariable, GassapiEnvironmentVariableImport } from '../types/mcp.types';
+import { McpTool, McpParameter, GassapiEnvironmentVariable, GassapiEnvironmentVariableImport } from '../types/mcp.types';
 import { ConfigLoader } from '../discovery/ConfigLoader';
 import { BackendClient } from '../client/BackendClient';
+import { EnvironmentVariablesResponse } from '../types/api.types';
 
 /**
  * Tool MCP buat ngelola environment
@@ -112,7 +113,11 @@ const import_environment: McpTool = {
       },
       variables: {
         type: 'array',
-        description: 'Array variabel yang mau diimport'
+        description: 'Array variabel yang mau diimport',
+        items: {
+          type: 'object',
+          description: 'Data variabel environment'
+        } as McpParameter
       },
       overwrite: {
         type: 'boolean',
@@ -186,7 +191,7 @@ To create environments:
         };
       }
 
-      const environmentList = result.environments.map((env: any) =>
+      const environmentList = result.environments.map((env) =>
         `${env.is_default ? '🟢' : '⚪'} ${env.name} (ID: ${env.id})`
       ).join('\n');
 
@@ -240,7 +245,7 @@ Please check:
   }> {
     try {
       const client = await this.getBackendClient();
-      const result = await client.getEnvironmentVariables(args.environmentId);
+      const result: EnvironmentVariablesResponse = await client.getEnvironmentVariables(args.environmentId);
 
       if (!result.variables || result.variables.length === 0) {
         return {
@@ -262,16 +267,16 @@ To add variables:
       }
 
       const includeDisabled = args.includeDisabled || false;
-      const activeVars = result.variables.filter((v: GassapiEnvironmentVariable) => includeDisabled || v.enabled);
-      const disabledVars = result.variables.filter((v: GassapiEnvironmentVariable) => !v.enabled);
+      const activeVars = result.variables.filter((v) => includeDisabled || v.enabled);
+      const disabledVars = result.variables.filter((v) => !v.enabled);
 
-      let variablesText = activeVars.map((v: GassapiEnvironmentVariable) =>
+      let variablesText = activeVars.map((v) =>
         `🟢 ${v.key} = "${v.value}"${v.description ? ` // ${v.description}` : ''}`
       ).join('\n');
 
       if (includeDisabled && disabledVars.length > 0) {
         variablesText += '\n\n🔴 Disabled Variables:\n';
-        variablesText += disabledVars.map((v: GassapiEnvironmentVariable) =>
+        variablesText += disabledVars.map((v) =>
           `🔴 ${v.key} = "${v.value}"${v.description ? ` // ${v.description}` : ''}`
         ).join('\n');
       }
@@ -337,7 +342,11 @@ Please check:
         enabled: args.enabled !== undefined ? args.enabled : true
       };
 
-      await client.setEnvironmentVariable(variableData);
+      const result = await client.setEnvironmentVariable(variableData);
+
+      if (!result.success) {
+        throw new Error('Failed to set environment variable');
+      }
 
       return {
         content: [
@@ -456,14 +465,23 @@ Please check:
       const client = await this.getBackendClient();
       const importData = {
         environment_id: args.environmentId,
-        variables: args.variables,
+        variables: args.variables.map(v => ({
+          key: v.key,
+          value: v.value,
+          description: v.description,
+          enabled: v.enabled !== undefined ? v.enabled : true
+        })),
         overwrite: args.overwrite || false
       };
 
-      await client.importEnvironment(importData);
+      const result = await client.importEnvironment(importData);
 
-      const successCount = args.variables.length;
-      const variablesText = args.variables.map((v: GassapiEnvironmentVariableImport) =>
+      if (!result.success) {
+        throw new Error('Failed to import environment variables');
+      }
+
+      const successCount = result.imported || args.variables.length;
+      const variablesText = args.variables.map((v) =>
         `${v.enabled !== false ? '🟢' : '🔴'} ${v.key} = "${v.value}"${v.description ? ` // ${v.description}` : ''}`
       ).join('\n');
 

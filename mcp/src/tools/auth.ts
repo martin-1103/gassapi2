@@ -1,6 +1,7 @@
 import { McpTool, GassapiEnvironment, GassapiCollection } from '../types/mcp.types';
 import { ConfigLoader } from '../discovery/ConfigLoader';
 import { BackendClient, UnifiedEnvironment } from '../client/BackendClient';
+import { logger } from '../utils/Logger';
 
 /**
  * Tool autentikasi MCP
@@ -112,7 +113,8 @@ Siap untuk operasi GASSAPI!`
         ]
       };
 
-      console.log('Token MCP berhasil divalidasi');
+      // Log info token berhasil divalidasi
+      logger.info('Token MCP berhasil divalidasi', { projectId, projectName }, 'AuthTools');
       return response;
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Error validasi tidak diketahui';
@@ -136,7 +138,8 @@ Validasi token gagal!`
         isError: true
       };
 
-      console.error('Validasi token MCP gagal:', error);
+      // Log error validasi token gagal
+      logger.error('Validasi token MCP gagal', { error: errorMessage }, 'AuthTools');
       return response;
     }
   }

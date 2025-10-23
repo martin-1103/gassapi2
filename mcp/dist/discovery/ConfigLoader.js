@@ -1,6 +1,7 @@
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import { CacheManager } from '../cache/CacheManager';
+import { logger } from '../utils/Logger';
 /**
  * Loader untuk konfigurasi GASSAPI
  * Otomatis deteksi dan parsing file konfigurasi gassapi.json
@@ -29,11 +30,16 @@ export class ConfigLoader {
             if (await this.fileExists(configPath)) {
                 try {
                     const config = await this.loadConfig(configPath);
-                    console.log(`Ketemu konfig GASSAPI di: ${configPath}`);
+                    // Log ketemu konfigurasi GASSAPI
+                    logger.info(`Ketemu konfig GASSAPI di: ${configPath}`, { configPath }, 'ConfigLoader');
                     return config;
                 }
                 catch (error) {
-                    console.warn(`Konfig file jelek di ${configPath}:`, error instanceof Error ? error.message : 'Error gak jelas');
+                    // Log warning kalau konfigurasi file bermasalah
+                    logger.warn(`Konfig file jelek di ${configPath}`, {
+                        configPath,
+                        error: error instanceof Error ? error.message : 'Error gak jelas'
+                    }, 'ConfigLoader');
                 }
             }
             // Pindah ke parent directory
@@ -203,8 +209,9 @@ export class ConfigLoader {
         const configPath = path.join(projectDir, 'gassapi.json');
         const content = JSON.stringify(config, null, 2);
         await fs.writeFile(configPath, content, 'utf-8');
-        console.log(`Sample konfigurasi dibuat: ${configPath}`);
-        console.log('Jangan lupa update mcpClient.token dengan token asli MCP lo');
+        // Log info pembuatan sample konfigurasi
+        logger.info(`Sample konfigurasi dibuat: ${configPath}`, { configPath, projectId, projectName }, 'ConfigLoader');
+        logger.cli('Jangan lupa update mcpClient.token dengan token asli MCP lo', 'warning');
     }
     /**
      * Reload konfigurasi (clear cache dan reload)
@@ -233,7 +240,11 @@ export class ConfigLoader {
             return config;
         }
         catch (error) {
-            console.warn(`Gagal load config ${configPath}:`, error instanceof Error ? error.message : 'Error gak jelas');
+            // Log warning kalau gagal load config
+            logger.warn(`Gagal load config ${configPath}`, {
+                configPath,
+                error: error instanceof Error ? error.message : 'Error gak jelas'
+            }, 'ConfigLoader');
             return null;
         }
     }

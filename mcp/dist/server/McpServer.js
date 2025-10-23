@@ -5,9 +5,13 @@ import { environmentTools, ENVIRONMENT_TOOLS } from '../tools/environment';
 import { collectionTools, COLLECTION_TOOLS } from '../tools/collection';
 import { endpointTools, ENDPOINT_TOOLS } from '../tools/endpoint';
 import { testingTools, TESTING_TOOLS } from '../tools/testing';
+import { logger } from '../utils/Logger';
 /**
  * GASSAPI MCP Server
- * Implements Model Context Protocol for Claude Desktop integration
+ * Implementasi Model Context Protocol buat Claude Desktop integration
+ *
+ * Server ini nanganin komunikasi antara MCP client dan backend GASSAPI
+ * Pake proper logging instead of console.log biar lebih rapih
  */
 export class McpServer {
     constructor() {
@@ -24,7 +28,8 @@ export class McpServer {
         this.registerAllTools();
     }
     /**
-     * Register all available tools
+     * Daftarin semua tools yang tersedia
+     * Tools ini dipake buat handle berbagai operasi di backend GASSAPI
      */
     registerAllTools() {
         // Register authentication tools
@@ -47,10 +52,11 @@ export class McpServer {
         TESTING_TOOLS.forEach(tool => {
             this.tools.set(tool.name, tool);
         });
-        console.log(`Registered ${this.tools.size} MCP tools for GASSAPI operations`);
+        logger.info(`Daftar ${this.tools.size} tool MCP udah terdaftar buat operasi GASSAPI`, { toolsCount: this.tools.size }, 'McpServer');
     }
     /**
-     * Start MCP server with stdio transport
+     * Nyalain MCP server pake stdio transport
+     * Server bakal jalan dan nunggu commands dari Claude Desktop
      */
     async start() {
         try {
@@ -58,23 +64,24 @@ export class McpServer {
             // Note: MCP server implementation needs proper handler setup
             // Create stdio transport
             const transport = new StdioServerTransport();
-            console.log('🤖 GASSAPI MCP Server starting...');
-            console.log('📡 Server capabilities: tools available');
-            console.log(`🔧 ${this.tools.size} tools registered`);
+            logger.info('GASSAPI MCP Server mulai jalan nih...', { module: 'McpServer' });
+            logger.info('Server capability: tools tersedia', { module: 'McpServer' });
+            logger.info(`${this.tools.size} tools udah terdaftar`, { toolsCount: this.tools.size, module: 'McpServer' });
             await this.server.connect(transport);
-            console.log('✅ GASSAPI MCP Server connected and ready');
+            logger.info('GASSAPI MCP Server udah konek dan siap pakai', { module: 'McpServer' });
         }
         catch (error) {
-            console.error('❌ Failed to start MCP server:', error);
+            logger.error('Gagal mulai MCP server', { error: error instanceof Error ? error.message : String(error), module: 'McpServer' });
             throw error;
         }
     }
     /**
-     * Handle MCP initialize request
+     * Nanganin MCP initialize request
+     * Validate protocol version dan setup capabilities
      */
     async handleInitialize(request) {
         try {
-            console.log('🔐 MCP client initialized:', request.clientInfo.name);
+            logger.info(`MCP client initialized: ${request.clientInfo.name}`, { clientName: request.clientInfo.name, module: 'McpServer' });
             // Validate protocol version
             if (!this.isProtocolVersionSupported(request.protocolVersion)) {
                 throw new Error(`Unsupported protocol version: ${request.protocolVersion}`);
@@ -91,21 +98,22 @@ export class McpServer {
                     version: '1.0.0'
                 }
             };
-            console.log('✅ MCP initialization successful');
+            logger.info('MCP initialization berhasil', { module: 'McpServer' });
             return result;
         }
         catch (error) {
-            console.error('❌ MCP initialization failed:', error);
+            logger.error('MCP initialization gagal', { error: error instanceof Error ? error.message : String(error), module: 'McpServer' });
             throw error;
         }
     }
     /**
-     * Handle tools/list request
+     * Nanganin tools/list request
+     * Kembaliin daftar semua tools yang tersedia buat client
      */
     async handleListTools() {
         try {
             const toolList = Array.from(this.tools.values());
-            console.log(`📋 Tools list requested: ${toolList.length} tools available`);
+            logger.info(`Daftar tools diminta: ${toolList.length} tools tersedia`, { toolsCount: toolList.length, module: 'McpServer' });
             return {
                 tools: toolList.map(tool => ({
                     name: tool.name,
@@ -115,17 +123,18 @@ export class McpServer {
             };
         }
         catch (error) {
-            console.error('❌ Failed to list tools:', error);
+            logger.error('Gagal nampilin daftar tools', { error: error instanceof Error ? error.message : String(error), module: 'McpServer' });
             throw error;
         }
     }
     /**
-     * Handle tools/call request
+     * Nanganin tools/call request
+     * Jalankan tool yang diminta sama client dan kembaliin hasilnya
      */
     async handleToolCall(request) {
         try {
             const { name, arguments: args } = request;
-            console.log(`🔧 Tool call: ${name}`, args);
+            logger.info(`Tool call: ${name}`, { toolName: name, arguments: args, module: 'McpServer' });
             if (!this.tools.has(name)) {
                 throw new Error(`Unknown tool: ${name}`);
             }
@@ -150,7 +159,7 @@ export class McpServer {
             else {
                 throw new Error(`No handler found for tool: ${name}`);
             }
-            console.log(`✅ Tool ${name} executed successfully`);
+            logger.info(`Tool ${name} berhasil dijalanin`, { toolName: name, module: 'McpServer' });
             return {
                 content: result.content || [],
                 isError: result.isError || false
@@ -158,7 +167,7 @@ export class McpServer {
         }
         catch (error) {
             const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-            console.error(`❌ Tool ${request.name} failed:`, error);
+            logger.error(`Tool ${request.name} gagal`, { toolName: request.name, error: error instanceof Error ? error.message : String(error), module: 'McpServer' });
             return {
                 content: [
                     {
@@ -205,7 +214,7 @@ export class McpServer {
      */
     addCustomTool(tool) {
         this.tools.set(tool.name, tool);
-        console.log(`🔧 Added custom tool: ${tool.name}`);
+        logger.info(`Custom tool ditambahin: ${tool.name}`, { toolName: tool.name, module: 'McpServer' });
     }
     /**
      * Remove tool by name
@@ -213,23 +222,24 @@ export class McpServer {
     removeTool(toolName) {
         const removed = this.tools.delete(toolName);
         if (removed) {
-            console.log(`🗑️ Removed tool: ${toolName}`);
+            logger.info(`Tool dihapus: ${toolName}`, { toolName, module: 'McpServer' });
         }
         return removed;
     }
     /**
-     * Graceful shutdown
+     * Matiin server dengan cara yang aman
+     * Cleanup semua resources dan close connections
      */
     async shutdown() {
         try {
-            console.log('🔄 Shutting down GASSAPI MCP server...');
+            logger.info('GASSAPI MCP server lagi dimatikan...', { module: 'McpServer' });
             if (this.server) {
                 await this.server.close();
             }
-            console.log('✅ GASSAPI MCP server shut down successfully');
+            logger.info('GASSAPI MCP server berhasil dimatikan', { module: 'McpServer' });
         }
         catch (error) {
-            console.error('❌ Error during shutdown:', error);
+            logger.error('Error pas shutdown', { error: error instanceof Error ? error.message : String(error), module: 'McpServer' });
             throw error;
         }
     }

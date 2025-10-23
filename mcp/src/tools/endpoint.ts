@@ -1,7 +1,7 @@
 import { McpTool, GassapiEndpoint } from '../types/mcp.types';
 import { ConfigLoader } from '../discovery/ConfigLoader';
 import { BackendClient } from '../client/BackendClient';
-import { HttpMethod } from '../types/api.types';
+import { HttpMethod, EndpointCreateRequest, EndpointUpdateRequest } from '../types/api.types';
 
 /**
  * Tools untuk mengelola endpoint API
@@ -128,6 +128,24 @@ const move_endpoint: McpTool = {
   }
 };
 
+const list_endpoints: McpTool = {
+  name: 'list_endpoints',
+  description: 'List all endpoints with optional filtering',
+  inputSchema: {
+    type: 'object',
+    properties: {
+      collectionId: {
+        type: 'string',
+        description: 'Filter by collection UUID'
+      },
+      projectId: {
+        type: 'string',
+        description: 'Filter by project UUID'
+      }
+    }
+  }
+};
+
 export class EndpointTools {
   private configLoader: ConfigLoader;
   private backendClient: BackendClient | null = null;
@@ -152,6 +170,20 @@ export class EndpointTools {
     );
 
     return this.backendClient;
+  }
+
+  /**
+   * Validasi HTTP method string ke HttpMethod type yang valid
+   */
+  private validateHttpMethod(method: string): HttpMethod {
+    const validMethods: HttpMethod[] = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD', 'OPTIONS'];
+    const upperMethod = method.toUpperCase();
+
+    if (!validMethods.includes(upperMethod as HttpMethod)) {
+      throw new Error(`HTTP method tidak valid: ${method}. Method yang didukung: ${validMethods.join(', ')}`);
+    }
+
+    return upperMethod as HttpMethod;
   }
 
   /**
@@ -277,9 +309,13 @@ Silakan cek:
   }> {
     try {
       const client = await this.getBackendClient();
-      const endpointData = {
+
+      // Validasi dan cast HttpMethod dengan proper type safety
+      const validMethod = this.validateHttpMethod(args.method);
+
+      const endpointData: EndpointCreateRequest = {
         name: args.name,
-        method: args.method as HttpMethod,
+        method: validMethod,
         url: args.url,
         headers: args.headers || {},
         body: args.body || null,
@@ -355,11 +391,13 @@ Silakan cek:
   }> {
     try {
       const client = await this.getBackendClient();
-      const updateData: Record<string, unknown> = {};
+      const updateData: EndpointUpdateRequest = {};
 
-      // Hanya include field yang akan diupdate
+      // Hanya include field yang akan diupdate dengan validasi yang proper
       if (args.name !== undefined) updateData.name = args.name;
-      if (args.method !== undefined) updateData.method = args.method;
+      if (args.method !== undefined) {
+        updateData.method = this.validateHttpMethod(args.method);
+      }
       if (args.url !== undefined) updateData.url = args.url;
       if (args.headers !== undefined) updateData.headers = args.headers;
       if (args.body !== undefined) updateData.body = args.body;
@@ -367,7 +405,7 @@ Silakan cek:
 
       const result = await client.updateEndpoint(args.endpointId, updateData);
 
-      const changes = Object.keys(updateData).map(key => `- ${key}: ${updateData[key]}`).join('\n');
+      const changes = Object.keys(updateData).map(key => `- ${key}: ${updateData[key as keyof EndpointUpdateRequest]}`).join('\n');
 
       return {
         content: [
@@ -553,7 +591,8 @@ Silakan cek:
       get_endpoint_details,
       create_endpoint,
       update_endpoint,
-      move_endpoint
+      move_endpoint,
+      list_endpoints
     ];
   }
 
@@ -606,5 +645,6 @@ export const ENDPOINT_TOOLS = [
   get_endpoint_details,
   create_endpoint,
   update_endpoint,
-  move_endpoint
+  move_endpoint,
+  list_endpoints
 ];

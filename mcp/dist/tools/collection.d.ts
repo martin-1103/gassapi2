@@ -60,7 +60,7 @@ export declare class CollectionTools {
         isError?: boolean;
     }>;
     /**
-     * Bangun hierarchy tree koleksi
+     * Bangun hierarchy tree koleksi dengan type safety
      */
     private buildCollectionTree;
     /**

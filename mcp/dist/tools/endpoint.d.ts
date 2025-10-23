@@ -5,6 +5,10 @@ export declare class EndpointTools {
     constructor();
     private getBackendClient;
     /**
+     * Validasi HTTP method string ke HttpMethod type yang valid
+     */
+    private validateHttpMethod;
+    /**
      * Ambil detail informasi endpoint
      */
     getEndpointDetails(args: {

@@ -4,7 +4,8 @@ import { logger, initializeLogger } from './Logger';
  * Simple test to validate the logging infrastructure
  */
 export function testLogger(): void {
-  console.log('=== Testing Logger Infrastructure ===');
+  // CLI output untuk testing menggunakan logger.cli
+  logger.cli('=== Testing Logger Infrastructure ===');
 
   // Initialize logger
   initializeLogger();
@@ -25,7 +26,8 @@ export function testLogger(): void {
   const childLogger = logger.child('ChildModule');
   childLogger.info('This is from a child logger', { child: true });
 
-  console.log('=== Logger Test Complete ===');
+  // CLI output untuk menandakan test selesai
+  logger.cli('=== Logger Test Complete ===', 'success');
 }
 
 // Run test if called directly

@@ -1,29 +1,89 @@
 {
-    "last_run": "2025-10-23 11:46:38",
+    "last_run": "2025-10-23 12:00:40",
     "results": {
         "AuthTest": {
             "status": "PASS",
             "passed": 12,
             "total": 12,
-            "last_run": "2025-10-23 11:46:00"
+            "last_run": "2025-10-23 11:57:21"
         },
         "UserTest": {
             "status": "PASS",
             "passed": 17,
             "total": 17,
-            "last_run": "2025-10-23 11:46:13"
+            "last_run": "2025-10-23 11:57:34"
         },
         "PasswordTest": {
             "status": "PASS",
             "passed": 13,
             "total": 13,
-            "last_run": "2025-10-23 11:46:27"
+            "last_run": "2025-10-23 11:57:49"
         },
         "UserProfileTest": {
             "status": "PASS",
             "passed": 16,
             "total": 16,
-            "last_run": "2025-10-23 11:46:38"
+            "last_run": "2025-10-23 11:58:00"
+        },
+        "UserManagementTest": {
+            "status": "PASS",
+            "passed": 14,
+            "total": 14,
+            "last_run": "2025-10-23 11:58:12"
+        },
+        "ProjectTest": {
+            "status": "PASS",
+            "passed": 12,
+            "total": 12,
+            "last_run": "2025-10-23 11:58:20"
+        },
+        "EnvironmentTest": {
+            "status": "PASS",
+            "passed": 13,
+            "total": 13,
+            "last_run": "2025-10-23 11:58:29"
+        },
+        "McpTest": {
+            "status": "PASS",
+            "passed": 15,
+            "total": 15,
+            "last_run": "2025-10-23 11:58:40"
+        },
+        "SystemTest": {
+            "status": "PASS",
+            "passed": 9,
+            "total": 9,
+            "last_run": "2025-10-23 11:58:45"
+        },
+        "UserFlowTest": {
+            "status": "FAIL",
+            "passed": 9,
+            "total": 10,
+            "last_run": "2025-10-23 12:00:01"
+        },
+        "CollectionTest": {
+            "status": "PASS",
+            "passed": 13,
+            "total": 13,
+            "last_run": "2025-10-23 11:59:17"
+        },
+        "EndpointTest": {
+            "status": "PASS",
+            "passed": 16,
+            "total": 16,
+            "last_run": "2025-10-23 11:59:30"
+        },
+        "FlowTest": {
+            "status": "FAIL",
+            "passed": 7,
+            "total": 17,
+            "last_run": "2025-10-23 11:59:41"
+        },
+        "AllApiTests": {
+            "status": "PASS",
+            "passed": 0,
+            "total": 0,
+            "last_run": "2025-10-23 12:00:40"
         }
     }
 }

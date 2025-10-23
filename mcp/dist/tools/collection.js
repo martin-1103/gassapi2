@@ -141,7 +141,12 @@ Untuk membuat koleksi:
             const includeEndpointCount = args.includeEndpointCount !== false;
             // Build hierarchy tree if not flattened
             if (!args.flatten) {
-                const tree = this.buildCollectionTree(collections);
+                // Pastikan collections memiliki endpoint_count yang valid
+                const normalizedCollections = collections.map(col => ({
+                    ...col,
+                    endpoint_count: col.endpoint_count || 0
+                }));
+                const tree = this.buildCollectionTree(normalizedCollections);
                 const treeText = this.formatCollectionTree(tree, includeEndpointCount);
                 return {
                     content: [
@@ -160,8 +165,12 @@ Gunakan collectionId untuk operasi spesifik. Koleksi root tidak memiliki parent.
                     ]
                 };
             }
-            // Flattened list
-            const collectionList = collections.map((col) => `📁 ${col.name} (ID: ${col.id})${col.parent_id ? ` (Parent: ${col.parent_id})` : ''}${includeEndpointCount && col.endpoint_count ? ` [${col.endpoint_count} endpoints]` : ''}`).join('\n');
+            // Flattened list - normalisasi endpoint_count untuk konsistensi
+            const collectionList = collections.map((col) => {
+                // Handle endpoint_count inconsistency - gunakan yang ada dari API atau default 0
+                const endpointCount = col.endpoint_count !== undefined ? col.endpoint_count : 0;
+                return `📁 ${col.name} (ID: ${col.id})${col.parent_id ? ` (Parent: ${col.parent_id})` : ''}${includeEndpointCount ? ` [${endpointCount} endpoints]` : ''}`;
+            }).join('\n');
             return {
                 content: [
                     {
@@ -315,7 +324,7 @@ Silakan periksa:
                     if (config) {
                         const allCollections = await client.getCollections(config.project.id);
                         const targetCollection = allCollections.collections.find(col => col.id === args.collectionId);
-                        if (targetCollection && targetCollection.endpoint_count && targetCollection.endpoint_count > 0) {
+                        if (targetCollection && (targetCollection.endpoint_count ?? 0) > 0) {
                             return {
                                 content: [
                                     {
@@ -326,7 +335,7 @@ ID Koleksi: ${args.collectionId}
 Nama Koleksi: ${targetCollection.name}
 
 Pemeriksaan Keamanan:
-❌ Koleksi ini mengandung ${targetCollection.endpoint_count} endpoint
+❌ Koleksi ini mengandung ${targetCollection.endpoint_count ?? 0} endpoint
 ❌ Menghapus akan menghapus semua endpoint juga
 
 Untuk melanjutkan penghapusan:
@@ -387,27 +396,34 @@ Silakan periksa:
         }
     }
     /**
-     * Bangun hierarchy tree koleksi
+     * Bangun hierarchy tree koleksi dengan type safety
      */
     buildCollectionTree(collections) {
         const tree = [];
         const map = new Map();
-        // Buat map dari semua koleksi
+        // Buat map dari semua koleksi dengan normalisasi endpoint_count
         collections.forEach(col => {
+            // Pastikan endpoint_count selalu terdefinisi untuk consistency
+            const normalizedEndpointCount = col.endpoint_count !== undefined ? col.endpoint_count : 0;
             const node = {
-                collection: col,
+                collection: {
+                    ...col,
+                    endpoint_count: normalizedEndpointCount
+                },
                 children: [],
-                endpointCount: col.endpoint_count || 0,
-                endpoint_count: col.endpoint_count || 0
+                endpointCount: normalizedEndpointCount,
+                endpoint_count: normalizedEndpointCount // For API compatibility
             };
             map.set(col.id, node);
         });
-        // Bangun struktur tree
+        // Bangun struktur tree dengan validasi parent_id
         map.forEach((node, id) => {
             if (node.collection.parent_id && map.has(node.collection.parent_id)) {
-                map.get(node.collection.parent_id).children.push(node);
+                const parent = map.get(node.collection.parent_id);
+                parent.children.push(node);
             }
             else {
+                // Root level collection atau parent tidak ditemukan
                 tree.push(node);
             }
         });
@@ -420,8 +436,8 @@ Silakan periksa:
         const indentStr = '  '.repeat(indent);
         let result = '';
         tree.forEach(node => {
-            // Gunakan endpoint_count dari collection, bukan dari node
-            const endpointCount = node.collection.endpoint_count || node.endpoint_count || 0;
+            // Normalisasi endpoint_count dengan type safety - gunakan nilai yang sudah dinormalisasi
+            const endpointCount = node.collection.endpoint_count ?? 0;
             const endpointInfo = includeEndpointCount && endpointCount > 0
                 ? ` [${endpointCount} endpoints]`
                 : '';

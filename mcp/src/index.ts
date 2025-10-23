@@ -7,6 +7,7 @@
 
 import { McpServer } from './server/McpServer.js';
 import { config } from './config.js';
+import { logger } from './utils/Logger.js';
 import * as readlineSync from 'readline-sync';
 
 /**
@@ -26,44 +27,47 @@ class GassapiMcpClient {
    */
   async initialize(): Promise<void> {
     try {
-      console.log('🚀 Initializing GASSAPI MCP Client v1.0.0');
+      // Ganti console.log dengan logger yang proper biar lebih rapih
+      logger.cli('Initializing GASSAPI MCP Client v1.0.0', 'info');
 
       // Load project configuration
       await config.loadProjectConfig();
 
       if (config.hasProjectConfig()) {
-        console.log('✅ Project configuration loaded');
-        console.log(`📋 Project: ${config.getProjectName()}`);
-        console.log(`🆔 ID: ${config.getProjectId()}`);
-        console.log(`🔗 Server: ${config.getServerURL()}`);
-        console.log(`🌍 Environment: ${config.getActiveEnvironment()}`);
+        logger.cli('Project configuration loaded', 'success');
+        logger.cli(`Project: ${config.getProjectName()}`, 'info');
+        logger.cli(`ID: ${config.getProjectId()}`, 'info');
+        logger.cli(`Server: ${config.getServerURL()}`, 'info');
+        logger.cli(`Environment: ${config.getActiveEnvironment()}`, 'info');
       } else {
-        console.log('⚠️ No project configuration found');
-        console.log('📝 Create gassapi.json in your project root');
-        console.log('💡 Use "gassapi-mcp init" to create sample configuration');
+        logger.cli('No project configuration found', 'warning');
+        logger.cli('Create gassapi.json in your project root', 'info');
+        logger.cli('Use "gassapi-mcp init" to create sample configuration', 'info');
       }
 
       // Validate configuration if available
       if (config.hasProjectConfig()) {
         const validation = await config.validateConfiguration();
         if (!validation.isValid) {
-          console.log('❌ Configuration validation failed:');
-          validation.errors.forEach(error => console.log(`  - ${error}`));
+          logger.cli('Configuration validation failed:', 'error');
+          validation.errors.forEach(error => logger.cli(`  - ${error}`, 'error'));
           if (validation.warnings.length > 0) {
-            console.log('⚠️ Warnings:');
-            validation.warnings.forEach(warning => console.log(`  - ${warning}`));
+            logger.cli('Warnings:', 'warning');
+            validation.warnings.forEach(warning => logger.cli(`  - ${warning}`, 'warning'));
           }
         } else {
-          console.log('✅ Configuration is valid');
+          logger.cli('Configuration is valid', 'success');
           if (validation.warnings.length > 0) {
-            console.log('⚠️ Warnings:');
-            validation.warnings.forEach(warning => console.log(`  - ${warning}`));
+            logger.cli('Warnings:', 'warning');
+            validation.warnings.forEach(warning => logger.cli(`  - ${warning}`, 'warning'));
           }
         }
       }
 
     } catch (error) {
-      console.error('❌ Initialization failed:', error instanceof Error ? error.message : error);
+      logger.error('Initialization failed', {
+        error: error instanceof Error ? error.message : String(error)
+      }, 'GassapiMcpClient');
       throw error;
     }
   }
@@ -77,7 +81,10 @@ class GassapiMcpClient {
       await this.initialize();
       await this.server.start();
     } catch (error) {
-      console.error('❌ Failed to start MCP server:', error instanceof Error ? error.message : error);
+      // Pake logger.error biar error loggingnya lebih konsisten
+      logger.error('Failed to start MCP server', {
+        error: error instanceof Error ? error.message : String(error)
+      }, 'GassapiMcpClient');
       process.exit(1);
     }
   }
@@ -88,11 +95,14 @@ class GassapiMcpClient {
    */
   async shutdown(): Promise<void> {
     try {
-      console.log('🔄 Shutting down GASSAPI MCP Client...');
+      // Logger buat shutdown biar lebih terstruktur
+      logger.cli('Shutting down GASSAPI MCP Client...', 'info');
       await this.server.shutdown();
-      console.log('✅ MCP server shut down gracefully');
+      logger.cli('MCP server shut down gracefully', 'success');
     } catch (error) {
-      console.error('❌ Error during shutdown:', error instanceof Error ? error.message : error);
+      logger.error('Error during shutdown', {
+        error: error instanceof Error ? error.message : String(error)
+      }, 'GassapiMcpClient');
     }
   }
 
@@ -102,33 +112,37 @@ class GassapiMcpClient {
    */
   async status(): Promise<void> {
     try {
-      console.log('📊 GASSAPI MCP Client Status');
-      console.log('='.repeat(40));
+      // Status info dengan logger yang lebih terorganisir
+      logger.cli('GASSAPI MCP Client Status', 'info');
+      logger.info('='.repeat(40), {}, 'status');
 
       // Configuration status
       if (config.hasProjectConfig()) {
-        console.log('📋 Configuration: ✅ Loaded');
-        console.log(`  Project: ${config.getProjectName()} (${config.getProjectId()})`);
-        console.log(`  Environment: ${config.getActiveEnvironment()}`);
-        console.log(`  Variables: ${Object.keys(config.getEnvironmentVariables()).length} configured`);
+        logger.cli('Configuration: ✅ Loaded', 'success');
+        logger.cli(`  Project: ${config.getProjectName()} (${config.getProjectId()})`, 'info');
+        logger.cli(`  Environment: ${config.getActiveEnvironment()}`, 'info');
+        logger.cli(`  Variables: ${Object.keys(config.getEnvironmentVariables()).length} configured`, 'info');
       } else {
-        console.log('📋 Configuration: ❌ Not found');
-        console.log('  gassapi.json: Missing in project directory');
+        logger.cli('Configuration: ❌ Not found', 'error');
+        logger.cli('  gassapi.json: Missing in project directory', 'warning');
       }
 
       // Server status
       const serverStatus = await this.server.healthCheck();
-      console.log(`🤖 Server Status: ${serverStatus.status.toUpperCase()}`);
+      logger.cli(`Server Status: ${serverStatus.status.toUpperCase()}`,
+                  serverStatus.status === 'ok' ? 'success' : 'error');
       if (serverStatus.status === 'ok') {
-        console.log(`  Timestamp: ${new Date(serverStatus.timestamp).toISOString()}`);
+        logger.cli(`  Timestamp: ${new Date(serverStatus.timestamp).toISOString()}`, 'info');
       } else {
-        console.log(`  Error: ${serverStatus.error || 'Unknown error'}`);
+        logger.cli(`  Error: ${serverStatus.error || 'Unknown error'}`, 'error');
       }
 
-      console.log('='.repeat(40));
+      logger.info('='.repeat(40), {}, 'status');
 
     } catch (error) {
-      console.error('❌ Failed to get status:', error instanceof Error ? error.message : error);
+      logger.error('Failed to get status', {
+        error: error instanceof Error ? error.message : String(error)
+      }, 'GassapiMcpClient');
       process.exit(1);
     }
   }
@@ -139,23 +153,26 @@ class GassapiMcpClient {
    */
   async init(projectName?: string, projectId?: string): Promise<void> {
     try {
-      console.log('📝 Creating GASSAPI sample configuration...');
+      // Buat konfigurasi sample dengan logging yang jelas
+      logger.cli('Creating GASSAPI sample configuration...', 'info');
 
       const name = projectName || readlineSync.question('Enter project name:') || 'My GASSAPI Project';
       const id = projectId || readlineSync.question('Enter project ID:') || 'proj_' + Date.now();
 
       await config.createSampleConfig(name, id);
 
-      console.log('✅ Sample configuration created successfully!');
-      console.log('📁 File: ./gassapi.json');
-      console.log('⚠️ Next steps:');
-      console.log('  1. Edit gassapi.json with your actual project details');
-      console.log('  2. Replace YOUR_MCP_TOKEN_HERE with your actual MCP token');
-      console.log('  3. Configure your environment variables');
-      console.log('  4. Start MCP client: gassapi-mcp');
+      logger.cli('Sample configuration created successfully!', 'success');
+      logger.cli('File: ./gassapi.json', 'info');
+      logger.cli('Next steps:', 'info');
+      logger.cli('  1. Edit gassapi.json with your actual project details', 'info');
+      logger.cli('  2. Replace YOUR_MCP_TOKEN_HERE with your actual MCP token', 'warning');
+      logger.cli('  3. Configure your environment variables', 'info');
+      logger.cli('  4. Start MCP client: gassapi-mcp', 'info');
 
     } catch (error) {
-      console.error('❌ Failed to create sample configuration:', error instanceof Error ? error.message : error);
+      logger.error('Failed to create sample configuration', {
+        error: error instanceof Error ? error.message : String(error)
+      }, 'GassapiMcpClient');
       process.exit(1);
     }
   }
@@ -165,38 +182,46 @@ class GassapiMcpClient {
    * Menampilkan informasi bantuan
    */
   help(): void {
-    console.log('🚀 GASSAPI MCP Client v1.0.0');
-    console.log('');
-    console.log('USAGE:');
-    console.log('  gassapi-mcp [command] [options]');
-    console.log('');
-    console.log('COMMANDS:');
-    console.log('  start       Start MCP server (default)');
-    console.log('  init        Create sample gassapi.json');
-    console.log('  status      Show configuration and server status');
-    console.log('  help        Show this help message');
-    console.log('  version     Show version information');
-    console.log('');
-    console.log('OPTIONS:');
-    console.log('  --debug     Enable debug logging');
-    console.log('  --config     Path to gassapi.json (default: auto-detect)');
-    console.log('  --port       Override server port');
-    console.log('');
-    console.log('EXAMPLES:');
-    console.log('  gassapi-mcp start                    # Start with auto-detected config');
-    console.log('  gassapi-mcp start --config ./config.json # Start with specific config');
-    console.log('  gassapi-mcp init "My API Project"     # Create sample config');
-    console.log('  gassapi-mcp status                    # Show current status');
-    console.log('');
-    console.log('DOCUMENTATION:');
-    console.log('  📖 README.md - Complete documentation');
-    console.log('  🔧 MCP Tools - Available tools and usage');
-    console.log('  ⚙️ Configuration - Configuration options');
-    console.log('');
-    console.log('SUPPORT:');
-    console.log('  🐛 Issues: https://github.com/gassapi/mcp-client/issues');
-    console.log('  📚 Docs: https://docs.gassapi.com/mcp-client');
-    console.log('  💬 Discord: https://discord.gg/gassapi');
+    // Gunakan logger.cli untuk output CLI yang konsisten
+    const helpContent = [
+      '🚀 GASSAPI MCP Client v1.0.0',
+      '',
+      'USAGE:',
+      '  gassapi-mcp [command] [options]',
+      '',
+      'COMMANDS:',
+      '  start       Start MCP server (default)',
+      '  init        Create sample gassapi.json',
+      '  status      Show configuration and server status',
+      '  help        Show this help message',
+      '  version     Show version information',
+      '',
+      'OPTIONS:',
+      '  --debug     Enable debug logging',
+      '  --config     Path to gassapi.json (default: auto-detect)',
+      '  --port       Override server port',
+      '',
+      'EXAMPLES:',
+      '  gassapi-mcp start                    # Start with auto-detected config',
+      '  gassapi-mcp start --config ./config.json # Start with specific config',
+      '  gassapi-mcp init "My API Project"     # Create sample config',
+      '  gassapi-mcp status                    # Show current status',
+      '',
+      'DOCUMENTATION:',
+      '  📖 README.md - Complete documentation',
+      '  🔧 MCP Tools - Available tools and usage',
+      '  ⚙️ Configuration - Configuration options',
+      '',
+      'SUPPORT:',
+      '  🐛 Issues: https://github.com/gassapi/mcp-client/issues',
+      '  📚 Docs: https://docs.gassapi.com/mcp-client',
+      '  💬 Discord: https://discord.gg/gassapi'
+    ];
+
+    helpContent.forEach(line => logger.cli(line));
+
+    // Log ke file juga pake logger
+    logger.info('Help command executed', {}, 'GassapiMcpClient');
   }
 
   /**
@@ -204,12 +229,16 @@ class GassapiMcpClient {
    * Menampilkan informasi versi
    */
   version(): void {
-    console.log('🚀 GASSAPI MCP Client v1.0.0');
-    console.log('📅 Built: ' + new Date().toISOString().split('T')[0]);
-    console.log('🔗 Repository: https://github.com/gassapi/mcp-client');
-    console.log('');
-    console.log('License: MIT');
-    console.log('Author: GASSAPI Team');
+    // Gunakan logger.cli untuk output CLI yang konsisten
+    logger.cli('🚀 GASSAPI MCP Client v1.0.0');
+    logger.cli(`📅 Built: ${new Date().toISOString().split('T')[0]}`);
+    logger.cli('🔗 Repository: https://github.com/gassapi/mcp-client');
+    logger.cli('');
+    logger.cli('License: MIT');
+    logger.cli('Author: GASSAPI Team');
+
+    // Log ke file juga pake logger
+    logger.info('Version command executed', {}, 'GassapiMcpClient');
   }
 
   /**
@@ -237,6 +266,8 @@ class GassapiMcpClient {
       }
     }
 
+    // Log parsing argumen buat debugging
+    logger.debug('Arguments parsed', { command, options }, 'GassapiMcpClient');
     return { command, options };
   }
 }
@@ -257,7 +288,7 @@ async function main(): Promise<void> {
 
   switch (command) {
     case 'start':
-      console.log('🚀 Starting GASSAPI MCP Server...');
+      logger.cli('Starting GASSAPI MCP Server...', 'info');
       await client.start();
       break;
 
@@ -285,8 +316,8 @@ async function main(): Promise<void> {
       break;
 
     default:
-      console.error(`❌ Unknown command: ${command}`);
-      console.error('Use "gassapi-mcp help" for usage information');
+      logger.error(`Unknown command: ${command}`, { command }, 'main');
+      logger.cli('Use "gassapi-mcp help" for usage information', 'error');
       process.exit(1);
   }
 }
@@ -294,14 +325,14 @@ async function main(): Promise<void> {
 // Handle process signals for graceful shutdown
 // Menangani sinyal proses untuk shutdown yang aman
 process.on('SIGINT', async () => {
-  console.log('\n🔄 Received SIGINT, shutting down gracefully...');
+  logger.warn('Received SIGINT, shutting down gracefully...', {}, 'Process');
   const client = new GassapiMcpClient();
   await client.shutdown();
   process.exit(0);
 });
 
 process.on('SIGTERM', async () => {
-  console.log('\n🔄 Received SIGTERM, shutting down gracefully...');
+  logger.warn('Received SIGTERM, shutting down gracefully...', {}, 'Process');
   const client = new GassapiMcpClient();
   await client.shutdown();
   process.exit(0);
@@ -310,12 +341,18 @@ process.on('SIGTERM', async () => {
 // Handle uncaught exceptions
 // Menangani exception yang tidak ter-catch
 process.on('uncaughtException', (error) => {
-  console.error('❌ Uncaught Exception:', error);
+  logger.error('Uncaught Exception', {
+    error: error instanceof Error ? error.message : String(error),
+    stack: error instanceof Error ? error.stack : undefined
+  }, 'Process');
   process.exit(1);
 });
 
 process.on('unhandledRejection', (reason, promise) => {
-  console.error('❌ Unhandled Promise Rejection at:', promise, 'reason:', reason);
+  logger.error('Unhandled Promise Rejection', {
+    reason: String(reason),
+    promise: promise.toString()
+  }, 'Process');
   process.exit(1);
 });
 
@@ -326,7 +363,10 @@ export { GassapiMcpClient, McpServer, config };
 // Jalankan jika dipanggil langsung
 if (import.meta.url === `file://${process.argv[1]}`) {
   main().catch(error => {
-    console.error('❌ Fatal error:', error);
+    logger.error('Fatal error in main', {
+      error: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined
+    }, 'Main');
     process.exit(1);
   });
 }

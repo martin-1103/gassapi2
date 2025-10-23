@@ -120,6 +120,23 @@ const move_endpoint = {
         required: ['endpointId', 'newCollectionId']
     }
 };
+const list_endpoints = {
+    name: 'list_endpoints',
+    description: 'List all endpoints with optional filtering',
+    inputSchema: {
+        type: 'object',
+        properties: {
+            collectionId: {
+                type: 'string',
+                description: 'Filter by collection UUID'
+            },
+            projectId: {
+                type: 'string',
+                description: 'Filter by project UUID'
+            }
+        }
+    }
+};
 export class EndpointTools {
     constructor() {
         this.backendClient = null;
@@ -135,6 +152,17 @@ export class EndpointTools {
         }
         this.backendClient = new BackendClient(this.configLoader.getServerURL(config), this.configLoader.getMcpToken(config));
         return this.backendClient;
+    }
+    /**
+     * Validasi HTTP method string ke HttpMethod type yang valid
+     */
+    validateHttpMethod(method) {
+        const validMethods = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD', 'OPTIONS'];
+        const upperMethod = method.toUpperCase();
+        if (!validMethods.includes(upperMethod)) {
+            throw new Error(`HTTP method tidak valid: ${method}. Method yang didukung: ${validMethods.join(', ')}`);
+        }
+        return upperMethod;
     }
     /**
      * Ambil detail informasi endpoint
@@ -232,9 +260,11 @@ Silakan cek:
     async createEndpoint(args) {
         try {
             const client = await this.getBackendClient();
+            // Validasi dan cast HttpMethod dengan proper type safety
+            const validMethod = this.validateHttpMethod(args.method);
             const endpointData = {
                 name: args.name,
-                method: args.method,
+                method: validMethod,
                 url: args.url,
                 headers: args.headers || {},
                 body: args.body || null,
@@ -297,11 +327,12 @@ Silakan cek:
         try {
             const client = await this.getBackendClient();
             const updateData = {};
-            // Hanya include field yang akan diupdate
+            // Hanya include field yang akan diupdate dengan validasi yang proper
             if (args.name !== undefined)
                 updateData.name = args.name;
-            if (args.method !== undefined)
-                updateData.method = args.method;
+            if (args.method !== undefined) {
+                updateData.method = this.validateHttpMethod(args.method);
+            }
             if (args.url !== undefined)
                 updateData.url = args.url;
             if (args.headers !== undefined)
@@ -474,7 +505,8 @@ Silakan cek:
             get_endpoint_details,
             create_endpoint,
             update_endpoint,
-            move_endpoint
+            move_endpoint,
+            list_endpoints
         ];
     }
     /**
@@ -503,6 +535,7 @@ export const ENDPOINT_TOOLS = [
     get_endpoint_details,
     create_endpoint,
     update_endpoint,
-    move_endpoint
+    move_endpoint,
+    list_endpoints
 ];
 //# sourceMappingURL=endpoint.js.map

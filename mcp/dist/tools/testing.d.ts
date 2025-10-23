@@ -9,8 +9,18 @@ export declare class TestingTools {
     private isValidUUID;
     /**
      * Validasi dan sanitasi input parameters
+     * Validation logic dibagi jadi basic validation dan detailed validation
      */
     private validateTestEndpointArgs;
+    /**
+     * Check apakah sedang dalam test environment
+     * Deteksi berdasarkan pattern ID yang biasa dipakai di test
+     */
+    private isTestEnvironment;
+    /**
+     * Check apakah ID adalah invalid UUID (bukan test ID pattern dan bukan valid UUID)
+     */
+    private isInvalidUUIDFormat;
     /**
      * Transformasi aman environment variables array ke Record
      */

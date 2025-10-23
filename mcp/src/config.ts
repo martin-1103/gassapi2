@@ -1,6 +1,7 @@
 import { promises as fs } from 'fs';
 import { ConfigLoader } from './discovery/ConfigLoader';
 import { CacheConfig, McpServerConfig, ExecutionConfig, GassapiConfig } from './types/config.types';
+import { logger } from './utils/Logger';
 
 /**
  * GASSAPI MCP Client Configuration
@@ -42,12 +43,17 @@ export class Config {
       this._projectConfig = await this.configLoader.detectProjectConfig();
 
       if (this._projectConfig) {
-        console.log(`✅ Loaded project configuration: ${this._projectConfig.project.name}`);
-        console.log(`📊 Project ID: ${this._projectConfig.project.id}`);
-        console.log(`🔗 Server URL: ${this._projectConfig.mcpClient.serverURL}`);
+        // Logging informasi konfigurasi proyek yang berhasil dimuat
+        logger.info(`Konfigurasi proyek berhasil dimuat: ${this._projectConfig.project.name}`, {
+          projectId: this._projectConfig.project.id,
+          serverUrl: this._projectConfig.mcpClient.serverURL
+        }, 'Config');
       }
     } catch (error) {
-      console.warn('⚠️ No project configuration found:', error instanceof Error ? error.message : error);
+      // Logging warning jika konfigurasi tidak ditemukan
+      logger.warn('Konfigurasi proyek tidak ditemukan', {
+        error: error instanceof Error ? error.message : error
+      }, 'Config');
       this._projectConfig = null;
     }
   }
@@ -175,10 +181,19 @@ export class Config {
     try {
       const projectDir = process.cwd();
       await ConfigLoader.createSampleConfig(projectDir, projectId, projectName);
-      console.log(`📝 Sample configuration created: ${projectDir}/gassapi.json`);
-      console.log('Please edit the file with your actual project details and MCP token.');
+      // Logging informasi pembuatan konfigurasi sample
+      logger.info(`Konfigurasi sample berhasil dibuat: ${projectDir}/gassapi.json`, {
+        projectDir,
+        configFile: 'gassapi.json'
+      }, 'Config');
+      logger.cli('Silakan edit file dengan detail proyek dan token MCP yang sebenarnya.', 'info');
     } catch (error) {
-      console.error('❌ Failed to create sample configuration:', error);
+      // Logging error jika gagal membuat konfigurasi sample
+      logger.error('Gagal membuat konfigurasi sample', {
+        error: error instanceof Error ? error.message : error,
+        projectName,
+        projectId
+      }, 'Config');
       throw error;
     }
   }
@@ -263,7 +278,8 @@ export class Config {
    */
   async reset(): Promise<void> {
     try {
-      console.log('🔄 Resetting GASSAPI configuration...');
+      // Logging informasi reset konfigurasi
+      logger.info('Memulai reset konfigurasi GASSAPI...', {}, 'Config');
 
       // Clear caches
       this.configLoader.clearCache();
@@ -275,9 +291,13 @@ export class Config {
       await this.loadProjectConfig();
 
       const summary = this.getConfigurationSummary();
-      console.log('✅ Configuration reset completed:', summary);
+      // Logging sukses reset dengan summary
+      logger.info('Reset konfigurasi berhasil diselesaikan', { summary }, 'Config');
     } catch (error) {
-      console.error('❌ Failed to reset configuration:', error);
+      // Logging error jika gagal reset
+      logger.error('Gagal melakukan reset konfigurasi', {
+        error: error instanceof Error ? error.message : error
+      }, 'Config');
       throw error;
     }
   }
@@ -328,9 +348,15 @@ export class Config {
       this._projectConfig = null;
       await this.loadProjectConfig();
 
-      console.log('✅ Configuration imported successfully');
+      // Logging sukses import konfigurasi
+      logger.info('Konfigurasi berhasil diimpor', {
+        configPath: `${process.cwd()}/gassapi.json`
+      }, 'Config');
     } catch (error) {
-      console.error('❌ Failed to import configuration:', error);
+      // Logging error jika gagal import
+      logger.error('Gagal mengimpor konfigurasi', {
+        error: error instanceof Error ? error.message : error
+      }, 'Config');
       throw error;
     }
   }

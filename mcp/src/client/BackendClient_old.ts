@@ -1,4 +1,5 @@
 import { CacheManager } from '../cache/CacheManager';
+import { logger } from '../utils/Logger';
 import {
   ApiResponse,
   ProjectDetailsResponse,
@@ -64,9 +65,18 @@ export class BackendClient {
       // Cache the validation result (1 minute)
       await this.cacheManager.cacheTokenValidation(this.token, result.data, { ttlMs: 60000 });
 
+      // Token validation berhasil
+      logger.info('Token validation berhasil', {
+        valid: result.data?.valid,
+        project: result.data?.project?.name,
+        environment: result.data?.environment?.name,
+        lastValidatedAt: result.data?.lastValidatedAt
+      }, 'BackendClient');
+
       return result.data!;
     } catch (error) {
-      console.error('Token validation failed:', error);
+      // Token validation gagal, log error dengan context
+      logger.error('Token validation gagal', { error: error instanceof Error ? error.message : String(error) }, 'BackendClient');
       throw error;
     }
   }
@@ -129,7 +139,11 @@ export class BackendClient {
         collections
       };
     } catch (error) {
-      console.error('Failed to get project context:', error);
+      // Gagal mengambil project context, log error dengan context
+      logger.error('Gagal mengambil project context', {
+        projectId,
+        error: error instanceof Error ? error.message : String(error)
+      }, 'BackendClient');
       throw error;
     }
   }
@@ -160,7 +174,11 @@ export class BackendClient {
 
       return result.data!;
     } catch (error) {
-      console.error('Failed to get project details:', error);
+      // Gagal mengambil detail project, log error dengan context
+      logger.error('Gagal mengambil detail project', {
+        projectId,
+        error: error instanceof Error ? error.message : String(error)
+      }, 'BackendClient');
       throw error;
     }
   }
@@ -194,7 +212,11 @@ export class BackendClient {
 
       return { collections };
     } catch (error) {
-      console.error('Failed to get collections:', error);
+      // Gagal mengambil collections, log error dengan context
+      logger.error('Gagal mengambil collections', {
+        projectId,
+        error: error instanceof Error ? error.message : String(error)
+      }, 'BackendClient');
       throw error;
     }
   }
@@ -218,7 +240,11 @@ export class BackendClient {
 
       return result.data!;
     } catch (error) {
-      console.error('Failed to create collection:', error);
+      // Gagal membuat collection, log error dengan context
+      logger.error('Gagal membuat collection', {
+        collectionData,
+        error: error instanceof Error ? error.message : String(error)
+      }, 'BackendClient');
       throw error;
     }
   }
@@ -242,7 +268,12 @@ export class BackendClient {
 
       return result.data!;
     } catch (error) {
-      console.error('Failed to move collection:', error);
+      // Gagal memindahkan collection, log error dengan context
+      logger.error('Gagal memindahkan collection', {
+        collectionId,
+        newParentId,
+        error: error instanceof Error ? error.message : String(error)
+      }, 'BackendClient');
       throw error;
     }
   }
@@ -265,7 +296,12 @@ export class BackendClient {
 
       return result.data || { success: true };
     } catch (error) {
-      console.error('Failed to delete collection:', error);
+      // Gagal menghapus collection, log error dengan context
+      logger.error('Gagal menghapus collection', {
+        collectionId,
+        force,
+        error: error instanceof Error ? error.message : String(error)
+      }, 'BackendClient');
       throw error;
     }
   }
@@ -299,7 +335,11 @@ export class BackendClient {
 
       return { environments };
     } catch (error) {
-      console.error('Failed to get environments:', error);
+      // Gagal mengambil environments, log error dengan context
+      logger.error('Gagal mengambil environments', {
+        projectId,
+        error: error instanceof Error ? error.message : String(error)
+      }, 'BackendClient');
       throw error;
     }
   }
@@ -319,7 +359,11 @@ export class BackendClient {
 
       return result.data!;
     } catch (error) {
-      console.error('Failed to get environment variables:', error);
+      // Gagal mengambil environment variables, log error dengan context
+      logger.error('Gagal mengambil environment variables', {
+        environmentId,
+        error: error instanceof Error ? error.message : String(error)
+      }, 'BackendClient');
       throw error;
     }
   }
@@ -343,7 +387,11 @@ export class BackendClient {
 
       return result.data!;
     } catch (error) {
-      console.error('Failed to set environment variable:', error);
+      // Gagal mengeset environment variable, log error dengan context
+      logger.error('Gagal mengeset environment variable', {
+        variableData,
+        error: error instanceof Error ? error.message : String(error)
+      }, 'BackendClient');
       throw error;
     }
   }
@@ -363,7 +411,12 @@ export class BackendClient {
 
       return result.data!;
     } catch (error) {
-      console.error('Failed to export environment:', error);
+      // Gagal mengekspor environment, log error dengan context
+      logger.error('Gagal mengekspor environment', {
+        environmentId,
+        format,
+        error: error instanceof Error ? error.message : String(error)
+      }, 'BackendClient');
       throw error;
     }
   }
@@ -387,7 +440,11 @@ export class BackendClient {
 
       return result.data!;
     } catch (error) {
-      console.error('Failed to import environment:', error);
+      // Gagal mengimpor environment, log error dengan context
+      logger.error('Gagal mengimpor environment', {
+        importData,
+        error: error instanceof Error ? error.message : String(error)
+      }, 'BackendClient');
       throw error;
     }
   }
@@ -422,7 +479,12 @@ export class BackendClient {
 
       return { endpoints: result.data };
     } catch (error) {
-      console.error('Failed to get endpoints:', error);
+      // Gagal mengambil endpoints, log error dengan context
+      logger.error('Gagal mengambil endpoints', {
+        collectionId,
+        projectId,
+        error: error instanceof Error ? error.message : String(error)
+      }, 'BackendClient');
       throw error;
     }
   }
@@ -442,7 +504,11 @@ export class BackendClient {
 
       return result.data!;
     } catch (error) {
-      console.error('Failed to get endpoint details:', error);
+      // Gagal mengambil detail endpoint, log error dengan context
+      logger.error('Gagal mengambil detail endpoint', {
+        endpointId,
+        error: error instanceof Error ? error.message : String(error)
+      }, 'BackendClient');
       throw error;
     }
   }
@@ -466,7 +532,11 @@ export class BackendClient {
 
       return result.data!;
     } catch (error) {
-      console.error('Failed to create endpoint:', error);
+      // Gagal membuat endpoint, log error dengan context
+      logger.error('Gagal membuat endpoint', {
+        endpointData,
+        error: error instanceof Error ? error.message : String(error)
+      }, 'BackendClient');
       throw error;
     }
   }
@@ -490,7 +560,12 @@ export class BackendClient {
 
       return result.data!;
     } catch (error) {
-      console.error('Failed to update endpoint:', error);
+      // Gagal mengupdate endpoint, log error dengan context
+      logger.error('Gagal mengupdate endpoint', {
+        endpointId,
+        updateData,
+        error: error instanceof Error ? error.message : String(error)
+      }, 'BackendClient');
       throw error;
     }
   }
@@ -514,7 +589,12 @@ export class BackendClient {
 
       return result.data!;
     } catch (error) {
-      console.error('Failed to move endpoint:', error);
+      // Gagal memindahkan endpoint, log error dengan context
+      logger.error('Gagal memindahkan endpoint', {
+        endpointId,
+        newCollectionId,
+        error: error instanceof Error ? error.message : String(error)
+      }, 'BackendClient');
       throw error;
     }
   }
@@ -543,7 +623,13 @@ export class BackendClient {
 
       return result.data!;
     } catch (error) {
-      console.error('Failed to test endpoint:', error);
+      // Gagal mengetest endpoint, log error dengan context
+      logger.error('Gagal mengetest endpoint', {
+        endpointId,
+        environmentId,
+        overrideVariables,
+        error: error instanceof Error ? error.message : String(error)
+      }, 'BackendClient');
       throw error;
     }
   }

@@ -1,7 +1,10 @@
 import { McpTool, McpServerStatus } from '../types/mcp.types';
 /**
  * GASSAPI MCP Server
- * Implements Model Context Protocol for Claude Desktop integration
+ * Implementasi Model Context Protocol buat Claude Desktop integration
+ *
+ * Server ini nanganin komunikasi antara MCP client dan backend GASSAPI
+ * Pake proper logging instead of console.log biar lebih rapih
  */
 export declare class McpServer {
     private server;
@@ -9,23 +12,28 @@ export declare class McpServer {
     private config;
     constructor();
     /**
-     * Register all available tools
+     * Daftarin semua tools yang tersedia
+     * Tools ini dipake buat handle berbagai operasi di backend GASSAPI
      */
     private registerAllTools;
     /**
-     * Start MCP server with stdio transport
+     * Nyalain MCP server pake stdio transport
+     * Server bakal jalan dan nunggu commands dari Claude Desktop
      */
     start(): Promise<void>;
     /**
-     * Handle MCP initialize request
+     * Nanganin MCP initialize request
+     * Validate protocol version dan setup capabilities
      */
     private handleInitialize;
     /**
-     * Handle tools/list request
+     * Nanganin tools/list request
+     * Kembaliin daftar semua tools yang tersedia buat client
      */
     private handleListTools;
     /**
-     * Handle tools/call request
+     * Nanganin tools/call request
+     * Jalankan tool yang diminta sama client dan kembaliin hasilnya
      */
     private handleToolCall;
     /**
@@ -60,7 +68,8 @@ export declare class McpServer {
      */
     removeTool(toolName: string): boolean;
     /**
-     * Graceful shutdown
+     * Matiin server dengan cara yang aman
+     * Cleanup semua resources dan close connections
      */
     shutdown(): Promise<void>;
     /**

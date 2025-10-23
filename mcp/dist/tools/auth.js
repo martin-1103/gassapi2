@@ -1,5 +1,6 @@
 import { ConfigLoader } from '../discovery/ConfigLoader';
 import { BackendClient } from '../client/BackendClient';
+import { logger } from '../utils/Logger';
 /**
  * Tool autentikasi MCP
  * Handle validasi token dan operasi autentikasi lainnya
@@ -94,7 +95,8 @@ Siap untuk operasi GASSAPI!`
                     }
                 ]
             };
-            console.log('Token MCP berhasil divalidasi');
+            // Log info token berhasil divalidasi
+            logger.info('Token MCP berhasil divalidasi', { projectId, projectName }, 'AuthTools');
             return response;
         }
         catch (error) {
@@ -117,7 +119,8 @@ Validasi token gagal!`
                 ],
                 isError: true
             };
-            console.error('Validasi token MCP gagal:', error);
+            // Log error validasi token gagal
+            logger.error('Validasi token MCP gagal', { error: errorMessage }, 'AuthTools');
             return response;
         }
     }

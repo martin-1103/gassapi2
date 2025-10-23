@@ -2,6 +2,7 @@
 import fetch from 'node-fetch';
 import * as fs from 'fs';
 import * as path from 'path';
+import { logger } from './utils/Logger';
 /**
  * Type guards for configuration validation
  */
@@ -78,27 +79,34 @@ export class SimpleMcpClient {
                         const parsedConfig = JSON.parse(content);
                         // Validasi dengan type guard
                         if (!isValidConfig(parsedConfig)) {
-                            console.error('❌ Konfigurasi tidak valid di:', configPath);
+                            logger.error('Konfigurasi tidak valid', { configPath }, 'SimpleMcpClient');
                             // Berikan feedback spesifik tentang kesalahan
                             const cfg = parsedConfig;
                             if (cfg.project && !isValidProject(cfg.project)) {
-                                console.error('   💡 Project: pastikan ada id dan name (string tidak kosong)');
+                                logger.error('Project validation failed', {
+                                    issue: 'pastikan ada id dan name (string tidak kosong)'
+                                }, 'SimpleMcpClient');
                             }
                             if (cfg.mcpClient && !isValidMcpClient(cfg.mcpClient)) {
-                                console.error('   💡 MCP Client: pastikan ada token (string) dan serverURL (URL valid)');
+                                logger.error('MCP Client validation failed', {
+                                    issue: 'pastikan ada token (string) dan serverURL (URL valid)'
+                                }, 'SimpleMcpClient');
                             }
                             return;
                         }
                         this.config = parsedConfig;
-                        console.log('✅ Konfigurasi berhasil dimuat dari:', configPath);
-                        console.log('📋 Project:', this.config?.project?.name || 'N/A');
-                        console.log('🔗 Server:', this.config?.mcpClient?.serverURL || 'N/A');
+                        logger.info('Konfigurasi berhasil dimuat', {
+                            configPath,
+                            project: this.config?.project?.name || 'N/A',
+                            server: this.config?.mcpClient?.serverURL || 'N/A'
+                        }, 'SimpleMcpClient');
                         return;
                     }
                     catch (parseError) {
-                        console.error('❌ Gagal parsing JSON di:', configPath);
-                        console.error('   💡 Pastikan format JSON valid');
-                        console.error('   Error:', parseError instanceof Error ? parseError.message : 'Unknown error');
+                        logger.error('Gagal parsing JSON', {
+                            configPath,
+                            error: parseError instanceof Error ? parseError.message : 'Unknown error'
+                        }, 'SimpleMcpClient');
                         return;
                     }
                 }
@@ -108,48 +116,56 @@ export class SimpleMcpClient {
                     break; // Reached root
                 currentDir = parentDir;
             }
-            console.log('⚠️ Tidak ada gassapi.json ditemukan di direktori induk');
-            console.log('💡 Buat gassapi.json di root project kamu');
+            logger.warn('Tidak ada gassapi.json ditemukan di direktori induk', {}, 'SimpleMcpClient');
         }
         catch (error) {
-            console.error('❌ Gagal memuat konfigurasi:', error instanceof Error ? error.message : 'Unknown error');
+            logger.error('Gagal memuat konfigurasi', {
+                error: error instanceof Error ? error.message : 'Unknown error'
+            }, 'SimpleMcpClient');
         }
     }
     /**
      * Test basic functionality dengan validasi tambahan
      */
     async testBasicFunctionality() {
-        console.log('🧪 Testing basic functionality...');
+        logger.info('Testing basic functionality...', {}, 'SimpleMcpClient');
         if (!this.config) {
-            console.log('❌ Tidak ada konfigurasi yang dimuat');
+            logger.error('Tidak ada konfigurasi yang dimuat', {}, 'SimpleMcpClient');
             return;
         }
         // Test configuration values dengan type guards
-        console.log('✅ Konfigurasi dimuat:');
+        logger.info('Konfigurasi dimuat', {}, 'SimpleMcpClient');
         if (this.config.project) {
-            console.log('  Project:', this.config.project.name);
-            console.log('  Project ID:', this.config.project.id);
+            logger.debug('Project configuration', {
+                name: this.config.project.name,
+                id: this.config.project.id
+            }, 'SimpleMcpClient');
         }
         else {
-            console.log('  Project: Tidak dikonfigurasi');
+            logger.warn('Project tidak dikonfigurasi', {}, 'SimpleMcpClient');
         }
         if (this.config.mcpClient) {
-            console.log('  Server:', this.config.mcpClient.serverURL);
-            console.log('  Token: ***' + this.config.mcpClient.token.slice(-4));
+            logger.debug('MCP Client configuration', {
+                server: this.config.mcpClient.serverURL,
+                token: '***' + this.config.mcpClient.token.slice(-4)
+            }, 'SimpleMcpClient');
             // Validasi URL sebelum membuat request
             if (!isValidURL(this.config.mcpClient.serverURL)) {
-                console.error('   ❌ Server URL tidak valid:', this.config.mcpClient.serverURL);
+                logger.error('Server URL tidak valid', {
+                    serverURL: this.config.mcpClient.serverURL
+                }, 'SimpleMcpClient');
                 return;
             }
         }
         else {
-            console.log('  Server: Tidak dikonfigurasi');
-            console.log('  Token: Tidak dikonfigurasi');
+            logger.warn('MCP Client tidak dikonfigurasi', {}, 'SimpleMcpClient');
         }
         // Test basic HTTP request jika server URL valid
         if (this.config?.mcpClient?.serverURL && isValidURL(this.config.mcpClient.serverURL)) {
             try {
-                console.log('🌐 Testing HTTP request ke:', this.config.mcpClient.serverURL);
+                logger.info('Testing HTTP request', {
+                    serverURL: this.config.mcpClient.serverURL
+                }, 'SimpleMcpClient');
                 const startTime = Date.now();
                 // Gunakan node-fetch untuk HTTP client yang lebih baik
                 const response = await fetch(this.config.mcpClient.serverURL + '/health', {
@@ -161,65 +177,66 @@ export class SimpleMcpClient {
                 });
                 const responseTime = Date.now() - startTime;
                 const status = response.ok ? '✅ Success' : '❌ Failed';
-                console.log(`  ${status} - ${response.status}`);
-                console.log(`  Response Time: ${responseTime}ms`);
+                logger.cli(`  ${status} - ${response.status}`);
+                logger.cli(`  Response Time: ${responseTime}ms`);
                 if (response.ok) {
                     try {
                         const data = await response.json();
-                        console.log('  Server Response:', JSON.stringify(data, null, 2));
+                        logger.cli('  Server Response:', 'info');
+                        logger.cli(JSON.stringify(data, null, 2), 'info');
                     }
                     catch (e) {
-                        console.log('  Response: Tidak bisa parse JSON:', e instanceof Error ? e.message : 'Unknown error');
+                        logger.cli(`  Response: Tidak bisa parse JSON: ${e instanceof Error ? e.message : 'Unknown error'}`, 'warning');
                     }
                 }
                 else {
-                    console.log(`  Error: ${response.statusText || 'Unknown error'}`);
+                    logger.cli(`  Error: ${response.statusText || 'Unknown error'}`, 'error');
                 }
             }
             catch (error) {
-                console.log(`  ❌ Request gagal: ${error instanceof Error ? error.message : 'Unknown error'}`);
+                logger.cli(`  ❌ Request gagal: ${error instanceof Error ? error.message : 'Unknown error'}`, 'error');
             }
         }
         else if (this.config?.mcpClient?.serverURL) {
-            console.log('⚠️ Server URL tidak valid, tidak bisa testing request');
+            logger.cli('⚠️ Server URL tidak valid, tidak bisa testing request', 'warning');
         }
         else {
-            console.log('⚠️ Tidak ada server URL yang dikonfigurasi');
+            logger.cli('⚠️ Tidak ada server URL yang dikonfigurasi', 'warning');
         }
-        console.log('✅ Basic functionality test selesai');
+        logger.cli('✅ Basic functionality test selesai', 'success');
     }
     /**
      * Show status dengan validasi
      */
     showStatus() {
-        console.log('📊 Status Simple MCP Client');
-        console.log('='.repeat(40));
+        logger.cli('📊 Status Simple MCP Client');
+        logger.cli('='.repeat(40));
         if (this.config) {
-            console.log('✅ Konfigurasi: Dimuat');
+            logger.cli('✅ Konfigurasi: Dimuat', 'success');
             if (this.config.project) {
-                console.log(`  Project: ${this.config.project.name} (ID: ${this.config.project.id})`);
+                logger.cli(`  Project: ${this.config.project.name} (ID: ${this.config.project.id})`);
             }
             else {
-                console.log('  Project: Tidak dikonfigurasi');
+                logger.cli('  Project: Tidak dikonfigurasi', 'warning');
             }
             if (this.config.mcpClient) {
-                console.log(`  Server: ${this.config.mcpClient.serverURL}`);
-                console.log(`  Token: ${isValidString(this.config.mcpClient.token) ? 'Tersedia' : 'Invalid'}`);
+                logger.cli(`  Server: ${this.config.mcpClient.serverURL}`);
+                logger.cli(`  Token: ${isValidString(this.config.mcpClient.token) ? 'Tersedia' : 'Invalid'}`);
                 // Validasi tambahan
                 if (!isValidURL(this.config.mcpClient.serverURL)) {
-                    console.log('  ⚠️ Server URL tidak valid');
+                    logger.cli('  ⚠️ Server URL tidak valid', 'warning');
                 }
             }
             else {
-                console.log('  Server: Tidak dikonfigurasi');
-                console.log('  Token: Tidak ada');
+                logger.cli('  Server: Tidak dikonfigurasi', 'warning');
+                logger.cli('  Token: Tidak ada', 'warning');
             }
         }
         else {
-            console.log('❌ Konfigurasi: Tidak ditemukan');
-            console.log('  gassapi.json: Hilang atau tidak valid');
+            logger.cli('❌ Konfigurasi: Tidak ditemukan', 'error');
+            logger.cli('  gassapi.json: Hilang atau tidak valid', 'error');
         }
-        console.log('='.repeat(40));
+        logger.cli('='.repeat(40));
     }
     /**
      * Create sample configuration dengan validasi struktur
@@ -241,18 +258,22 @@ export class SimpleMcpClient {
         try {
             // Validasi config sebelum ditulis
             if (!isValidConfig(sampleConfig)) {
-                console.error('❌ Internal error: sample config tidak valid');
+                logger.error('Internal error: sample config tidak valid', {}, 'SimpleMcpClient');
                 return;
             }
             fs.writeFileSync(configPath, JSON.stringify(sampleConfig, null, 2), 'utf-8');
-            console.log('✅ Sample configuration dibuat:', configPath);
-            console.log('📝 Silakan edit file dan:');
-            console.log('  1. Ganti YOUR_MCP_TOKEN_HERE dengan token MCP asli kamu');
-            console.log('  2. Update detail project');
-            console.log('  3. Konfigurasi server URL');
+            logger.cli('✅ Sample configuration dibuat:', 'success');
+            logger.cli(`📝 ${configPath}`, 'info');
+            logger.cli('Silakan edit file dan:', 'info');
+            logger.cli('  1. Ganti YOUR_MCP_TOKEN_HERE dengan token MCP asli kamu', 'info');
+            logger.cli('  2. Update detail project', 'info');
+            logger.cli('  3. Konfigurasi server URL', 'info');
         }
         catch (error) {
-            console.error('❌ Gagal membuat sample configuration:', error instanceof Error ? error.message : 'Unknown error');
+            logger.error('Gagal membuat sample configuration', {
+                error: error instanceof Error ? error.message : 'Unknown error',
+                configPath
+            }, 'SimpleMcpClient');
         }
     }
     /**
