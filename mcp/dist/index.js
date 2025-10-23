@@ -1,69 +1,14 @@
 #!/usr/bin/env node
 /**
  * GASSAPI MCP Client Entry Point
- * Main package initialization and CLI interface
+ * Titik awal aplikasi MCP Client
  */
-import { McpServer } from './server/McpServer';
-import { config } from './config';
+import { McpServer } from './server/McpServer.js';
+import { config } from './config.js';
 import * as readlineSync from 'readline-sync';
-// Load project configuration before starting server
-async function loadConfigurationAndStart() {
-    try {
-        console.log('🚀 Initializing GASSAPI MCP Client v1.0.0');
-        await config.loadProjectConfig();
-        if (config.hasProjectConfig()) {
-            console.log('✅ Project configuration loaded');
-            console.log(`📋 Project: ${config.getProjectName()}`);
-            console.log(`🆔 ID: ${config.getProjectId()}`);
-            console.log(`🔗 Server: ${config.getServerURL()}`);
-            console.log(`🌍 Environment: ${config.getActiveEnvironment()}`);
-        }
-        else {
-            console.log('⚠️ No project configuration found');
-            console.log('📝 Create gassapi.json in your project root');
-            console.log('💡 Use "gassapi-mcp init" to create sample configuration');
-        }
-        const server = new McpServer();
-        await server.start();
-    }
-    catch (error) {
-        console.error('❌ Initialization failed:', error instanceof Error ? error.message : 'Unknown error');
-        throw error;
-    }
-}
-// Helper functions
-function showHelp() {
-    console.log('🚀 GASSAPI MCP Client v1.0.0');
-    console.log('');
-    console.log('USAGE:');
-    console.log('  gassapi-mcp <command>');
-    console.log('');
-    console.log('COMMANDS:');
-    console.log('  start       Start MCP server');
-    console.log('  init        Create sample gassapi.json');
-    console.log('  help        Show this help message');
-    console.log('  version     Show version information');
-    console.log('');
-    console.log('EXAMPLES:');
-    console.log('  gassapi-mcp start');
-    console.log('  gassapi-mcp init');
-    console.log('');
-    console.log('DOCUMENTATION:');
-    console.log('  📖 README.md - Complete documentation');
-}
-function showVersion() {
-    console.log('🚀 GASSAPI MCP Client v1.0.0');
-    console.log('📅 Built: ' + new Date().toISOString().split('T')[0]);
-}
-// Run if called directly
-if (require.main === module) {
-    main().catch(error => {
-        console.error('❌ Fatal error:', error);
-        process.exit(1);
-    });
-}
 /**
  * Main MCP Client Application
+ * Aplikasi utama untuk mengelola MCP Client
  */
 class GassapiMcpClient {
     constructor() {
@@ -71,6 +16,7 @@ class GassapiMcpClient {
     }
     /**
      * Initialize MCP client
+     * Inisialisasi client dan validasi konfigurasi
      */
     async initialize() {
         try {
@@ -116,6 +62,7 @@ class GassapiMcpClient {
     }
     /**
      * Start MCP server
+     * Menjalankan MCP server
      */
     async start() {
         try {
@@ -129,6 +76,7 @@ class GassapiMcpClient {
     }
     /**
      * Handle graceful shutdown
+     * Menangani shutdown dengan aman
      */
     async shutdown() {
         try {
@@ -142,6 +90,7 @@ class GassapiMcpClient {
     }
     /**
      * Get client status
+     * Menampilkan status client
      */
     async status() {
         try {
@@ -176,6 +125,7 @@ class GassapiMcpClient {
     }
     /**
      * Create sample configuration
+     * Membuat file konfigurasi contoh
      */
     async init(projectName, projectId) {
         try {
@@ -198,6 +148,7 @@ class GassapiMcpClient {
     }
     /**
      * Show help information
+     * Menampilkan informasi bantuan
      */
     help() {
         console.log('🚀 GASSAPI MCP Client v1.0.0');
@@ -235,6 +186,7 @@ class GassapiMcpClient {
     }
     /**
      * Show version information
+     * Menampilkan informasi versi
      */
     version() {
         console.log('🚀 GASSAPI MCP Client v1.0.0');
@@ -246,6 +198,7 @@ class GassapiMcpClient {
     }
     /**
      * Parse command line arguments
+     * Parsing argumen command line
      */
     parseArguments(args) {
         const options = {};
@@ -266,7 +219,8 @@ class GassapiMcpClient {
         return { command, options };
     }
 }
-// Main execution
+// Main execution function
+// Fungsi utama untuk eksekusi
 async function main() {
     const args = process.argv.slice(2);
     const client = new GassapiMcpClient();
@@ -281,11 +235,12 @@ async function main() {
             console.log('🚀 Starting GASSAPI MCP Server...');
             await client.start();
             break;
-        case 'init':
+        case 'init': {
             const projectName = args[1];
             const projectId = options.project;
             await client.init(projectName, projectId);
             break;
+        }
         case 'status':
             await client.status();
             break;
@@ -306,6 +261,7 @@ async function main() {
     }
 }
 // Handle process signals for graceful shutdown
+// Menangani sinyal proses untuk shutdown yang aman
 process.on('SIGINT', async () => {
     console.log('\n🔄 Received SIGINT, shutting down gracefully...');
     const client = new GassapiMcpClient();
@@ -319,6 +275,7 @@ process.on('SIGTERM', async () => {
     process.exit(0);
 });
 // Handle uncaught exceptions
+// Menangani exception yang tidak ter-catch
 process.on('uncaughtException', (error) => {
     console.error('❌ Uncaught Exception:', error);
     process.exit(1);
@@ -330,7 +287,8 @@ process.on('unhandledRejection', (reason, promise) => {
 // Export for external usage
 export { GassapiMcpClient, McpServer, config };
 // Run if called directly
-if (require.main === module) {
+// Jalankan jika dipanggil langsung
+if (import.meta.url === `file://${process.argv[1]}`) {
     main().catch(error => {
         console.error('❌ Fatal error:', error);
         process.exit(1);

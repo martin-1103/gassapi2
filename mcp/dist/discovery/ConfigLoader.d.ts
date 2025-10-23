@@ -1,74 +1,74 @@
 import { GassapiConfig } from '../types/config.types';
 /**
- * GASSAPI Configuration Loader
- * Auto-detects and parses gassapi.json configuration files
+ * Loader untuk konfigurasi GASSAPI
+ * Otomatis deteksi dan parsing file konfigurasi gassapi.json
  */
 export declare class ConfigLoader {
     private cacheManager;
     private configCache;
     constructor();
     /**
-     * Auto-detect gassapi.json file by scanning parent directories
+     * Deteksi otomatis file gassapi.json dengan scan parent directory
      */
     detectProjectConfig(): Promise<GassapiConfig | null>;
     /**
-     * Scan for gassapi.json in current and parent directories
+     * Scan file gassapi.json di direktori saat ini dan parent
      */
     private scanForConfig;
     /**
-     * Load specific gassapi.json configuration file
+     * Load file konfigurasi gassapi.json spesifik
      */
     loadConfig(configPath: string): Promise<GassapiConfig>;
     /**
-     * Validate GASSAPI configuration structure
+     * Validasi struktur konfigurasi GASSAPI
      */
     validateConfig(config: any): asserts config is GassapiConfig;
     /**
-     * Get default configuration template
+     * Dapatkan template konfigurasi default
      */
     static getDefaultConfig(): Partial<GassapiConfig>;
     /**
-     * Create sample configuration file
+     * Bikin file konfigurasi sample
      */
     static createSampleConfig(projectDir: string, projectId: string, projectName: string): Promise<void>;
     /**
-     * Reload configuration (clear cache and reload)
+     * Reload konfigurasi (clear cache dan reload)
      */
     reloadConfig(configPath: string): Promise<GassapiConfig>;
     /**
-     * Get configuration with caching
+     * Dapatkan konfigurasi dengan cache
      */
     getCachedConfig(configPath: string): Promise<GassapiConfig | null>;
     /**
-     * Clear all configuration caches
+     * Clear semua cache konfigurasi
      */
     clearCache(): void;
     /**
-     * Validate configuration file exists
+     * Validasi keberadaan file konfigurasi
      */
     configExists(configPath?: string): Promise<boolean>;
     /**
-     * Get project directory from configuration
+     * Dapatkan direktori project dari konfigurasi
      */
     getProjectDirectory(configPath?: string): Promise<string | null>;
     /**
-     * Check if file exists
+     * Cek apakah file ada
      */
     private fileExists;
     /**
-     * Normalize environment variables
+     * Normalisasi variabel environment
      */
     normalizeEnvironmentVariables(variables: Record<string, any>): Record<string, string>;
     /**
-     * Extract environment variables for a specific environment
+     * Ambil variabel environment untuk environment tertentu
      */
     extractEnvironmentVariables(config: GassapiConfig, environmentName?: string): Record<string, string>;
     /**
-     * Get active environment name
+     * Dapatkan nama environment yang aktif
      */
     getActiveEnvironment(config: GassapiConfig): string;
     /**
-     * Get project information
+     * Dapatkan informasi project
      */
     getProjectInfo(config: GassapiConfig): {
         id: string;
@@ -76,23 +76,23 @@ export declare class ConfigLoader {
         description?: string;
     };
     /**
-     * Get server URL
+     * Dapatkan URL server
      */
     getServerURL(config: GassapiConfig): string;
     /**
-     * Get MCP token
+     * Dapatkan token MCP
      */
     getMcpToken(config: GassapiConfig): string;
     /**
-     * Get API base URL
+     * Dapatkan base URL API
      */
     getApiBaseUrl(config: GassapiConfig): string;
     /**
-     * Get discovery ports
+     * Dapatkan port discovery
      */
     getDiscoveryPorts(config: GassapiConfig): number[];
     /**
-     * Should auto-scan for APIs
+     * Apakah harus auto-scan API
      */
     shouldAutoScan(config: GassapiConfig): boolean;
 }

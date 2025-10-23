@@ -63,8 +63,8 @@ class EndpointTest extends BaseTest {
         ];
 
         $projectResult = $this->testHelper->post('projects', $projectData);
-        if ($projectResult['status'] === 201 && isset($projectResult['data']['data']['id'])) {
-            $this->projectId = $projectResult['data']['data']['id'];
+        if ($projectResult['status'] === 201 && isset($projectResult['data']['id'])) {
+            $this->projectId = $projectResult['data']['id'];
 
             // Create collection
             $collectionData = [
@@ -78,9 +78,9 @@ class EndpointTest extends BaseTest {
             ];
 
             $collectionResult = $this->testHelper->post('collection_create', $collectionData, [], $this->projectId);
-            if ($collectionResult['status'] === 201 && isset($collectionResult['data']['data']['id'])) {
+            if ($collectionResult['status'] === 201 && isset($collectionResult['data']['id'])) {
                 $this->testCollection = [
-                    'id' => $collectionResult['data']['data']['id'],
+                    'id' => $collectionResult['data']['id'],
                     'project_id' => $this->projectId
                 ];
             }
@@ -113,9 +113,9 @@ class EndpointTest extends BaseTest {
         $result = $this->testHelper->post('endpoint_create', $endpointData, [], $this->testCollection['id']);
         $success = $this->testHelper->printResult("Create Endpoint", $result, 201);
 
-        if ($success && isset($result['data']['data']['id'])) {
+        if ($success && isset($result['data']['id'])) {
             $this->testEndpoints[] = [
-                'id' => $result['data']['data']['id'],
+                'id' => $result['data']['id'],
                 'collection_id' => $this->testCollection['id']
             ];
         }
@@ -152,9 +152,9 @@ class EndpointTest extends BaseTest {
         $result = $this->testHelper->post('endpoint_create', $endpointData, [], $this->testCollection['id']);
         $success = $this->testHelper->printResult("Create POST Endpoint", $result, 201);
 
-        if ($success && isset($result['data']['data']['id'])) {
+        if ($success && isset($result['data']['id'])) {
             $this->testEndpoints[] = [
-                'id' => $result['data']['data']['id'],
+                'id' => $result['data']['id'],
                 'collection_id' => $this->testCollection['id']
             ];
         }
@@ -178,9 +178,8 @@ class EndpointTest extends BaseTest {
 
         if ($success) {
             $this->testHelper->assertHasKey($result, 'data');
-            $this->testHelper->assertHasKey($result['data'], 'endpoints');
-
-            $endpoints = $result['data']['endpoints'] ?? [];
+            // API returns endpoints list directly in data, not nested under 'endpoints' key
+            $endpoints = $result['data'] ?? [];
             echo "[INFO] Found " . count($endpoints) . " endpoints\n";
         }
 
@@ -204,8 +203,8 @@ class EndpointTest extends BaseTest {
 
         if ($success) {
             $this->testHelper->assertHasKey($result, 'data');
-            $this->testHelper->assertHasKey($result['data'], 'endpoint');
-            $this->testHelper->assertEquals($result['data']['endpoint'], 'id', $endpoint['id']);
+            // API returns endpoint directly in data, not nested under 'endpoint' key
+            $this->testHelper->assertEquals($result['data'], 'id', $endpoint['id']);
         }
 
         return $success;
@@ -240,7 +239,7 @@ class EndpointTest extends BaseTest {
         $success = $this->testHelper->printResult("Update Endpoint", $result, 200);
 
         if ($success) {
-            $this->testHelper->assertEquals($result, 'message', 'Endpoint updated successfully');
+            $this->testHelper->assertEquals($result, 'message', 'Endpoint updated');
         }
 
         return $success;
@@ -295,7 +294,7 @@ class EndpointTest extends BaseTest {
         $success = $this->testHelper->printResult("Delete Endpoint", $result, 200);
 
         if ($success) {
-            $this->testHelper->assertEquals($result, 'message', 'Endpoint deleted successfully');
+            $this->testHelper->assertEquals($result, 'message', 'Endpoint deleted');
         }
 
         return $success;
@@ -324,7 +323,7 @@ class EndpointTest extends BaseTest {
         $success = $this->testHelper->printResult("Create Endpoint Invalid Method", $result, 400);
 
         if ($result['status'] === 400) {
-            $this->testHelper->assertEquals($result, 'message', 'Invalid HTTP method');
+            $this->testHelper->assertEquals($result, 'message', 'Invalid request: Invalid HTTP method');
         }
 
         return $result['status'] === 400;
@@ -396,8 +395,8 @@ class EndpointTest extends BaseTest {
         $result = $this->testHelper->post('endpoint_create', $endpointData, [], $this->testCollection['id']);
         $success = $this->testHelper->printResult("Create Endpoint with Variables", $result, 201);
 
-        if ($success && isset($result['data']['data']['id'])) {
-            $endpointId = $result['data']['data']['id'];
+        if ($success && isset($result['data']['id'])) {
+            $endpointId = $result['data']['id'];
             $this->testEndpoints[] = [
                 'id' => $endpointId,
                 'collection_id' => $this->testCollection['id']
@@ -491,9 +490,9 @@ class EndpointTest extends BaseTest {
             $success = $this->testHelper->printResult("Create {$method} Endpoint", $result, 201);
             $results[] = $success;
 
-            if ($success && isset($result['data']['data']['id'])) {
+            if ($success && isset($result['data']['id'])) {
                 $this->testEndpoints[] = [
-                    'id' => $result['data']['data']['id'],
+                    'id' => $result['data']['id'],
                     'collection_id' => $this->testCollection['id']
                 ];
             }
@@ -542,7 +541,10 @@ class EndpointTest extends BaseTest {
 
                 if ($result['status'] === 403) {
                     echo "[INFO] Permission test passed - Cannot access other user's endpoint\n";
-                    
+                    return true; // Test passed successfully
+                } else {
+                    echo "[INFO] Permission test failed - Should not be able to access other user's endpoint\n";
+                    return false; // Test failed
                 }
             }
         }
@@ -604,9 +606,9 @@ class EndpointTest extends BaseTest {
             $success = $this->testHelper->printResult("Create Endpoint: " . $testCase['name'], $result, 201);
             $results[] = $success;
 
-            if ($success && isset($result['data']['data']['id'])) {
+            if ($success && isset($result['data']['id'])) {
                 $this->testEndpoints[] = [
-                    'id' => $result['data']['data']['id'],
+                    'id' => $result['data']['id'],
                     'collection_id' => $this->testCollection['id']
                 ];
             }

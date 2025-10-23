@@ -157,8 +157,7 @@ export class SimpleMcpClient {
                     headers: {
                         'User-Agent': 'gassapi-mcp-client/1.0.0',
                         'Content-Type': 'application/json'
-                    },
-                    timeout: 5000
+                    }
                 });
                 const responseTime = Date.now() - startTime;
                 const status = response.ok ? '✅ Success' : '❌ Failed';

@@ -15,7 +15,7 @@ export declare class Config {
     /**
      * Get current project configuration
      */
-    getProjectConfig(): GassapiConfig | null;
+    getProjectConfig(): GassapiConfig;
     /**
      * Check if project is configured
      */

@@ -5,7 +5,7 @@ export declare class EnvironmentTools {
     constructor();
     private getBackendClient;
     /**
-     * List environments for a project
+     * Tampilin environment buat sebuah project
      */
     listEnvironments(args: {
         projectId?: string;
@@ -17,7 +17,7 @@ export declare class EnvironmentTools {
         isError?: boolean;
     }>;
     /**
-     * Get environment variables
+     * Ambil variabel environment
      */
     getEnvironmentVariables(args: {
         environmentId: string;
@@ -30,7 +30,7 @@ export declare class EnvironmentTools {
         isError?: boolean;
     }>;
     /**
-     * Set environment variable
+     * Set variabel environment
      */
     setEnvironmentVariable(args: {
         environmentId: string;
@@ -46,7 +46,7 @@ export declare class EnvironmentTools {
         isError?: boolean;
     }>;
     /**
-     * Export environment configuration
+     * Export konfigurasi environment
      */
     exportEnvironment(args: {
         environmentId: string;
@@ -60,7 +60,7 @@ export declare class EnvironmentTools {
         isError?: boolean;
     }>;
     /**
-     * Import environment variables
+     * Import variabel environment
      */
     importEnvironment(args: {
         environmentId: string;
@@ -79,11 +79,11 @@ export declare class EnvironmentTools {
         isError?: boolean;
     }>;
     /**
-     * Get environment tools list
+     * Ambil daftar tool environment
      */
     getTools(): McpTool[];
     /**
-     * Handle tool calls
+     * Handle pemanggilan tool
      */
     handleToolCall(toolName: string, args: Record<string, unknown>): Promise<unknown>;
 }

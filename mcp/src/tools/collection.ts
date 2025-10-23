@@ -1,10 +1,10 @@
-import { McpTool, GassapiCollection, GassapiEndpoint, CollectionTreeNode, McpToolHandler } from '../types/mcp.types';
+import { McpTool, GassapiCollection, GassapiEndpoint, CollectionTreeNode } from '../types/mcp.types';
 import { ConfigLoader } from '../discovery/ConfigLoader';
 import { BackendClient } from '../client/BackendClient';
 
 /**
- * Collection Management MCP Tools
- * Handles API collection operations
+ * Tool koleksi MCP untuk management API
+ * Handles operasi koleksi API
  */
 
 const get_collections: McpTool = {
@@ -150,15 +150,15 @@ export class CollectionTools {
           content: [
             {
               type: 'text' as const,
-              text: `📚 Collections
+              text: `📚 Koleksi
 
 Project: ${config.project.name} (${projectId})
-Result: No collections found
+Hasil: Tidak ada koleksi ditemukan
 
-To create collections:
-1. Use create_collection tool
-2. Import from existing API documentation
-3. Use web dashboard for visual management`
+Untuk membuat koleksi:
+1. Gunakan tool create_collection
+2. Import dari dokumentasi API yang ada
+3. Gunakan web dashboard untuk visual management`
             }
           ]
         };
@@ -176,15 +176,15 @@ To create collections:
           content: [
             {
               type: 'text' as const,
-              text: `📚 Project Collections
+              text: `📚 Koleksi Project
 
 Project: ${config.project.name} (${projectId})
-Total Collections: ${collections.length}
+Total Koleksi: ${collections.length}
 
-Collection Hierarchy:
+Hierarki Koleksi:
 ${treeText}
 
-Use collectionId for specific operations. Root collections have no parent.`
+Gunakan collectionId untuk operasi spesifik. Koleksi root tidak memiliki parent.`
             }
           ]
         };
@@ -199,33 +199,33 @@ Use collectionId for specific operations. Root collections have no parent.`
         content: [
           {
             type: 'text' as const,
-            text: `📚 Project Collections
+            text: `📚 Koleksi Project
 
 Project: ${config.project.name} (${projectId})
-Total Collections: ${collections.length}
+Total Koleksi: ${collections.length}
 
-Collections:
+Koleksi:
 ${collectionList}
 
-Use collectionId for specific operations.`
+Gunakan collectionId untuk operasi spesifik.`
           }
         ]
       };
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      const errorMessage = error instanceof Error ? error.message : 'Error tidak diketahui';
 
       return {
         content: [
           {
                 type: 'text' as const,
-                text: `❌ Failed to List Collections
+                text: `❌ Gagal Menampilkan Koleksi
 
 Error: ${errorMessage}
 
-Please check:
-1. Project ID is correct
-2. MCP token has project access
-3. Backend server is accessible`
+Silakan periksa:
+1. Project ID benar
+2. MCP token memiliki akses project
+3. Backend server dapat diakses`
               }
             ],
         isError: true
@@ -260,37 +260,37 @@ Please check:
         content: [
           {
             type: 'text' as const,
-            text: `✅ Collection Created
+            text: `✅ Koleksi Berhasil Dibuat
 
-Collection Details:
-- Name: ${args.name}
+Detail Koleksi:
+- Nama: ${args.name}
 - ID: ${result.id}
 - Project: ${args.projectId}
 - Parent: ${args.parentId || 'Root level'}
-- Description: ${args.description || 'No description'}
+- Deskripsi: ${args.description || 'Tidak ada deskripsi'}
 
-Collection "${args.name}" created successfully!
+Koleksi "${args.name}" berhasil dibuat!
 
-You can now add endpoints to this collection using endpoint management tools.`
+Kamu sekarang bisa menambahkan endpoint ke koleksi ini menggunakan management endpoint tools.`
           }
         ]
       };
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      const errorMessage = error instanceof Error ? error.message : 'Error tidak diketahui';
 
       return {
         content: [
           {
             type: 'text' as const,
-            text: `❌ Failed to Create Collection
+            text: `❌ Gagal Membuat Koleksi
 
 Error: ${errorMessage}
 
-Please check:
-1. Collection name is valid
-2. Project ID exists and is accessible
-3. Parent collection ID is valid (if provided)
-4. Have write access to the project`
+Silakan periksa:
+1. Nama koleksi valid
+2. Project ID ada dan dapat diakses
+3. Parent collection ID valid (jika disediakan)
+4. Memiliki akses write ke project`
           }
         ],
         isError: true
@@ -299,7 +299,7 @@ Please check:
   }
 
   /**
-   * Move collection to new parent
+   * Pindahkan koleksi ke parent baru
    */
   async moveCollection(args: {
     collectionId: string;
@@ -312,41 +312,41 @@ Please check:
       const client = await this.getBackendClient();
       const result = await client.moveCollection(args.collectionId, args.newParentId);
 
-      const parentText = args.newParentId ? `moved to parent collection ID: ${args.newParentId}` : 'moved to root level';
+      const parentText = args.newParentId ? `dipindah ke parent collection ID: ${args.newParentId}` : 'dipindah ke root level';
 
       return {
         content: [
           {
             type: 'text' as const,
-            text: `✅ Collection Moved
+            text: `✅ Koleksi Dipindahkan
 
-Move Operation:
+Operasi Pindah:
 - Collection ID: ${args.collectionId}
 - ${parentText}
-- Result: Success
+- Hasil: Berhasil
 
-Collection reorganized successfully!
+Koleksi berhasil direorganisasi!
 
-New hierarchy structure will be reflected in subsequent collection listings.`
+Struktur hierarki baru akan terlihat pada listing koleksi selanjutnya.`
           }
         ]
       };
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      const errorMessage = error instanceof Error ? error.message : 'Error tidak diketahui';
 
       return {
         content: [
           {
             type: 'text' as const,
-            text: `❌ Failed to Move Collection
+            text: `❌ Gagal Memindahkan Koleksi
 
 Error: ${errorMessage}
 
-Please check:
-1. Collection ID exists and is accessible
-2. New parent collection ID is valid
-3. No circular reference in hierarchy
-4. Have write access to both collections`
+Silakan periksa:
+1. Collection ID ada dan dapat diakses
+2. New parent collection ID valid
+3. Tidak ada circular reference di hierarchy
+4. Memiliki akses write ke kedua koleksi`
           }
         ],
         isError: true
@@ -355,7 +355,7 @@ Please check:
   }
 
   /**
-   * Delete collection with safety checks
+   * Hapus koleksi dengan pemeriksaan keamanan
    */
   async deleteCollection(args: {
     collectionId: string;
@@ -369,37 +369,43 @@ Please check:
       const force = args.force || false;
 
       if (!force) {
-        // Safety check - get collection details first
+        // Safety check - dapatkan detail koleksi dulu
         try {
-          const collections = await client.getCollections('all'); // This would need to be implemented
-          const hasEndpoints = true; // We need to check if collection has endpoints
+          // Mendapatkan semua koleksi untuk mencari data koleksi yang akan dihapus
+          const config = await this.configLoader.detectProjectConfig();
+          if (config) {
+            const allCollections = await client.getCollections(config.project.id);
+            const targetCollection = allCollections.collections.find(col => col.id === args.collectionId);
 
-          if (hasEndpoints) {
-            return {
-              content: [
-                {
-                  type: 'text' as const,
-                  text: `⚠️ Collection Delete Warning
+            if (targetCollection && targetCollection.endpoint_count && targetCollection.endpoint_count > 0) {
+              return {
+                content: [
+                  {
+                    type: 'text' as const,
+                    text: `⚠️ Peringatan Hapus Koleksi
 
-Collection ID: ${args.collectionId}
+ID Koleksi: ${args.collectionId}
+Nama Koleksi: ${targetCollection.name}
 
-Safety Check:
-❌ This collection contains endpoints
-❌ Deleting will also remove all endpoints
+Pemeriksaan Keamanan:
+❌ Koleksi ini mengandung ${targetCollection.endpoint_count} endpoint
+❌ Menghapus akan menghapus semua endpoint juga
 
-To proceed with deletion:
-1. Use force=true to override safety
-2. Move endpoints to another collection first
-3. Confirm you want to delete everything
+Untuk melanjutkan penghapusan:
+1. Gunakan force=true untuk override keamanan
+2. Pindahkan endpoint ke koleksi lain dulu
+3. Konfirmasi kamu ingin menghapus semuanya
 
-Collection deletion cancelled for safety.`
-                }
-              ],
-              isError: true
-            };
+Penghapusan koleksi dibatalkan untuk keamanan.`
+                  }
+                ],
+                isError: true
+              };
+            }
           }
-        } catch {
-          // If we can't check, proceed with warning
+        } catch (error) {
+          // Jika tidak bisa cek, lanjut dengan warning
+          console.warn('Tidak bisa memeriksa detail koleksi, melanjutkan dengan hati-hati');
         }
       }
 
@@ -409,34 +415,34 @@ Collection deletion cancelled for safety.`
         content: [
           {
             type: 'text' as const,
-            text: `✅ Collection Deleted
+            text: `✅ Koleksi Berhasil Dihapus
 
-Deletion Details:
+Detail Penghapusan:
 - Collection ID: ${args.collectionId}
-- Force Delete: ${force ? 'Yes' : 'No'}
-- Result: Success
+- Force Delete: ${force ? 'Ya' : 'Tidak'}
+- Hasil: Berhasil
 
-Collection and all its contents have been permanently deleted!
+Koleksi dan semua isinya telah dihapus permanen!
 
-Note: This action cannot be undone. Consider moving important data first.`
+Catatan: Aksi ini tidak bisa dibatalkan. Pertimbangkan untuk memindahkan data penting dulu.`
           }
         ]
       };
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      const errorMessage = error instanceof Error ? error.message : 'Error tidak diketahui';
 
       return {
         content: [
           {
             type: 'text' as const,
-            text: `❌ Failed to Delete Collection
+            text: `❌ Gagal Menghapus Koleksi
 
 Error: ${errorMessage}
 
-Please check:
-1. Collection ID exists and is accessible
-2. Have delete permissions for the project
-3. No circular dependencies preventing deletion`
+Silakan periksa:
+1. Collection ID ada dan dapat diakses
+2. Memiliki permission delete untuk project
+3. Tidak ada circular dependencies yang mencegah penghapusan`
           }
         ],
         isError: true
@@ -445,23 +451,29 @@ Please check:
   }
 
   /**
-   * Build collection hierarchy tree
+   * Bangun hierarchy tree koleksi
    */
   private buildCollectionTree(collections: GassapiCollection[]): CollectionTreeNode[] {
     const tree: CollectionTreeNode[] = [];
-    const map = new Map();
+    const map = new Map<string, CollectionTreeNode>();
 
-    // Create map of all collections
+    // Buat map dari semua koleksi
     collections.forEach(col => {
-      map.set(col.id, { ...col, children: [] });
+      const node: CollectionTreeNode = {
+        collection: col,
+        children: [],
+        endpointCount: col.endpoint_count || 0,
+        endpoint_count: col.endpoint_count || 0
+      };
+      map.set(col.id, node);
     });
 
-    // Build tree structure
-    map.forEach((col, id) => {
-      if (col.parent_id && map.has(col.parent_id)) {
-        map.get(col.parent_id).children.push(col);
+    // Bangun struktur tree
+    map.forEach((node, id) => {
+      if (node.collection.parent_id && map.has(node.collection.parent_id)) {
+        map.get(node.collection.parent_id)!.children.push(node);
       } else {
-        tree.push(col);
+        tree.push(node);
       }
     });
 
@@ -469,18 +481,20 @@ Please check:
   }
 
   /**
-   * Format collection tree as text
+   * Format collection tree sebagai text
    */
   private formatCollectionTree(tree: CollectionTreeNode[], includeEndpointCount: boolean, indent = 0): string {
     const indentStr = '  '.repeat(indent);
     let result = '';
 
     tree.forEach(node => {
-      const endpointInfo = includeEndpointCount && node.endpoint_count !== undefined
-        ? ` [${node.endpoint_count} endpoints]`
+      // Gunakan endpoint_count dari collection, bukan dari node
+      const endpointCount = node.collection.endpoint_count || node.endpoint_count || 0;
+      const endpointInfo = includeEndpointCount && endpointCount > 0
+        ? ` [${endpointCount} endpoints]`
         : '';
 
-      result += `${indentStr}📁 ${node.name} (ID: ${node.id})${endpointInfo}\n`;
+      result += `${indentStr}📁 ${node.collection.name} (ID: ${node.collection.id})${endpointInfo}\n`;
 
       if (node.children && node.children.length > 0) {
         result += this.formatCollectionTree(node.children, includeEndpointCount, indent + 1);
@@ -491,7 +505,7 @@ Please check:
   }
 
   /**
-   * Get collection tools list
+   * Dapatkan daftar tool koleksi
    */
   getTools(): McpTool[] {
     return [
@@ -503,25 +517,36 @@ Please check:
   }
 
   /**
-   * Handle tool calls
+   * Handle pemanggilan tool
    */
   async handleToolCall(toolName: string, args: Record<string, unknown>): Promise<unknown> {
     switch (toolName) {
       case 'get_collections':
         return this.getCollections(args);
       case 'create_collection':
-        return this.createCollection(args);
+        return this.createCollection(args as {
+          name: string;
+          projectId: string;
+          parentId?: string;
+          description?: string;
+        });
       case 'move_collection':
-        return this.moveCollection(args);
+        return this.moveCollection(args as {
+          collectionId: string;
+          newParentId: string;
+        });
       case 'delete_collection':
-        return this.deleteCollection(args);
+        return this.deleteCollection(args as {
+          collectionId: string;
+          force?: boolean;
+        });
       default:
         throw new Error(`Unknown collection tool: ${toolName}`);
     }
   }
 }
 
-// Export for MCP server registration
+// Export untuk MCP server registration
 export const collectionTools = new CollectionTools();
 export const COLLECTION_TOOLS = [
   get_collections,

@@ -3,9 +3,13 @@ export declare class AuthTools {
     private configLoader;
     private backendClient;
     constructor();
+    /**
+     * Dapatkan backend client dengan caching biar ga bikin baru terus
+     */
     private getBackendClient;
     /**
-     * Validate MCP token and return project context
+     * Validasi token MCP dan kembalikan konteks proyek
+     * Type-safe implementation dengan proper error handling
      */
     validateMcpToken(args: {
         token?: string;
@@ -17,7 +21,7 @@ export declare class AuthTools {
         isError?: boolean;
     }>;
     /**
-     * Get current authentication status
+     * Dapatkan status autentikasi sekarang dengan type-safe implementation
      */
     getAuthStatus(): Promise<{
         content: Array<{
@@ -27,7 +31,7 @@ export declare class AuthTools {
         isError?: boolean;
     }>;
     /**
-     * Get project context information
+     * Dapatkan informasi konteks proyek dengan type-safe implementation
      */
     getProjectContext(args: {
         project_id?: string;
@@ -39,7 +43,7 @@ export declare class AuthTools {
         isError?: boolean;
     }>;
     /**
-     * Refresh authentication (clear cache and re-validate)
+     * Refresh autentikasi (bersihin cache dan validasi ulang) dengan proper error handling
      */
     refreshAuth(): Promise<{
         content: Array<{
@@ -49,11 +53,11 @@ export declare class AuthTools {
         isError?: boolean;
     }>;
     /**
-     * Get authentication tools list
+     * Dapatkan daftar tool autentikasi
      */
     getTools(): McpTool[];
     /**
-     * Handle tool calls
+     * Handle pemanggilan tool dengan type-safe argument validation
      */
     handleToolCall(toolName: string, args: Record<string, unknown>): Promise<unknown>;
 }

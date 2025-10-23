@@ -5,8 +5,8 @@
  * Executable script for global installation
  */
 
-const path = require('path');
-const { fileURLToPath } = require('url');
+import path from 'path';
+import { fileURLToPath } from 'url';
 
 // Get the directory containing this script
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
@@ -21,4 +21,4 @@ process.env.NODE_PATH = [
 ].join(path.delimiter);
 
 // Import and run the CLI
-require(path.join(distDir, 'index.js'));
+import(path.join(distDir, 'index.js'));

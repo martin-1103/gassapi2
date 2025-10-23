@@ -1,8 +1,7 @@
-import { McpTool, GassapiEndpoint, GassapiEnvironment, GassapiTestExecution, GassapiEnvironmentVariable, McpToolHandler } from '../types/mcp.types';
+import { McpTool, GassapiEndpoint, GassapiTestExecution, GassapiEnvironmentVariable } from '../types/mcp.types';
 import { ConfigLoader } from '../discovery/ConfigLoader';
 import { BackendClient } from '../client/BackendClient';
 import { logger } from '../utils/Logger';
-
 import { TestExecutionResponse } from '../types/api.types';
 /**
  * Testing MCP Tools
@@ -47,7 +46,7 @@ export class TestingTools {
   }
 
   /**
-   * Validate UUID format
+   * Validasi format UUID
    */
   private isValidUUID(uuid: string): boolean {
     const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -55,7 +54,7 @@ export class TestingTools {
   }
 
   /**
-   * Sanitize and validate input parameters
+   * Validasi dan sanitasi input parameters
    */
   private validateTestEndpointArgs(args: {
     endpointId: string;
@@ -107,7 +106,7 @@ export class TestingTools {
   }
 
   /**
-   * Safely transform environment variables array to Record
+   * Transformasi aman environment variables array ke Record
    */
   private transformEnvironmentVariables(environmentVariables: GassapiEnvironmentVariable[]): Record<string, string> {
     try {
@@ -172,7 +171,7 @@ export class TestingTools {
   }
 
   /**
-   * Safe API call wrapper
+   * Wrapper aman untuk pemanggilan API
    */
   private async safeApiCall<T>(
     operation: string,
@@ -239,7 +238,7 @@ export class TestingTools {
   }
 
   /**
-   * Test single endpoint with environment variables
+   * Test single endpoint dengan environment variables
    */
   async testEndpoint(args: {
     endpointId: string;
@@ -302,7 +301,7 @@ export class TestingTools {
       }
 
       // Format response
-      const result = this.formatTestResult(testResult, endpointDetails, variables);
+      const result = this.formatTestResult(testResult as any, endpointDetails as any, variables);
 
       return {
         content: [
@@ -339,7 +338,7 @@ Coba lagi atau hubungi admin kalau error terus berlanjut!`
   }
 
   /**
-   * Format test result for display
+   * Format test result untuk display
    */
   private formatTestResult(testResult: GassapiTestExecution, endpointDetails: GassapiEndpoint, variables: Record<string, string>): string {
     try {
@@ -421,7 +420,7 @@ ${status} Status: ${testResult.status} (${statusText})
         try {
           const responseString = typeof testResult.response_body === 'string'
             ? testResult.response_body
-            : JSON.stringify(testResult.response_body, null, 2);
+            : JSON.stringify(testResult.response_body || {}, null, 2);
 
           if (responseString.length < 1000) {
             result += '\n\n📄 Response Body:';
@@ -456,7 +455,7 @@ Data mentah test tersimpan di server. Silakan check dashboard.`;
   }
 
   /**
-   * Quick test with auto-detection
+   * Quick test dengan auto-detection
    */
   async quickTest(args: { url?: string; method?: string }): Promise<{
     content: Array<{ type: 'text'; text: string }>;
@@ -529,10 +528,14 @@ Untuk test endpoint:
       // Safe endpoint selection
       try {
         const firstCollection = projectContext.collections[0];
-        if (firstCollection && firstCollection.endpoints && Array.isArray(firstCollection.endpoints) && firstCollection.endpoints.length > 0) {
-          const firstEndpoint = firstCollection.endpoints[0];
+        // Perlu dapatkan endpoints dari API karena tidak ada di response
+        const client = await this.getBackendClient();
+        const endpoints = await client.getEndpoints(firstCollection.id);
+
+        if (endpoints && Array.isArray(endpoints) && endpoints.length > 0) {
+          const firstEndpoint = endpoints[0];
           const firstEnvironment = projectContext.environments && Array.isArray(projectContext.environments)
-            ? projectContext.environments.find((env: GassapiEnvironment) => env.is_default) || projectContext.environments[0]
+            ? (projectContext.environments.find((env: any) => env.is_default) || projectContext.environments[0])
             : null;
 
           if (firstEnvironment && firstEndpoint) {
@@ -788,7 +791,7 @@ Batch test failed! Coba lagi ya!`
   }
 
   /**
-   * Helper function for delays
+   * Helper function untuk delays
    */
   private sleep(ms: number): Promise<void> {
     return new Promise(resolve => {
@@ -825,7 +828,12 @@ Batch test failed! Coba lagi ya!`
 
       switch (toolName) {
         case 'test_endpoint':
-          return this.testEndpoint(args);
+          return this.testEndpoint(args as {
+            endpointId: string;
+            environmentId: string;
+            overrideVariables?: Record<string, string>;
+            saveResult?: boolean;
+          });
         default:
           throw new Error(`Testing tool tidak dikenal: ${toolName}`);
       }

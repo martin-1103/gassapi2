@@ -39,7 +39,9 @@ class ApiRoutes {
                 '/collection/{id}' => ['handler' => 'collection_detail', 'description' => 'Get collection detail'],
                 // Endpoints
                 '/collection/{id}/endpoints' => ['handler' => 'endpoints_list', 'description' => 'List endpoints for a collection'],
+                '/collection/{id}/endpoints/list' => ['handler' => 'endpoint_list', 'description' => 'List endpoints for a collection (alias)'],
                 '/endpoint/{id}' => ['handler' => 'endpoint_detail', 'description' => 'Get endpoint detail'],
+                '/endpoint/{id}/get' => ['handler' => 'endpoint_get', 'description' => 'Get endpoint detail (alias)'],
                 '/project/{id}/endpoints' => ['handler' => 'project_endpoints_list', 'description' => 'List all endpoints in a project'],
                 '/project/{id}/endpoints/grouped' => ['handler' => 'project_endpoints_grouped', 'description' => 'List endpoints grouped by collection'],
                 // Flows
@@ -115,7 +117,7 @@ class ApiRoutes {
     /**
      * Get route handler based on request method and path
      */
-    public static function resolveRoute($method, $path, $id = null) {
+    public static function resolveRoute($method, $path, $id_or_collectionId = null) {
         $routes = self::getRoutes();
 
         if (!isset($routes[$method])) {
@@ -131,8 +133,8 @@ class ApiRoutes {
 
         // Check pattern match with ID (supports {id} anywhere in pattern)
         foreach ($methodRoutes as $pattern => $route) {
-            if (strpos($pattern, '{id}') !== false && $id !== null) {
-                $candidate = str_replace('{id}', $id, $pattern);
+            if (strpos($pattern, '{id}') !== false && $id_or_collectionId !== null) {
+                $candidate = str_replace('{id}', $id_or_collectionId, $pattern);
                 if ($path === $candidate) {
                     return ['handler' => $route['handler'], 'error' => null];
                 }
@@ -330,6 +332,12 @@ class ApiRoutes {
                 break;
             case 'mcp_validate':
                 $mcpHandler->validateToken();
+                break;
+            case 'endpoint_list':
+                $endpointHandler->getAll($id);
+                break;
+            case 'endpoint_get':
+                $endpointHandler->getById($id);
                 break;
             default:
                 \App\Helpers\ResponseHelper::error('Handler not implemented', 501);

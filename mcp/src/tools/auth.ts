@@ -1,21 +1,22 @@
-import { McpTool, GassapiEnvironment, GassapiCollection, McpToolHandler } from '../types/mcp.types';
+import { McpTool, GassapiEnvironment, GassapiCollection } from '../types/mcp.types';
 import { ConfigLoader } from '../discovery/ConfigLoader';
-import { BackendClient } from '../client/BackendClient';
+import { BackendClient, UnifiedEnvironment } from '../client/BackendClient';
 
 /**
- * Authentication MCP Tools
- * Handles token validation and authentication operations
+ * Tool autentikasi MCP
+ * Handle validasi token dan operasi autentikasi lainnya
  */
 
+// Definisi tool untuk validasi token MCP
 const validate_mcp_token: McpTool = {
   name: 'validate_mcp_token',
-  description: 'Validate MCP token and get project context information',
+  description: 'Validasi token MCP dan dapetin info konteks proyek',
   inputSchema: {
     type: 'object',
     properties: {
       token: {
         type: 'string',
-        description: 'MCP token to validate (optional, will use config file if not provided)'
+        description: 'Token MCP yang mau divalidasi (opsional, pake config file kalo ga ada)'
       }
     },
     required: [] as string[]
@@ -30,106 +31,118 @@ export class AuthTools {
     this.configLoader = new ConfigLoader();
   }
 
+  /**
+   * Dapatkan backend client dengan caching biar ga bikin baru terus
+   */
   private async getBackendClient(token?: string): Promise<BackendClient> {
+    // Kalo uda ada, pake yang uda ada
     if (this.backendClient) {
       return this.backendClient;
     }
 
-    // Try to get token from parameter or config
-    let mcpToken: string;
+    // Load config sekali aja, diemin di variable
+    const config = await this.configLoader.detectProjectConfig();
+    if (!config) {
+      throw new Error('Konfigurasi GASSAPI ga ketemu. Please create gassapi.json di root project kamu.');
+    }
 
+    // Cari token dari parameter atau config
+    let mcpToken: string;
     if (token) {
       mcpToken = token;
     } else {
-      // Load from configuration
-      const config = await this.configLoader.detectProjectConfig();
-      if (!config) {
-        throw new Error('No GASSAPI configuration found. Please create gassapi.json in your project root.');
-      }
-
       mcpToken = this.configLoader.getMcpToken(config);
     }
 
     if (!mcpToken) {
-      throw new Error('No MCP token available. Please provide token or ensure gassapi.json contains valid token.');
+      throw new Error('Token MCP ga ada. Please provide token atau pastiin gassapi.json ada token yang valid.');
     }
 
-    // Get server URL from config
-    const config = await this.configLoader.detectProjectConfig();
-    if (!config) {
-      throw new Error('No GASSAPI configuration found');
-    }
-
+    // Ambil server URL dari config
     const serverURL = this.configLoader.getServerURL(config);
+    if (!serverURL) {
+      throw new Error('Server URL ga ada di konfigurasi');
+    }
 
+    // Bikin client baru
     this.backendClient = new BackendClient(serverURL, mcpToken);
     return this.backendClient;
   }
 
   /**
-   * Validate MCP token and return project context
+   * Validasi token MCP dan kembalikan konteks proyek
+   * Type-safe implementation dengan proper error handling
    */
   async validateMcpToken(args: { token?: string }): Promise<{
     content: Array<{ type: 'text'; text: string }>;
     isError?: boolean;
   }> {
     try {
+      // Dapatkan client backend
       const client = await this.getBackendClient(args.token);
       const result = await client.validateToken();
 
+      // Type-safe access ke token validation response
+      const projectId = result.project?.id ?? 'N/A';
+      const projectName = result.project?.name ?? 'N/A';
+      const envName = result.environment?.name ?? 'N/A';
+      const envVars = result.environment?.variables ?? {};
+      const lastValidated = result.lastValidatedAt ?? 'N/A';
+
+      // Build response message dengan type-safe string interpolation
       const response = {
         content: [
           {
             type: 'text' as const,
-            text: `✅ MCP Token Valid
+            text: `✅ Token MCP Valid
 
-Project Information:
-- ID: ${result.project?.id || 'N/A'}
-- Name: ${result.project?.name || 'N/A'}
+Info Proyek:
+- ID: ${projectId}
+- Name: ${projectName}
 
 Environment:
-- Active: ${result.environment?.name || 'N/A'}
-- Variables: ${Object.keys(result.environment?.variables || {}).length} configured
+- Aktif: ${envName}
+- Variabel: ${Object.keys(envVars).length} terkonfigurasi
 
-Token Status: Valid
-Last Validated: ${result.lastValidatedAt || 'N/A'}
+Status Token: Valid
+Terakhir Validasi: ${lastValidated}
 
-Ready for GASSAPI operations!`
+Siap untuk operasi GASSAPI!`
           }
         ]
       };
 
-      console.log('MCP Token validated successfully');
+      console.log('Token MCP berhasil divalidasi');
       return response;
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown validation error';
+      const errorMessage = error instanceof Error ? error.message : 'Error validasi tidak diketahui';
 
       const response = {
         content: [
           {
             type: 'text' as const,
-            text: `❌ MCP Token Validation Failed
+            text: `❌ Validasi Token MCP Gagal
 
 Error: ${errorMessage}
 
-Please check:
-1. Token is correct and active
-2. gassapi.json exists in project root
-3. Backend server is accessible
+Cek dulu:
+1. Token bener dan masih aktif
+2. File gassapi.json ada di root project
+3. Server backend bisa diakses
 
-Token validation failed!`
+Validasi token gagal!`
           }
         ],
         isError: true
       };
 
-      console.error('MCP Token validation failed:', error);
+      console.error('Validasi token MCP gagal:', error);
       return response;
     }
   }
 
   /**
-   * Get current authentication status
+   * Dapatkan status autentikasi sekarang dengan type-safe implementation
    */
   async getAuthStatus(): Promise<{
     content: Array<{ type: 'text'; text: string }>;
@@ -138,82 +151,95 @@ Token validation failed!`
     try {
       const config = await this.configLoader.detectProjectConfig();
 
+      // Kalo config ga ada
       if (!config) {
         return {
           content: [
             {
               type: 'text' as const,
-              text: `📋 Authentication Status
+              text: `📋 Status Autentikasi
 
-Configuration: ❌ Not Found
-- gassapi.json: Not found in parent directories
+Konfigurasi: ❌ Ketemu
+- gassapi.json: Ga ada di direktori parent
 
-To setup:
-1. Create project via GASSAPI web dashboard
-2. Generate MCP configuration
-3. Save as gassapi.json in project root`
+Cara setup:
+1. Bikin project lewat GASSAPI web dashboard
+2. Generate konfigurasi MCP
+3. Simpen sebagai gassapi.json di root project`
             }
           ]
         };
       }
 
-      // Test token validity
+      // Type-safe access ke config properties
+      const projectName = config.project.name ?? 'Tanpa Nama';
+      const projectId = config.project.id;
+      const serverURL = this.configLoader.getServerURL(config);
+
+      // Cek validitas token
       try {
         const client = await this.getBackendClient();
         const result = await client.validateToken();
 
+        // Type-safe access ke validation result
+        const lastValidated = result.lastValidatedAt ?? 'Pertama kali';
+
         return {
           content: [
             {
               type: 'text' as const,
-              text: `📋 Authentication Status
+              text: `📋 Status Autentikasi
 
-Configuration: ✅ Found
-- gassapi.json: Located and valid
-- Project: ${config.project.name} (${config.project.id})
-- Server: ${this.configLoader.getServerURL(config)}
+Konfigurasi: ✅ Ketemu
+- gassapi.json: Ketemu dan valid
+- Proyek: ${projectName} (${projectId})
+- Server: ${serverURL}
 
 Token: ✅ Valid
-- Project Access: Granted
-- Last Validated: ${result.lastValidatedAt || 'First time'}
+- Akses Proyek: Diberikan
+- Terakhir Validasi: ${lastValidated}
 
-Status: 🟢 Ready for GASSAPI operations`
+Status: 🟢 Siap untuk operasi GASSAPI`
             }
           ]
         };
       } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'Error tidak diketahui';
+
         return {
           content: [
             {
               type: 'text' as const,
-              text: `📋 Authentication Status
+              text: `📋 Status Autentikasi
 
-Configuration: ✅ Found
-- gassapi.json: Located
-- Project: ${config.project.name} (${config.project.id})
-- Server: ${this.configLoader.getServerURL(config)}
+Konfigurasi: ✅ Ketemu
+- gassapi.json: Ketemu
+- Proyek: ${projectName} (${projectId})
+- Server: ${serverURL}
 
 Token: ❌ Invalid
-- Error: ${error instanceof Error ? error.message : 'Unknown error'}
-- Status: Not authenticated
+- Error: ${errorMessage}
+- Status: Ga terautentikasi
 
-Please check token or regenerate MCP configuration`
+Cek token lagi atau regenerate konfigurasi MCP`
             }
           ],
           isError: true
         };
       }
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Error tidak diketahui';
+
       return {
         content: [
           {
             type: 'text' as const,
-            text: `📋 Authentication Status
+            text: `📋 Status Autentikasi
 
-Configuration: ❌ Error
-- Error: ${error instanceof Error ? error.message : 'Unknown error'}
+Konfigurasi: ❌ Error
+- Error: ${errorMessage}
 
-Please check gassapi.json configuration file`
+Cek file konfigurasi gassapi.json`
           }
         ],
         isError: true
@@ -222,7 +248,7 @@ Please check gassapi.json configuration file`
   }
 
   /**
-   * Get project context information
+   * Dapatkan informasi konteks proyek dengan type-safe implementation
    */
   async getProjectContext(args: { project_id?: string }): Promise<{
     content: Array<{ type: 'text'; text: string }>;
@@ -231,57 +257,71 @@ Please check gassapi.json configuration file`
     try {
       const config = await this.configLoader.detectProjectConfig();
       if (!config) {
-        throw new Error('No GASSAPI configuration found');
+        throw new Error('Konfigurasi GASSAPI ga ketemu');
       }
 
       const projectId = args.project_id || config.project.id;
       const client = await this.getBackendClient();
       const context = await client.getProjectContext(projectId);
 
-      const environments = context.environments.map((env: GassapiEnvironment) =>
-        `- ${env.name} (ID: ${env.id}, Default: ${env.is_default ? 'Yes' : 'No'})`
-      ).join('\n');
+      // Type-safe environment formatting - handle both UnifiedEnvironment and GassapiEnvironment
+      const environments = context.environments.map((env: UnifiedEnvironment) => {
+        // Safe access dengan fallback untuk is_default property
+        const isDefault = 'is_default' in env ? env.is_default : false;
+        return `- ${env.name} (ID: ${env.id}, Default: ${isDefault ? 'Ya' : 'Tidak'})`;
+      }).join('\n');
 
-      const collections = context.collections ? context.collections.map((col: GassapiCollection) =>
-        `- ${col.name} (ID: ${col.id}, Endpoints: ${col.endpoints?.length || 0})`
-      ).join('\n') : 'No collections found';
+      // Type-safe collection formatting dengan proper endpoint count handling
+      const collections = context.collections && context.collections.length > 0
+        ? context.collections.map((col: GassapiCollection) => {
+            // Handle both endpoint_count and endpoints.length untuk backward compatibility
+            const endpointCount = col.endpoint_count ?? col.endpoints?.length ?? 0;
+            return `- ${col.name} (ID: ${col.id}, Endpoint: ${endpointCount})`;
+          }).join('\n')
+        : 'Ga ada koleksi yang ketemu';
+
+      // Type-safe project information access
+      const projectName = context.project.name ?? 'Tanpa Nama';
+      const projectDescription = context.project.description ?? 'Ga ada deskripsi';
+      const environmentCount = context.environments?.length ?? 0;
+      const collectionCount = context.collections?.length ?? 0;
 
       return {
         content: [
           {
             type: 'text' as const,
-            text: `📋 Project Context
+            text: `📋 Konteks Proyek
 
-Project: ${context.project.name} (${context.project.id})
-Description: ${context.project.description || 'No description'}
+Proyek: ${projectName} (${context.project.id})
+Deskripsi: ${projectDescription}
 
-Environments (${context.environments.length}):
+Environment (${environmentCount}):
 ${environments}
 
-Collections (${context.collections?.length || 0}):
+Koleksi (${collectionCount}):
 ${collections}
 
-Status: 🟢 Project loaded successfully`
+Status: 🟢 Proyek berhasil dimuat`
           }
         ]
       };
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      const errorMessage = error instanceof Error ? error.message : 'Error tidak diketahui';
 
       return {
         content: [
           {
             type: 'text' as const,
-            text: `❌ Failed to Load Project Context
+            text: `❌ Gagal Muat Konteks Proyek
 
 Error: ${errorMessage}
 
-Please check:
-1. Project ID is correct
-2. MCP token is valid
-3. Have access to the project
+Cek dulu:
+1. ID proyek bener
+2. Token MCP valid
+3. Punya akses ke proyeknya
 
-Project context loading failed!`
+Pemuatan konteks proyek gagal!`
           }
         ],
         isError: true
@@ -290,48 +330,68 @@ Project context loading failed!`
   }
 
   /**
-   * Refresh authentication (clear cache and re-validate)
+   * Refresh autentikasi (bersihin cache dan validasi ulang) dengan proper error handling
    */
   async refreshAuth(): Promise<{
     content: Array<{ type: 'text'; text: string }>;
     isError?: boolean;
   }> {
     try {
-      // Clear caches
-      await this.configLoader.clearCache();
-      this.backendClient = null;
+      // Bersihin cache dulu dengan type-safe operation
+      this.configLoader.clearCache();
+      this.backendClient = null; // Reset client instance
 
-      // Re-validate token
-      await this.validateMcpToken({});
+      // Validasi token lagi dengan empty args object
+      const validationResult = await this.validateMcpToken({});
+
+      // Cek hasil validasi untuk memberikan response yang lebih informatif
+      if (validationResult.isError) {
+        return {
+          content: [
+            {
+              type: 'text' as const,
+              text: `⚠️ Refresh Autentikasi Selesai
+
+Cache: ✅ Dibersihin
+Token: ❌ Validasi gagal
+Status: ⚠️ Perlu perhatian
+
+Cache dibersihin tapi token validation gagal.
+Cek konfigurasi token dan coba lagi.`
+            }
+          ],
+          isError: true
+        };
+      }
 
       return {
         content: [
           {
             type: 'text' as const,
-            text: `🔄 Authentication Refreshed
+            text: `🔄 Autentikasi Di-refresh
 
-Caches: ✅ Cleared
-Token: ✅ Re-validated
-Status: 🟢 Ready for fresh operations
+Cache: ✅ Dibersihin
+Token: ✅ Di-validasi ulang
+Status: 🟢 Siap untuk operasi baru
 
-Authentication cache cleared and token re-validated!`
+Cache autentikasi dibersihin dan token di-validasi ulang!`
           }
         ]
       };
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      const errorMessage = error instanceof Error ? error.message : 'Error tidak diketahui';
 
       return {
         content: [
           {
             type: 'text' as const,
-            text: `❌ Authentication Refresh Failed
+            text: `❌ Refresh Autentikasi Gagal
 
 Error: ${errorMessage}
 
-Please check your configuration and try again.
+Cek konfigurasi kamu dan coba lagi.
 
-Authentication refresh failed!`
+Refresh autentikasi gagal!`
           }
         ],
         isError: true
@@ -340,25 +400,27 @@ Authentication refresh failed!`
   }
 
   /**
-   * Get authentication tools list
+   * Dapatkan daftar tool autentikasi
    */
   getTools(): McpTool[] {
     return [validate_mcp_token];
   }
 
   /**
-   * Handle tool calls
+   * Handle pemanggilan tool dengan type-safe argument validation
    */
   async handleToolCall(toolName: string, args: Record<string, unknown>): Promise<unknown> {
     switch (toolName) {
       case 'validate_mcp_token':
-        return this.validateMcpToken(args);
+        // Type validation untuk token argument
+        const tokenArg = args.token as string | undefined;
+        return this.validateMcpToken({ token: tokenArg });
       default:
-        throw new Error(`Unknown authentication tool: ${toolName}`);
+        throw new Error(`Tool autentikasi tidak diketahui: ${toolName}`);
     }
   }
 }
 
-// Export for MCP server registration
+// Export untuk registrasi MCP server
 export const authTools = new AuthTools();
 export const AUTH_TOOLS = [validate_mcp_token];

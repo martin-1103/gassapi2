@@ -2,8 +2,8 @@ import * as fs from 'fs/promises';
 import * as path from 'path';
 import { CacheManager } from '../cache/CacheManager';
 /**
- * GASSAPI Configuration Loader
- * Auto-detects and parses gassapi.json configuration files
+ * Loader untuk konfigurasi GASSAPI
+ * Otomatis deteksi dan parsing file konfigurasi gassapi.json
  */
 export class ConfigLoader {
     constructor() {
@@ -11,15 +11,15 @@ export class ConfigLoader {
         this.cacheManager = new CacheManager();
     }
     /**
-     * Auto-detect gassapi.json file by scanning parent directories
+     * Deteksi otomatis file gassapi.json dengan scan parent directory
      */
     async detectProjectConfig() {
         const currentDir = process.cwd();
-        // Scan parent directories for gassapi.json
+        // Scan parent directory untuk gassapi.json
         return this.scanForConfig(currentDir);
     }
     /**
-     * Scan for gassapi.json in current and parent directories
+     * Scan file gassapi.json di direktori saat ini dan parent
      */
     async scanForConfig(startDir) {
         let currentDir = path.resolve(startDir);
@@ -29,120 +29,120 @@ export class ConfigLoader {
             if (await this.fileExists(configPath)) {
                 try {
                     const config = await this.loadConfig(configPath);
-                    console.log(`Found GASSAPI config at: ${configPath}`);
+                    console.log(`Ketemu konfig GASSAPI di: ${configPath}`);
                     return config;
                 }
                 catch (error) {
-                    console.warn(`Invalid config file at ${configPath}:`, error instanceof Error ? error.message : 'Unknown error');
+                    console.warn(`Konfig file jelek di ${configPath}:`, error instanceof Error ? error.message : 'Error gak jelas');
                 }
             }
-            // Move up to parent directory
+            // Pindah ke parent directory
             const parentDir = path.dirname(currentDir);
             if (parentDir === currentDir)
-                break; // Reached root
+                break; // Udah sampe root
             currentDir = parentDir;
         }
         return null;
     }
     /**
-     * Load specific gassapi.json configuration file
+     * Load file konfigurasi gassapi.json spesifik
      */
     async loadConfig(configPath) {
-        // Check cache first
+        // Cek cache dulu
         const cachedConfig = await this.cacheManager.getCachedProjectConfig(configPath);
         if (cachedConfig) {
             return cachedConfig;
         }
-        // Load from file
+        // Load dari file
         if (!await this.fileExists(configPath)) {
-            throw new Error(`Configuration file not found: ${configPath}`);
+            throw new Error(`File konfigurasi ilang: ${configPath}`);
         }
         try {
             const content = await fs.readFile(configPath, 'utf-8');
             const config = JSON.parse(content);
-            // Validate configuration structure
+            // Validasi struktur konfigurasi
             this.validateConfig(config);
-            // Cache the valid configuration
+            // Cache konfigurasi yang valid
             await this.cacheManager.cacheProjectConfig(configPath, config);
             return config;
         }
         catch (error) {
             if (error instanceof SyntaxError) {
-                throw new Error(`Invalid JSON in ${configPath}: ${error.message}`);
+                throw new Error(`JSON-nya aneh di ${configPath}: ${error.message}`);
             }
             else if (error instanceof Error) {
-                throw new Error(`Failed to load ${configPath}: ${error.message}`);
+                throw new Error(`Gagal load ${configPath}: ${error.message}`);
             }
             throw error;
         }
     }
     /**
-     * Validate GASSAPI configuration structure
+     * Validasi struktur konfigurasi GASSAPI
      */
     validateConfig(config) {
-        // Required fields validation
+        // Validasi field wajib
         if (!config.project || typeof config.project !== 'object') {
-            throw new Error('Missing or invalid project configuration');
+            throw new Error('Konfigurasi project-nya ilang atau salah format');
         }
         if (!config.project.id || typeof config.project.id !== 'string') {
-            throw new Error('Missing or invalid project.id');
+            throw new Error('project.id-nya ilang atau salah format');
         }
         if (!config.project.name || typeof config.project.name !== 'string') {
-            throw new Error('Missing or invalid project.name');
+            throw new Error('project.name-nya ilang atau salah format');
         }
         if (!config.mcpClient || typeof config.mcpClient !== 'object') {
-            throw new Error('Missing or invalid mcpClient configuration');
+            throw new Error('Konfigurasi mcpClient-nya ilang atau salah format');
         }
         if (!config.mcpClient.token || typeof config.mcpClient.token !== 'string') {
-            throw new Error('Missing or invalid mcpClient.token');
+            throw new Error('mcpClient.token-nya ilang atau salah format');
         }
         if (!config.mcpClient.serverURL || typeof config.mcpClient.serverURL !== 'string') {
-            throw new Error('Missing or invalid mcpClient.serverURL');
+            throw new Error('mcpClient.serverURL-nya ilang atau salah format');
         }
-        // Optional fields validation
+        // Validasi field opsional
         if (config.environment && typeof config.environment !== 'object') {
             if (config.environment.active && typeof config.environment.active !== 'string') {
-                throw new Error('Invalid environment.active (must be string)');
+                throw new Error('environment.active harus string');
             }
             if (config.environment.variables && typeof config.environment.variables !== 'object') {
-                throw new Error('Invalid environment.variables (must be object)');
+                throw new Error('environment.variables harus object');
             }
         }
-        // API configuration validation
+        // Validasi konfigurasi API
         if (config.api && typeof config.api === 'object') {
             if (config.api.baseURL && typeof config.api.baseURL !== 'string') {
-                throw new Error('Invalid api.baseURL (must be string)');
+                throw new Error('api.baseURL harus string');
             }
             if (config.api.port && typeof config.api.port !== 'number') {
-                throw new Error('Invalid api.port (must be number)');
+                throw new Error('api.port harus angka');
             }
             if (config.api.paths && !Array.isArray(config.api.paths)) {
-                throw new Error('Invalid api.paths (must be array)');
+                throw new Error('api.paths harus array');
             }
         }
-        // Discovery configuration validation
+        // Validasi konfigurasi discovery
         if (config.discovery && typeof config.discovery === 'object') {
             if (config.discovery.autoScan && typeof config.discovery.autoScan !== 'boolean') {
-                throw new Error('Invalid discovery.autoScan (must be boolean)');
+                throw new Error('discovery.autoScan harus boolean');
             }
             if (config.discovery.ports && !Array.isArray(config.discovery.ports)) {
-                throw new Error('Invalid discovery.ports (must be array)');
+                throw new Error('discovery.ports harus array');
             }
         }
-        // Validate token format
+        // Validasi format token
         if (config.mcpClient.token.length < 10) {
-            throw new Error('mcpClient.token seems too short (minimum 10 characters)');
+            throw new Error('Token mcpClient-nya terlalu pendek (minimal 10 karakter)');
         }
-        // Validate server URL
+        // Validasi URL server
         try {
             new URL(config.mcpClient.serverURL);
         }
         catch {
-            throw new Error('mcpClient.serverURL is not a valid URL');
+            throw new Error('URL server mcpClient-nya nggak valid');
         }
     }
     /**
-     * Get default configuration template
+     * Dapatkan template konfigurasi default
      */
     static getDefaultConfig() {
         return {
@@ -170,17 +170,17 @@ export class ConfigLoader {
         };
     }
     /**
-     * Create sample configuration file
+     * Bikin file konfigurasi sample
      */
     static async createSampleConfig(projectDir, projectId, projectName) {
         const config = {
             project: {
                 id: projectId,
                 name: projectName,
-                description: `GASSAPI project: ${projectName}`
+                description: `Project GASSAPI: ${projectName}`
             },
             mcpClient: {
-                token: 'YOUR_MCP_TOKEN_HERE',
+                token: 'TOKEN_MCP_LO_DISINI',
                 serverURL: 'http://localhost:3000'
             },
             environment: {
@@ -203,64 +203,70 @@ export class ConfigLoader {
         const configPath = path.join(projectDir, 'gassapi.json');
         const content = JSON.stringify(config, null, 2);
         await fs.writeFile(configPath, content, 'utf-8');
-        console.log(`Sample configuration created: ${configPath}`);
-        console.log('Please update the mcpClient.token with your actual MCP token');
+        console.log(`Sample konfigurasi dibuat: ${configPath}`);
+        console.log('Jangan lupa update mcpClient.token dengan token asli MCP lo');
     }
     /**
-     * Reload configuration (clear cache and reload)
+     * Reload konfigurasi (clear cache dan reload)
      */
     async reloadConfig(configPath) {
-        // Clear cache for this config
+        // Clear cache untuk konfig ini
         await this.cacheManager.clearProjectCache('all');
-        // Clear the in-memory cache for this specific config
+        // Clear cache in-memory untuk konfig spesifik ini
         this.configCache.delete(configPath);
-        // Load fresh configuration
+        // Load konfigurasi fresh
         return this.loadConfig(configPath);
     }
     /**
-     * Get configuration with caching
+     * Dapatkan konfigurasi dengan cache
      */
     async getCachedConfig(configPath) {
-        // Check in-memory cache first
+        // Cek cache in-memory dulu
         if (this.configCache.has(configPath)) {
             return this.configCache.get(configPath);
         }
-        // Load from file system
+        // Load dari file system
         try {
             const config = await this.loadConfig(configPath);
-            // Cache in memory for faster subsequent access
+            // Cache di memory untuk akses berikutnya lebih cepet
             this.configCache.set(configPath, config);
             return config;
         }
         catch (error) {
-            console.warn(`Failed to load config ${configPath}:`, error instanceof Error ? error.message : 'Unknown error');
+            console.warn(`Gagal load config ${configPath}:`, error instanceof Error ? error.message : 'Error gak jelas');
             return null;
         }
     }
     /**
-     * Clear all configuration caches
+     * Clear semua cache konfigurasi
      */
     clearCache() {
         this.configCache.clear();
     }
     /**
-     * Validate configuration file exists
+     * Validasi keberadaan file konfigurasi
      */
     async configExists(configPath) {
         const configFilePath = configPath || path.join(process.cwd(), 'gassapi.json');
         return this.fileExists(configFilePath);
     }
     /**
-     * Get project directory from configuration
+     * Dapatkan direktori project dari konfigurasi
      */
     async getProjectDirectory(configPath) {
-        const detectedPath = configPath || await this.detectProjectConfig();
-        if (!detectedPath)
+        if (configPath) {
+            // Kalau configPath diberikan, gunakan itu langsung
+            return path.dirname(configPath);
+        }
+        // Kalau nggak, coba deteksi konfigurasi otomatis
+        const config = await this.detectProjectConfig();
+        if (!config)
             return null;
-        return path.dirname(String(configPath || detectedPath));
+        // Balikin direktori current karena konfig ditemukan di sini
+        return process.cwd();
     }
     /**
-     * Check if file exists
+     * Cek apakah file ada
      */
     async fileExists(filePath) {
         try {
@@ -272,7 +278,7 @@ export class ConfigLoader {
         }
     }
     /**
-     * Normalize environment variables
+     * Normalisasi variabel environment
      */
     normalizeEnvironmentVariables(variables) {
         const normalized = {};
@@ -285,25 +291,21 @@ export class ConfigLoader {
         return normalized;
     }
     /**
-     * Extract environment variables for a specific environment
+     * Ambil variabel environment untuk environment tertentu
      */
     extractEnvironmentVariables(config, environmentName) {
         const targetEnv = environmentName || config.environment?.active || 'development';
         const variables = { ...config.environment?.variables };
-        // Override with environment-specific variables if they exist
-        if (config.environment?.variables) {
-            Object.assign(variables, config.environment.variables);
-        }
         return this.normalizeEnvironmentVariables(variables);
     }
     /**
-     * Get active environment name
+     * Dapatkan nama environment yang aktif
      */
     getActiveEnvironment(config) {
         return config.environment?.active || 'development';
     }
     /**
-     * Get project information
+     * Dapatkan informasi project
      */
     getProjectInfo(config) {
         return {
@@ -313,34 +315,34 @@ export class ConfigLoader {
         };
     }
     /**
-     * Get server URL
+     * Dapatkan URL server
      */
     getServerURL(config) {
         return config.mcpClient.serverURL;
     }
     /**
-     * Get MCP token
+     * Dapatkan token MCP
      */
     getMcpToken(config) {
         return config.mcpClient.token;
     }
     /**
-     * Get API base URL
+     * Dapatkan base URL API
      */
     getApiBaseUrl(config) {
         return config.api?.baseURL || config.mcpClient.serverURL;
     }
     /**
-     * Get discovery ports
+     * Dapatkan port discovery
      */
     getDiscoveryPorts(config) {
         return config.discovery?.ports || [3000, 8000, 8080, 5000];
     }
     /**
-     * Should auto-scan for APIs
+     * Apakah harus auto-scan API
      */
     shouldAutoScan(config) {
-        return config.discovery?.autoScan !== false; // Default to true
+        return config.discovery?.autoScan !== false; // Default ke true
     }
 }
 //# sourceMappingURL=ConfigLoader.js.map

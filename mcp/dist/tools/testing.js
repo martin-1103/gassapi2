@@ -39,14 +39,14 @@ export class TestingTools {
         this.configLoader = new ConfigLoader();
     }
     /**
-     * Validate UUID format
+     * Validasi format UUID
      */
     isValidUUID(uuid) {
         const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
         return uuidRegex.test(uuid);
     }
     /**
-     * Sanitize and validate input parameters
+     * Validasi dan sanitasi input parameters
      */
     validateTestEndpointArgs(args) {
         if (!args.endpointId || typeof args.endpointId !== 'string') {
@@ -86,7 +86,7 @@ export class TestingTools {
         }
     }
     /**
-     * Safely transform environment variables array to Record
+     * Transformasi aman environment variables array ke Record
      */
     transformEnvironmentVariables(environmentVariables) {
         try {
@@ -140,7 +140,7 @@ export class TestingTools {
         }
     }
     /**
-     * Safe API call wrapper
+     * Wrapper aman untuk pemanggilan API
      */
     async safeApiCall(operation, apiCall) {
         try {
@@ -200,7 +200,7 @@ export class TestingTools {
         }
     }
     /**
-     * Test single endpoint with environment variables
+     * Test single endpoint dengan environment variables
      */
     async testEndpoint(args) {
         try {
@@ -274,7 +274,7 @@ Coba lagi atau hubungi admin kalau error terus berlanjut!`
         }
     }
     /**
-     * Format test result for display
+     * Format test result untuk display
      */
     formatTestResult(testResult, endpointDetails, variables) {
         try {
@@ -351,7 +351,7 @@ ${status} Status: ${testResult.status} (${statusText})
                 try {
                     const responseString = typeof testResult.response_body === 'string'
                         ? testResult.response_body
-                        : JSON.stringify(testResult.response_body, null, 2);
+                        : JSON.stringify(testResult.response_body || {}, null, 2);
                     if (responseString.length < 1000) {
                         result += '\n\n📄 Response Body:';
                         result += `\n\`\`\`\n${responseString}\n\`\`\``;
@@ -384,7 +384,7 @@ Data mentah test tersimpan di server. Silakan check dashboard.`;
         }
     }
     /**
-     * Quick test with auto-detection
+     * Quick test dengan auto-detection
      */
     async quickTest(args) {
         try {
@@ -445,10 +445,13 @@ Untuk test endpoint:
             // Safe endpoint selection
             try {
                 const firstCollection = projectContext.collections[0];
-                if (firstCollection && firstCollection.endpoints && Array.isArray(firstCollection.endpoints) && firstCollection.endpoints.length > 0) {
-                    const firstEndpoint = firstCollection.endpoints[0];
+                // Perlu dapatkan endpoints dari API karena tidak ada di response
+                const client = await this.getBackendClient();
+                const endpoints = await client.getEndpoints(firstCollection.id);
+                if (endpoints && Array.isArray(endpoints) && endpoints.length > 0) {
+                    const firstEndpoint = endpoints[0];
                     const firstEnvironment = projectContext.environments && Array.isArray(projectContext.environments)
-                        ? projectContext.environments.find((env) => env.is_default) || projectContext.environments[0]
+                        ? (projectContext.environments.find((env) => env.is_default) || projectContext.environments[0])
                         : null;
                     if (firstEnvironment && firstEndpoint) {
                         const result = await this.testEndpoint({
@@ -672,7 +675,7 @@ Batch test failed! Coba lagi ya!`
         }
     }
     /**
-     * Helper function for delays
+     * Helper function untuk delays
      */
     sleep(ms) {
         return new Promise(resolve => {

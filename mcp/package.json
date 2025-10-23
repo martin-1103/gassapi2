@@ -86,8 +86,16 @@
       "lcov",
       "html"
     ],
-    "preset": "ts-jest"
+    "preset": "ts-jest/presets/default-esm",
+    "extensionsToTreatAsEsm": [".ts"],
+    "globals": {
+      "ts-jest": {
+        "useESM": true
+      }
+    }
   },
     "publishConfig": {
     "access": "public",
-    "registry": "https://registry.
+    "registry": "https://registry.npmjs.org/"
+  }
+}

@@ -4,24 +4,24 @@ export declare class TestingTools {
     private backendClient;
     constructor();
     /**
-     * Validate UUID format
+     * Validasi format UUID
      */
     private isValidUUID;
     /**
-     * Sanitize and validate input parameters
+     * Validasi dan sanitasi input parameters
      */
     private validateTestEndpointArgs;
     /**
-     * Safely transform environment variables array to Record
+     * Transformasi aman environment variables array ke Record
      */
     private transformEnvironmentVariables;
     /**
-     * Safe API call wrapper
+     * Wrapper aman untuk pemanggilan API
      */
     private safeApiCall;
     private getBackendClient;
     /**
-     * Test single endpoint with environment variables
+     * Test single endpoint dengan environment variables
      */
     testEndpoint(args: {
         endpointId: string;
@@ -36,11 +36,11 @@ export declare class TestingTools {
         isError?: boolean;
     }>;
     /**
-     * Format test result for display
+     * Format test result untuk display
      */
     private formatTestResult;
     /**
-     * Quick test with auto-detection
+     * Quick test dengan auto-detection
      */
     quickTest(args: {
         url?: string;
@@ -68,7 +68,7 @@ export declare class TestingTools {
         isError?: boolean;
     }>;
     /**
-     * Helper function for delays
+     * Helper function untuk delays
      */
     private sleep;
     /**

@@ -34,7 +34,7 @@ export declare class CollectionTools {
         isError?: boolean;
     }>;
     /**
-     * Move collection to new parent
+     * Pindahkan koleksi ke parent baru
      */
     moveCollection(args: {
         collectionId: string;
@@ -47,7 +47,7 @@ export declare class CollectionTools {
         isError?: boolean;
     }>;
     /**
-     * Delete collection with safety checks
+     * Hapus koleksi dengan pemeriksaan keamanan
      */
     deleteCollection(args: {
         collectionId: string;
@@ -60,19 +60,19 @@ export declare class CollectionTools {
         isError?: boolean;
     }>;
     /**
-     * Build collection hierarchy tree
+     * Bangun hierarchy tree koleksi
      */
     private buildCollectionTree;
     /**
-     * Format collection tree as text
+     * Format collection tree sebagai text
      */
     private formatCollectionTree;
     /**
-     * Get collection tools list
+     * Dapatkan daftar tool koleksi
      */
     getTools(): McpTool[];
     /**
-     * Handle tool calls
+     * Handle pemanggilan tool
      */
     handleToolCall(toolName: string, args: Record<string, unknown>): Promise<unknown>;
 }

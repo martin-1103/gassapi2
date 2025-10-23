@@ -5,7 +5,7 @@ export declare class EndpointTools {
     constructor();
     private getBackendClient;
     /**
-     * Get detailed endpoint information
+     * Ambil detail informasi endpoint
      */
     getEndpointDetails(args: {
         endpointId: string;
@@ -18,7 +18,7 @@ export declare class EndpointTools {
         isError?: boolean;
     }>;
     /**
-     * Create new endpoint
+     * Buat endpoint baru
      */
     createEndpoint(args: {
         name: string;
@@ -36,7 +36,7 @@ export declare class EndpointTools {
         isError?: boolean;
     }>;
     /**
-     * Update existing endpoint
+     * Update endpoint yang sudah ada
      */
     updateEndpoint(args: {
         endpointId: string;
@@ -54,7 +54,7 @@ export declare class EndpointTools {
         isError?: boolean;
     }>;
     /**
-     * Move endpoint to different collection
+     * Pindahkan endpoint ke collection lain
      */
     moveEndpoint(args: {
         endpointId: string;
@@ -67,7 +67,7 @@ export declare class EndpointTools {
         isError?: boolean;
     }>;
     /**
-     * List all endpoints with optional filtering
+     * Tampilkan semua endpoint dengan filter opsional
      */
     listEndpoints(args: {
         collectionId?: string;
@@ -80,11 +80,11 @@ export declare class EndpointTools {
         isError?: boolean;
     }>;
     /**
-     * Get endpoint tools list
+     * Ambil daftar tools endpoint
      */
     getTools(): McpTool[];
     /**
-     * Handle tool calls
+     * Handle pemanggilan tool
      */
     handleToolCall(toolName: string, args: Record<string, unknown>): Promise<unknown>;
 }

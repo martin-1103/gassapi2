@@ -1,18 +1,18 @@
 import { ConfigLoader } from '../discovery/ConfigLoader';
 import { BackendClient } from '../client/BackendClient';
 /**
- * Environment Management MCP Tools
- * Handles environment variables and configuration operations
+ * Tool MCP buat ngelola environment
+ * Handle operasi variabel environment dan konfigurasi
  */
 const list_environments = {
     name: 'list_environments',
-    description: 'List all environments for a project',
+    description: 'Tampilin semua environment yang ada di project',
     inputSchema: {
         type: 'object',
         properties: {
             projectId: {
                 type: 'string',
-                description: 'Project UUID (optional, will use config project if not provided)'
+                description: 'UUID project (opsional, bakal pake config project kalo ga dikasih)'
             }
         },
         required: []
@@ -20,17 +20,17 @@ const list_environments = {
 };
 const get_environment_variables = {
     name: 'get_environment_variables',
-    description: 'Get environment variables for a specific environment',
+    description: 'Ambil variabel environment dari environment tertentu',
     inputSchema: {
         type: 'object',
         properties: {
             environmentId: {
                 type: 'string',
-                description: 'Environment UUID'
+                description: 'UUID environment'
             },
             includeDisabled: {
                 type: 'boolean',
-                description: 'Include disabled variables in response',
+                description: 'Sertakan variabel yang disabled di respons',
                 default: false
             }
         },
@@ -39,29 +39,29 @@ const get_environment_variables = {
 };
 const set_environment_variable = {
     name: 'set_environment_variable',
-    description: 'Update or add an environment variable',
+    description: 'Update atau tambah variabel environment',
     inputSchema: {
         type: 'object',
         properties: {
             environmentId: {
                 type: 'string',
-                description: 'Environment UUID'
+                description: 'UUID environment'
             },
             key: {
                 type: 'string',
-                description: 'Variable key'
+                description: 'Key variabel'
             },
             value: {
                 type: 'string',
-                description: 'Variable value'
+                description: 'Value variabel'
             },
             description: {
                 type: 'string',
-                description: 'Variable description'
+                description: 'Deskripsi variabel'
             },
             enabled: {
                 type: 'boolean',
-                description: 'Whether the variable is enabled',
+                description: 'Status variabel aktif atau nggak',
                 default: true
             }
         },
@@ -70,23 +70,23 @@ const set_environment_variable = {
 };
 const export_environment = {
     name: 'export_environment',
-    description: 'Export environment configuration in specified format',
+    description: 'Export konfigurasi environment dalam format tertentu',
     inputSchema: {
         type: 'object',
         properties: {
             environmentId: {
                 type: 'string',
-                description: 'Environment UUID'
+                description: 'UUID environment'
             },
             format: {
                 type: 'string',
                 enum: ['json', 'env', 'yaml'],
-                description: 'Export format',
+                description: 'Format export',
                 default: 'json'
             },
             includeDisabled: {
                 type: 'boolean',
-                description: 'Include disabled variables in export',
+                description: 'Sertakan variabel disabled di export',
                 default: false
             }
         },
@@ -95,31 +95,21 @@ const export_environment = {
 };
 const import_environment = {
     name: 'import_environment',
-    description: 'Import environment variables from data',
+    description: 'Import variabel environment dari data',
     inputSchema: {
         type: 'object',
         properties: {
             environmentId: {
                 type: 'string',
-                description: 'Environment UUID to import into'
+                description: 'UUID environment buat diimport'
             },
             variables: {
                 type: 'array',
-                description: 'Array of variables to import',
-                items: {
-                    type: 'object',
-                    properties: {
-                        key: { type: 'string', description: 'Variable key' },
-                        value: { type: 'string', description: 'Variable value' },
-                        enabled: { type: 'boolean', description: 'Whether variable is enabled', default: true },
-                        description: { type: 'string', description: 'Variable description' }
-                    },
-                    required: ['key', 'value']
-                }
+                description: 'Array variabel yang mau diimport'
             },
             overwrite: {
                 type: 'boolean',
-                description: 'Overwrite existing variables',
+                description: 'Timpa variabel yang udah ada',
                 default: false
             }
         },
@@ -143,7 +133,7 @@ export class EnvironmentTools {
         return this.backendClient;
     }
     /**
-     * List environments for a project
+     * Tampilin environment buat sebuah project
      */
     async listEnvironments(args) {
         try {
@@ -211,7 +201,7 @@ Please check:
         }
     }
     /**
-     * Get environment variables
+     * Ambil variabel environment
      */
     async getEnvironmentVariables(args) {
         try {
@@ -281,7 +271,7 @@ Please check:
         }
     }
     /**
-     * Set environment variable
+     * Set variabel environment
      */
     async setEnvironmentVariable(args) {
         try {
@@ -334,14 +324,14 @@ Please check:
         }
     }
     /**
-     * Export environment configuration
+     * Export konfigurasi environment
      */
     async exportEnvironment(args) {
         try {
             const client = await this.getBackendClient();
             const format = args.format || 'json';
             const result = await client.exportEnvironment(args.environmentId, format);
-            const exportData = typeof result.data === 'string' ? result.data : JSON.stringify(result.data, null, 2);
+            const exportData = typeof result.content === 'string' ? result.content : JSON.stringify(result.content, null, 2);
             return {
                 content: [
                     {
@@ -381,7 +371,7 @@ Please check:
         }
     }
     /**
-     * Import environment variables
+     * Import variabel environment
      */
     async importEnvironment(args) {
         try {
@@ -434,7 +424,7 @@ Please check:
         }
     }
     /**
-     * Get environment tools list
+     * Ambil daftar tool environment
      */
     getTools() {
         return [
@@ -446,7 +436,7 @@ Please check:
         ];
     }
     /**
-     * Handle tool calls
+     * Handle pemanggilan tool
      */
     async handleToolCall(toolName, args) {
         switch (toolName) {

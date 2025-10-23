@@ -1,40 +1,40 @@
-import { McpTool, GassapiEnvironment, GassapiEnvironmentVariable, GassapiEnvironmentVariableImport, McpToolHandler } from '../types/mcp.types';
+import { McpTool, GassapiEnvironmentVariable, GassapiEnvironmentVariableImport } from '../types/mcp.types';
 import { ConfigLoader } from '../discovery/ConfigLoader';
 import { BackendClient } from '../client/BackendClient';
 
 /**
- * Environment Management MCP Tools
- * Handles environment variables and configuration operations
+ * Tool MCP buat ngelola environment
+ * Handle operasi variabel environment dan konfigurasi
  */
 
 const list_environments: McpTool = {
   name: 'list_environments',
-  description: 'List all environments for a project',
+  description: 'Tampilin semua environment yang ada di project',
   inputSchema: {
     type: 'object',
     properties: {
       projectId: {
         type: 'string',
-        description: 'Project UUID (optional, will use config project if not provided)'
+        description: 'UUID project (opsional, bakal pake config project kalo ga dikasih)'
       }
     },
-    required: [] as string[]
+    required: []
   }
 };
 
 const get_environment_variables: McpTool = {
   name: 'get_environment_variables',
-  description: 'Get environment variables for a specific environment',
+  description: 'Ambil variabel environment dari environment tertentu',
   inputSchema: {
     type: 'object',
     properties: {
       environmentId: {
         type: 'string',
-        description: 'Environment UUID'
+        description: 'UUID environment'
       },
       includeDisabled: {
         type: 'boolean',
-        description: 'Include disabled variables in response',
+        description: 'Sertakan variabel yang disabled di respons',
         default: false
       }
     },
@@ -44,29 +44,29 @@ const get_environment_variables: McpTool = {
 
 const set_environment_variable: McpTool = {
   name: 'set_environment_variable',
-  description: 'Update or add an environment variable',
+  description: 'Update atau tambah variabel environment',
   inputSchema: {
     type: 'object',
     properties: {
       environmentId: {
         type: 'string',
-        description: 'Environment UUID'
+        description: 'UUID environment'
       },
       key: {
         type: 'string',
-        description: 'Variable key'
+        description: 'Key variabel'
       },
       value: {
         type: 'string',
-        description: 'Variable value'
+        description: 'Value variabel'
       },
       description: {
         type: 'string',
-        description: 'Variable description'
+        description: 'Deskripsi variabel'
       },
       enabled: {
         type: 'boolean',
-        description: 'Whether the variable is enabled',
+        description: 'Status variabel aktif atau nggak',
         default: true
       }
     },
@@ -76,23 +76,23 @@ const set_environment_variable: McpTool = {
 
 const export_environment: McpTool = {
   name: 'export_environment',
-  description: 'Export environment configuration in specified format',
+  description: 'Export konfigurasi environment dalam format tertentu',
   inputSchema: {
     type: 'object',
     properties: {
       environmentId: {
         type: 'string',
-        description: 'Environment UUID'
+        description: 'UUID environment'
       },
       format: {
         type: 'string',
         enum: ['json', 'env', 'yaml'],
-        description: 'Export format',
+        description: 'Format export',
         default: 'json'
       },
       includeDisabled: {
         type: 'boolean',
-        description: 'Include disabled variables in export',
+        description: 'Sertakan variabel disabled di export',
         default: false
       }
     },
@@ -102,31 +102,21 @@ const export_environment: McpTool = {
 
 const import_environment: McpTool = {
   name: 'import_environment',
-  description: 'Import environment variables from data',
+  description: 'Import variabel environment dari data',
   inputSchema: {
     type: 'object',
     properties: {
       environmentId: {
         type: 'string',
-        description: 'Environment UUID to import into'
+        description: 'UUID environment buat diimport'
       },
       variables: {
         type: 'array',
-        description: 'Array of variables to import',
-        items: {
-          type: 'object',
-          properties: {
-            key: { type: 'string', description: 'Variable key' },
-            value: { type: 'string', description: 'Variable value' },
-            enabled: { type: 'boolean', description: 'Whether variable is enabled', default: true },
-            description: { type: 'string', description: 'Variable description' }
-          },
-          required: ['key', 'value']
-        }
+        description: 'Array variabel yang mau diimport'
       },
       overwrite: {
         type: 'boolean',
-        description: 'Overwrite existing variables',
+        description: 'Timpa variabel yang udah ada',
         default: false
       }
     },
@@ -161,7 +151,7 @@ export class EnvironmentTools {
   }
 
   /**
-   * List environments for a project
+   * Tampilin environment buat sebuah project
    */
   async listEnvironments(args: { projectId?: string }): Promise<{
     content: Array<{ type: 'text'; text: string }>;
@@ -181,7 +171,7 @@ export class EnvironmentTools {
         return {
           content: [
             {
-              type: 'text' as const,
+              type: 'text',
               text: `📋 Environments
 
 Project: ${config.project.name} (${projectId})
@@ -196,14 +186,14 @@ To create environments:
         };
       }
 
-      const environmentList = result.environments.map((env: GassapiEnvironment) =>
+      const environmentList = result.environments.map((env: any) =>
         `${env.is_default ? '🟢' : '⚪'} ${env.name} (ID: ${env.id})`
       ).join('\n');
 
       return {
         content: [
           {
-            type: 'text' as const,
+            type: 'text',
             text: `📋 Project Environments
 
 Project: ${config.project.name} (${projectId})
@@ -239,7 +229,7 @@ Please check:
   }
 
   /**
-   * Get environment variables
+   * Ambil variabel environment
    */
   async getEnvironmentVariables(args: {
     environmentId: string;
@@ -256,7 +246,7 @@ Please check:
         return {
           content: [
             {
-              type: 'text' as const,
+              type: 'text',
               text: `🔧 Environment Variables
 
 Environment ID: ${args.environmentId}
@@ -289,7 +279,7 @@ To add variables:
       return {
         content: [
           {
-            type: 'text' as const,
+            type: 'text',
             text: `🔧 Environment Variables
 
 Environment: ${result.environment.name} (${args.environmentId})
@@ -308,7 +298,7 @@ Environment variables ready for use in API testing!`
       return {
         content: [
           {
-            type: 'text' as const,
+            type: 'text',
             text: `❌ Failed to Get Environment Variables
 
 Error: ${errorMessage}
@@ -325,7 +315,7 @@ Please check:
   }
 
   /**
-   * Set environment variable
+   * Set variabel environment
    */
   async setEnvironmentVariable(args: {
     environmentId: string;
@@ -352,7 +342,7 @@ Please check:
       return {
         content: [
           {
-            type: 'text' as const,
+            type: 'text',
             text: `✅ Environment Variable Set
 
 Environment ID: ${args.environmentId}
@@ -373,7 +363,7 @@ Variable will be available in subsequent API tests.`
       return {
         content: [
           {
-            type: 'text' as const,
+            type: 'text',
             text: `❌ Failed to Set Environment Variable
 
 Error: ${errorMessage}
@@ -390,7 +380,7 @@ Please check:
   }
 
   /**
-   * Export environment configuration
+   * Export konfigurasi environment
    */
   async exportEnvironment(args: {
     environmentId: string;
@@ -405,12 +395,12 @@ Please check:
       const format = args.format || 'json';
       const result = await client.exportEnvironment(args.environmentId, format);
 
-      const exportData = typeof result.data === 'string' ? result.data : JSON.stringify(result.data, null, 2);
+      const exportData = typeof result.content === 'string' ? result.content : JSON.stringify(result.content, null, 2);
 
       return {
         content: [
           {
-            type: 'text' as const,
+            type: 'text',
             text: `📤 Environment Exported
 
 Environment ID: ${args.environmentId}
@@ -430,7 +420,7 @@ Environment configuration exported successfully!`
       return {
         content: [
           {
-            type: 'text' as const,
+            type: 'text',
             text: `❌ Failed to Export Environment
 
 Error: ${errorMessage}
@@ -447,7 +437,7 @@ Please check:
   }
 
   /**
-   * Import environment variables
+   * Import variabel environment
    */
   async importEnvironment(args: {
     environmentId: string;
@@ -480,7 +470,7 @@ Please check:
       return {
         content: [
           {
-            type: 'text' as const,
+            type: 'text',
             text: `📥 Environment Imported
 
 Environment ID: ${args.environmentId}
@@ -500,7 +490,7 @@ Environment import completed successfully!`
       return {
         content: [
           {
-            type: 'text' as const,
+            type: 'text',
             text: `❌ Failed to Import Environment
 
 Error: ${errorMessage}
@@ -518,7 +508,7 @@ Please check:
   }
 
   /**
-   * Get environment tools list
+   * Ambil daftar tool environment
    */
   getTools(): McpTool[] {
     return [
@@ -531,20 +521,42 @@ Please check:
   }
 
   /**
-   * Handle tool calls
+   * Handle pemanggilan tool
    */
   async handleToolCall(toolName: string, args: Record<string, unknown>): Promise<unknown> {
     switch (toolName) {
       case 'list_environments':
         return this.listEnvironments(args);
       case 'get_environment_variables':
-        return this.getEnvironmentVariables(args);
+        return this.getEnvironmentVariables(args as {
+          environmentId: string;
+          includeDisabled?: boolean;
+        });
       case 'set_environment_variable':
-        return this.setEnvironmentVariable(args);
+        return this.setEnvironmentVariable(args as {
+          environmentId: string;
+          key: string;
+          value: string;
+          description?: string;
+          enabled?: boolean;
+        });
       case 'export_environment':
-        return this.exportEnvironment(args);
+        return this.exportEnvironment(args as {
+          environmentId: string;
+          format?: 'json' | 'env' | 'yaml';
+          includeDisabled?: boolean;
+        });
       case 'import_environment':
-        return this.importEnvironment(args);
+        return this.importEnvironment(args as {
+          environmentId: string;
+          variables: {
+            key: string;
+            value: string;
+            description?: string;
+            enabled?: boolean;
+          }[];
+          overwrite?: boolean;
+        });
       default:
         throw new Error(`Unknown environment tool: ${toolName}`);
     }

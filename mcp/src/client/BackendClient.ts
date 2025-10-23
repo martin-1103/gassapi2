@@ -19,7 +19,7 @@ import {
 import { logger } from '../utils/Logger';
 
 // Unified environment type that works for both project data and cache
-type UnifiedEnvironment = {
+export type UnifiedEnvironment = {
   id: string;
   name: string;
   description?: string;

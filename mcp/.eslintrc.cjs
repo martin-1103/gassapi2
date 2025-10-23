@@ -1,3 +1,7 @@
+// ESLint Configuration untuk GASSAPI MCP Client
+// D:\xampp82\htdocs\gassapi2\mcp\.eslintrc.cjs
+// Format CommonJS untuk compatibility dengan ES module project
+
 module.exports = {
   extends: [
     "eslint:recommended",
@@ -8,7 +12,7 @@ module.exports = {
   parserOptions: {
     // Sinkron dengan TypeScript config - ES2022
     ecmaVersion: 2022,
-    sourceType: "commonJS", // Sesuaikan dengan tsconfig.json module: CommonJS
+    sourceType: "module", // Sesuai package.json "type": "module"
     // Tidak pakai project: "./tsconfig.json" dulu untuk mengurangi strictness
   },
   plugins: ["@typescript-eslint"],
@@ -17,7 +21,7 @@ module.exports = {
     "no-console": [
       "warn",
       {
-        "allow": ["warn", "error", "info"] // Izinkan beberapa console utility
+        allow: ["warn", "error", "info"] // Izinkan beberapa console utility
       }
     ],
 
@@ -31,8 +35,8 @@ module.exports = {
     "@typescript-eslint/no-unused-vars": [
       "warn", // Turunkan ke warning
       {
-        "argsIgnorePattern": "^_", // Izinkan variabel dengan prefix _
-        "varsIgnorePattern": "^_"
+        argsIgnorePattern: "^_", // Izinkan variabel dengan prefix _
+        varsIgnorePattern: "^_"
       }
     ],
 

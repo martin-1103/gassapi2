@@ -120,9 +120,8 @@ class CollectionTest extends BaseTest {
 
         if ($success) {
             $this->testHelper->assertHasKey($result, 'data');
-            $this->testHelper->assertHasKey($result['data'], 'collections');
-
-            $collections = $result['data']['collections'] ?? [];
+            // data is array of collections directly
+            $collections = is_array($result['data']) ? $result['data'] : [];
             echo "[INFO] Found " . count($collections) . " collections\n";
         }
 
@@ -146,8 +145,8 @@ class CollectionTest extends BaseTest {
 
         if ($success) {
             $this->testHelper->assertHasKey($result, 'data');
-            $this->testHelper->assertHasKey($result['data'], 'collection');
-            $this->testHelper->assertEquals($result['data']['collection'], 'id', $collection['id']);
+            $this->testHelper->assertHasKey($result['data'], 'id');
+            $this->testHelper->assertEquals($result['data'], 'id', $collection['id']);
         }
 
         return $success;
@@ -361,7 +360,7 @@ class CollectionTest extends BaseTest {
             // Verify headers are stored correctly
             $getResult = $this->testHelper->get('collection_get', [], $collectionId);
             if ($getResult['status'] === 200) {
-                $headers = $getResult['data']['collection']['headers'] ?? '';
+                $headers = $getResult['data']['headers'] ?? '';
                 if (strpos($headers, 'Content-Type') !== false && strpos($headers, 'X-API-Version') !== false) {
                     echo "[INFO] Headers stored correctly ✓\n";
                 } else {
@@ -404,7 +403,7 @@ class CollectionTest extends BaseTest {
             // Verify variables are stored correctly
             $getResult = $this->testHelper->get('collection_get', [], $collectionId);
             if ($getResult['status'] === 200) {
-                $variables = $getResult['data']['collection']['variables'] ?? '';
+                $variables = $getResult['data']['variables'] ?? '';
                 if (strpos($variables, 'base_url') !== false && strpos($variables, 'api_key') !== false) {
                     echo "[INFO] Variables stored correctly ✓\n";
                 } else {
@@ -456,8 +455,14 @@ class CollectionTest extends BaseTest {
 
                 if ($result['status'] === 403) {
                     echo "[INFO] Permission test passed - Cannot access other user's collection\n";
-                    
                 }
+                
+                // Restore original token
+                if ($this->authToken) {
+                    $this->testHelper->setAuthToken($this->authToken);
+                }
+                
+                return $success;
             }
         }
 
@@ -481,6 +486,6 @@ class CollectionTest extends BaseTest {
             $this->testHelper->post('logout');
         }
 
-        parent::tearDown();
+        return parent::tearDown();
     }
 }

@@ -4,7 +4,7 @@
  * Simple GASSAPI MCP Client Test
  */
 
-const { SimpleMcpClient } = require('./dist/simple.js');
+import { SimpleMcpClient } from './dist/simple.js';
 
 async function main() {
   const args = process.argv.slice(2);
@@ -53,7 +53,7 @@ async function main() {
   }
 }
 
-if (require.main === module) {
+if (import.meta.url === `file://${process.argv[1]}`) {
   main().catch(error => {
     console.error('❌ Fatal error:', error);
     process.exit(1);

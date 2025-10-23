@@ -58,9 +58,10 @@ $allowedActions = [
     // Environments
     'project_environments', 'environment', 'environment_update', 'environment_delete', 'environment_create',
     // Collections
-    'project_collections', 'collection', 'collection_update', 'collection_delete', 'collection_create',
+    'project_collections', 'collections_list', 'collection', 'collection_detail', 'collection_update', 'collection_delete', 'collection_create',
     // Endpoints
     'endpoints', 'endpoint', 'endpoint_update', 'endpoint_delete', 'endpoint_create',
+    'endpoint_list', 'endpoint_get',
     'project_endpoints', 'project_endpoints_grouped',
     // Flows
     'flows', 'flows_active', 'flow', 'flow_update', 'flow_delete', 'flow_create', 'flow_toggle_active', 'flow_duplicate',
@@ -120,13 +121,17 @@ function resolveRoutePath($action, $id = null) {
         'environment_create' => $id ? "/project/$id/environments" : '/project/environments',
         // Collections
         'project_collections' => $id ? "/project/$id/collections" : '/project/collections',
+        'collections_list' => $id ? "/project/$id/collections" : '/project/collections',
         'collection' => $id ? "/collection/$id" : '/collection',
+        'collection_detail' => $id ? "/collection/$id" : '/collection',
         'collection_update' => $id ? "/collection/$id" : '/collection',
         'collection_delete' => $id ? "/collection/$id" : '/collection',
         'collection_create' => $id ? "/project/$id/collections" : '/project/collections',
         // Endpoints
         'endpoints' => $id ? "/collection/$id/endpoints" : '/collection/endpoints',
+        'endpoint_list' => $id ? "/collection/$id/endpoints/list" : '/collection/endpoints',
         'endpoint' => $id ? "/endpoint/$id" : '/endpoint',
+        'endpoint_get' => $id ? "/endpoint/$id/get" : '/endpoint/get',
         'endpoint_update' => $id ? "/endpoint/$id" : '/endpoint',
         'endpoint_delete' => $id ? "/endpoint/$id" : '/endpoint',
         'endpoint_create' => $id ? "/collection/$id/endpoints" : '/collection/endpoints',

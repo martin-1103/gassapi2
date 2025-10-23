@@ -171,19 +171,19 @@ export class Config {
         }
         // Check required fields
         const config = this._projectConfig;
-        if (!config.project?.id) {
+        if (!config?.project?.id) {
             errors.push('Missing project ID');
         }
-        if (!config.project?.name) {
+        if (!config?.project?.name) {
             errors.push('Missing project name');
         }
-        if (!config.mcpClient?.token) {
+        if (!config?.mcpClient?.token) {
             errors.push('Missing MCP token');
         }
         else if (config.mcpClient.token.length < 10) {
             warnings.push('MCP token seems too short');
         }
-        if (!config.mcpClient?.serverURL) {
+        if (!config?.mcpClient?.serverURL) {
             errors.push('Missing server URL');
         }
         else {

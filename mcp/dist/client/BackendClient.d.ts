@@ -1,5 +1,5 @@
 import { ProjectDetailsResponse, CollectionsResponse, EnvironmentsResponse, EnvironmentVariablesResponse, EndpointsResponse, EndpointDetailsResponse, TokenValidationResponse, TestExecutionResponse, EnvironmentSetVariableRequest, EnvironmentImportRequest, CollectionCreateRequest, EndpointCreateRequest, EndpointUpdateRequest, CollectionDetailsResponse } from '../types/api.types';
-type UnifiedEnvironment = {
+export type UnifiedEnvironment = {
     id: string;
     name: string;
     description?: string;
@@ -74,5 +74,4 @@ export declare class BackendClient {
         error?: string;
     }>;
 }
-export {};
 //# sourceMappingURL=BackendClient.d.ts.map

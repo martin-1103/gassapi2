@@ -133,19 +133,19 @@ export class McpServer {
             // Route to appropriate tool handler
             let result;
             if (AUTH_TOOLS.some(t => t.name === name)) {
-                result = await authTools.handleToolCall(name, args);
+                result = await authTools.handleToolCall(name, args || {});
             }
             else if (ENVIRONMENT_TOOLS.some(t => t.name === name)) {
-                result = await environmentTools.handleToolCall(name, args);
+                result = await environmentTools.handleToolCall(name, args || {});
             }
             else if (COLLECTION_TOOLS.some(t => t.name === name)) {
-                result = await collectionTools.handleToolCall(name, args);
+                result = await collectionTools.handleToolCall(name, args || {});
             }
             else if (ENDPOINT_TOOLS.some(t => t.name === name)) {
-                result = await endpointTools.handleToolCall(name, args);
+                result = await endpointTools.handleToolCall(name, args || {});
             }
             else if (TESTING_TOOLS.some(t => t.name === name)) {
-                result = await testingTools.handleToolCall(name, args);
+                result = await testingTools.handleToolCall(name, args || {});
             }
             else {
                 throw new Error(`No handler found for tool: ${name}`);
