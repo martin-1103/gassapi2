@@ -196,7 +196,7 @@ class UserFlowTest extends BaseTest {
 
         // Step 3: Update Project
         echo "[STEP 3/7] Update project...\n";
-        if (isset($flow['project_id'])) {
+        if (isset($flow['project_id']) && $flow['project_id']) {
             $updateData = [
                 'name' => 'Updated Test Project ' . $flowId,
                 'description' => 'Updated by project flow test'
@@ -212,7 +212,7 @@ class UserFlowTest extends BaseTest {
 
         // Step 4: Add Environment
         echo "[STEP 4/7] Create environment...\n";
-        if (isset($flow['project_id'])) {
+        if (isset($flow['project_id']) && $flow['project_id']) {
             $envData = [
                 'name' => 'staging',
                 'description' => 'Staging environment',
@@ -236,7 +236,7 @@ class UserFlowTest extends BaseTest {
 
         // Step 5: Update Environment
         echo "[STEP 5/7] Update environment...\n";
-        if (isset($flow['env_id'])) {
+        if (isset($flow['env_id']) && $flow['env_id']) {
             $envUpdateData = [
                 'name' => 'staging-updated',
                 'description' => 'Updated staging environment',
@@ -257,7 +257,7 @@ class UserFlowTest extends BaseTest {
 
         // Step 6: Delete Environment
         echo "[STEP 6/7] Delete environment...\n";
-        if (isset($flow['env_id'])) {
+        if (isset($flow['env_id']) && $flow['env_id']) {
             $deleteEnvResult = $this->testHelper->delete('environment_delete', [], $flow['env_id']);
             $deleteEnvSuccess = $this->testHelper->printResult("Project Flow Delete Env", $deleteEnvResult);
             $results[] = $deleteEnvSuccess;
@@ -268,7 +268,7 @@ class UserFlowTest extends BaseTest {
 
         // Step 7: Delete Project
         echo "[STEP 7/7] Delete project...\n";
-        if (isset($flow['project_id'])) {
+        if (isset($flow['project_id']) && $flow['project_id']) {
             $deleteProjectResult = $this->testHelper->delete('project_delete', [], $flow['project_id']);
             $deleteProjectSuccess = $this->testHelper->printResult("Project Flow Delete", $deleteProjectResult);
             $results[] = $deleteProjectSuccess;
@@ -650,6 +650,11 @@ class UserFlowTest extends BaseTest {
 
         // Step 3: Create Collection
         echo "[STEP 3/7] Create collection for endpoints...\n";
+        if (!isset($flow['project_id']) || !$flow['project_id']) {
+            echo "[FAILED] Cannot continue API workflow - no project ID\n";
+            return false;
+        }
+
         $collectionData = [
             'name' => 'User API Collection',
             'description' => 'Collection for user management APIs',
@@ -676,6 +681,11 @@ class UserFlowTest extends BaseTest {
 
         // Step 4: Create Endpoints
         echo "[STEP 4/7] Create multiple endpoints...\n";
+        if (!isset($flow['collection_id']) || !$flow['collection_id']) {
+            echo "[FAILED] Cannot continue API workflow - no collection ID\n";
+            return false;
+        }
+
         $endpoints = [
             [
                 'name' => 'Get Users',

@@ -5,7 +5,7 @@
  */
 class TestConfig {
     // Base Configuration
-    const BASE_URL = 'http://localhost:8081/gassapi/backend/';
+    const BASE_URL = 'http://localhost:8080/gassapi2/backend/';
     const TIMEOUT = 5; // 5 detik timeout untuk testing
 
     // Test Settings

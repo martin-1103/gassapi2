@@ -109,15 +109,7 @@ const import_environment = {
             variables: {
                 type: 'array',
                 description: 'Array of variables to import',
-                items: {
-                    type: 'object',
-                    properties: {
-                        key: { type: 'string' },
-                        value: { type: 'string' },
-                        description: { type: 'string' },
-                        enabled: { type: 'boolean', default: true }
-                    }
-                }
+                enum: ['dev', 'prod', 'staging']
             },
             overwrite: {
                 type: 'boolean',

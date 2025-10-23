@@ -87,6 +87,13 @@ export interface McpInitializeResult {
   serverInfo: McpServerInfo;
 }
 
+export interface McpServerStatus {
+  status: "error" | "ok";
+  details?: any;
+  timestamp: number;
+  error?: string;
+}
+
 export interface McpServerInfo {
   name: string;
   version: string;

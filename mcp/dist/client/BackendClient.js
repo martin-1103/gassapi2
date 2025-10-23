@@ -79,7 +79,7 @@ class BackendClient {
             }
             if (!environments) {
                 await this.cacheManager.cacheEnvironments(projectId, projectData.environments || [], { ttlMs: 600000 }); // 10 minutes
-                environments = projectData.environments || [];
+                environments = (projectData.environments || []);
             }
             if (!collections) {
                 const collectionsData = await this.getCollections(projectId);

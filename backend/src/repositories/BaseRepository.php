@@ -17,6 +17,11 @@ abstract class BaseRepository {
             static $db = null;
             if ($db === null) {
                 $db = new \MysqliDb(Database::getMysqliDbConfig());
+
+                // Validate that we have a proper MysqliDb instance
+                if (!method_exists($db, 'insert') || !method_exists($db, 'get')) {
+                    throw new RepositoryException('Invalid MysqliDb instance - required methods not available');
+                }
             }
             return $db;
         } catch (\Exception $e) {
@@ -99,11 +104,17 @@ abstract class BaseRepository {
         if (!isset($data['created_at'])) {
             $data['created_at'] = date('Y-m-d H:i:s');
         }
-        $id = $db->insert($this->getTableName(), $data);
-        if (!$id) {
+
+        // For tables with custom primary key, return the provided ID
+        $customId = $data[$this->getPrimaryKey()] ?? null;
+
+        $result = $db->insert($this->getTableName(), $data);
+        if (!$result) {
             throw new RepositoryException('Create failed: ' . $db->getLastError());
         }
-        return $id;
+
+        // Return custom ID if provided, otherwise return auto-increment ID
+        return $customId ?: $result;
     }
 
     /**

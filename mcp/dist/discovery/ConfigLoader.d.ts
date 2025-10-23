@@ -22,7 +22,7 @@ export declare class ConfigLoader {
     /**
      * Validate GASSAPI configuration structure
      */
-    private validateConfig;
+    validateConfig(config: any): asserts config is GassapiConfig;
     /**
      * Get default configuration template
      */

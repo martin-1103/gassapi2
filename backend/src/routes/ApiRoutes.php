@@ -58,6 +58,8 @@ class ApiRoutes {
                 '/user/{id}' => ['handler' => 'user_update', 'description' => 'Update user'],
                 '/profile' => ['handler' => 'profile_update', 'description' => 'Update current user profile'],
                 '/change-password' => ['handler' => 'change_password', 'description' => 'Change user password'],
+                '/forgot-password' => ['handler' => 'forgot_password', 'description' => 'Request password reset'],
+                '/reset-password' => ['handler' => 'reset_password', 'description' => 'Reset password with token'],
                 // Projects
                 '/projects' => ['handler' => 'project_create', 'description' => 'Create project'],
                 '/project/{id}/members' => ['handler' => 'project_add_member', 'description' => 'Add member to project'],
@@ -172,6 +174,12 @@ class ApiRoutes {
                 break;
             case 'change_password':
                 $authHandler->changePassword();
+                break;
+            case 'forgot_password':
+                $authHandler->forgotPassword();
+                break;
+            case 'reset_password':
+                $authHandler->resetPassword();
                 break;
             case 'users':
                 $userHandler->getAll();

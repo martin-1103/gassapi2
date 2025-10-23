@@ -6,7 +6,13 @@ const ConfigLoader_1 = require("./discovery/ConfigLoader");
  * GASSAPI MCP Client Configuration
  * Central configuration management for the MCP client
  */
-const DEFAULT_CONFIG = ConfigLoader_1.ConfigLoader.getDefaultConfig();
+const DEFAULT_CONFIG = {
+    projectId: 'default',
+    projectName: 'Default Project',
+    serverUrl: 'http://localhost:3000',
+    token: 'default-token',
+    environmentActive: 'development'
+};
 class Config {
     static instance;
     configLoader;
@@ -98,13 +104,13 @@ class Config {
      * Get discovery ports
      */
     getDiscoveryPorts() {
-        return this._projectConfig?.discovery?.ports || DEFAULT_CONFIG.discovery?.ports || [3000, 8000, 8080, 5000];
+        return [3000, 8000, 8080, 5000];
     }
     /**
      * Should auto-scan for APIs
      */
     shouldAutoScan() {
-        return this._projectConfig?.discovery?.autoScan !== false;
+        return true;
     }
     /**
      * Get cache configuration
@@ -126,7 +132,7 @@ class Config {
      */
     getMcpServerConfig() {
         return {
-            name: DEFAULT_CONFIG.project?.name || 'GASSAPI MCP Client',
+            name: DEFAULT_CONFIG.projectName || 'GASSAPI MCP Client',
             version: '1.0.0',
             logLevel: process.env.NODE_ENV === 'development' ? 'debug' : 'info'
         };
@@ -278,3 +284,4 @@ class Config {
 exports.Config = Config;
 // Export singleton getter
 exports.config = Config.getInstance();
+//# sourceMappingURL=config.js.map

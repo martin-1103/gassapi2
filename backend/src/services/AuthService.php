@@ -85,15 +85,24 @@ class AuthService {
             'password_hash' => password_hash($password, PASSWORD_BCRYPT, ['cost' => 12])
         ];
 
-        $userId = $this->userRepository->create($userData);
+        try {
+            $userId = $this->userRepository->create($userData);
 
-        // Get created user
-        $user = $this->userRepository->findByIdSanitized($userId);
+            // Get created user
+            $user = $this->userRepository->findByIdSanitized($userId);
 
-        return [
-            'user' => $user,
-            'message' => 'User registered successfully'
-        ];
+            if (!$user) {
+                throw new \Exception('Failed to retrieve created user with ID: ' . $userId);
+            }
+
+            return [
+                'user' => $user,
+                'message' => 'User registered successfully'
+            ];
+        } catch (\Exception $e) {
+            error_log("User creation error: " . $e->getMessage());
+            ResponseHelper::error('Registration failed: ' . $e->getMessage(), 500);
+        }
     }
 
     /**
@@ -246,14 +255,43 @@ class AuthService {
             ResponseHelper::error('Current password is incorrect', 400);
         }
 
-        // Update password
+        // Check if new password is same as current password
+        if (password_verify($newPassword, $user['password_hash'])) {
+            ResponseHelper::error('New password must be different from current password', 400);
+        }
+
+        // Validate new password strength (basic validation)
+        if (strlen($newPassword) < 8) {
+            ResponseHelper::error('New password must be at least 8 characters', 400);
+        }
+
+        // Password complexity check
+        $hasUpper = preg_match('/[A-Z]/', $newPassword);
+        $hasLower = preg_match('/[a-z]/', $newPassword);
+        $hasNumber = preg_match('/[0-9]/', $newPassword);
+
+        if (!$hasUpper || !$hasLower || !$hasNumber) {
+            ResponseHelper::error('New password must contain uppercase, lowercase, and numbers', 400);
+        }
+
+        // Update password first
         $this->userRepository->updatePassword($userId, $newPassword);
 
-        // Logout from all devices (invalidate tokens)
-        $this->logoutAll($userId);
+        // Get current user token version before incrementing
+        $currentTokenVersion = $user['token_version'] ?? 0;
+
+        // Direct token invalidation without calling logoutAll() to avoid recursion
+        // This invalidates all existing tokens but allows current request to complete
+        $this->userRepository->incrementTokenVersion($userId);
+
+        // Deactivate all refresh tokens for user
+        $this->refreshTokenRepository->deactivateAllForUser($userId);
 
         return [
-            'message' => 'Password changed successfully'
+            'message' => 'Password changed successfully. Please login again.',
+            'requires_reauth' => true,
+            'old_token_version' => $currentTokenVersion,
+            'new_token_version' => $currentTokenVersion + 1
         ];
     }
 
@@ -469,7 +507,6 @@ class AuthService {
             '/url\s*\(/i', // CSS URL
             '/&#\d+;/', // HTML entities
             '/&#x[0-9a-f]+;/i', // Hex entities
-            '/\\u[0-9a-f]{4}/i', // Unicode escapes
             '/%[0-9a-f]{2}/i', // URL encoding
         ];
 
@@ -508,6 +545,130 @@ class AuthService {
         // Check if email already exists (exclude current user)
         if ($this->userRepository->emailExists($email, $excludeUserId)) {
             ResponseHelper::error('Email already exists', 400);
+        }
+    }
+
+    /**
+     * Forgot password - generate reset token
+     */
+    public function forgotPassword($email) {
+        if (empty($email)) {
+            ResponseHelper::error('Email is required', 400);
+        }
+
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            ResponseHelper::error('Invalid email format', 400);
+        }
+
+        // Find user by email
+        $user = $this->userRepository->findByEmail($email);
+
+        // Always return success to prevent email enumeration attacks
+        if (!$user) {
+            return [
+                'message' => 'If the email exists in our system, a password reset link has been sent.'
+            ];
+        }
+
+        // Check if user is active
+        if (!$user['is_active']) {
+            return [
+                'message' => 'If the email exists in our system, a password reset link has been sent.'
+            ];
+        }
+
+        // Generate reset token (valid for 1 hour)
+        $resetToken = bin2hex(random_bytes(32));
+        $resetTokenExpiry = date('Y-m-d H:i:s', time() + 3600); // 1 hour
+
+        // Store reset token in database
+        $this->userRepository->updatePasswordResetToken($user['id'], $resetToken, $resetTokenExpiry);
+
+        // In a real application, you would send an email here
+        // For development, we'll return the token (remove in production)
+        if (getenv('APP_ENV') === 'development') {
+            return [
+                'message' => 'Password reset token generated (development mode)',
+                'reset_token' => $resetToken,
+                'reset_token_expires_at' => $resetTokenExpiry
+            ];
+        }
+
+        return [
+            'message' => 'If the email exists in our system, a password reset link has been sent.'
+        ];
+    }
+
+    /**
+     * Reset password with token
+     */
+    public function resetPassword($token, $email, $newPassword) {
+        if (empty($token)) {
+            ResponseHelper::error('Reset token is required', 400);
+        }
+
+        if (empty($email)) {
+            ResponseHelper::error('Email is required', 400);
+        }
+
+        if (empty($newPassword)) {
+            ResponseHelper::error('New password is required', 400);
+        }
+
+        // Validate email format
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            ResponseHelper::error('Invalid email format', 400);
+        }
+
+        // Validate password strength
+        $this->validatePasswordStrength($newPassword);
+
+        // Find user by reset token and email (double verification)
+        $user = $this->userRepository->findByPasswordResetToken($token);
+
+        if (!$user) {
+            ResponseHelper::error('Invalid or expired reset token', 400);
+        }
+
+        // Verify email matches
+        if ($user['email'] !== $email) {
+            ResponseHelper::error('Email does not match reset token', 400);
+        }
+
+        // Check if token has expired
+        if (strtotime($user['password_reset_token_expires_at']) < time()) {
+            ResponseHelper::error('Reset token has expired', 400);
+        }
+
+        // Hash new password
+        $passwordHash = password_hash($newPassword, PASSWORD_BCRYPT, ['cost' => 12]);
+
+        // Update password and clear reset token
+        $this->userRepository->resetPassword($user['id'], $passwordHash);
+
+        // Logout from all devices for security
+        $this->logoutAll($user['id']);
+
+        return [
+            'message' => 'Password has been reset successfully. Please login with your new password.'
+        ];
+    }
+
+    /**
+     * Validate password strength
+     */
+    private function validatePasswordStrength($password) {
+        if (strlen($password) < 8) {
+            ResponseHelper::error('Password must be at least 8 characters', 400);
+        }
+
+        // Password complexity check
+        $hasUpper = preg_match('/[A-Z]/', $password);
+        $hasLower = preg_match('/[a-z]/', $password);
+        $hasNumber = preg_match('/[0-9]/', $password);
+
+        if (!$hasUpper || !$hasLower || !$hasNumber) {
+            ResponseHelper::error('Password must contain uppercase, lowercase, and numbers', 400);
         }
     }
 }

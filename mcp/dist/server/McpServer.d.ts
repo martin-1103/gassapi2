@@ -1,4 +1,4 @@
-import { McpTool } from '../types/mcp.types';
+import { McpTool, McpServerStatus } from '../types/mcp.types';
 /**
  * GASSAPI MCP Server
  * Implements Model Context Protocol for Claude Desktop integration
@@ -66,11 +66,7 @@ export declare class McpServer {
     /**
      * Health check for monitoring
      */
-    healthCheck(): Promise<{
-        status: 'ok' | 'error';
-        details?: any;
-        timestamp: number;
-    }>;
+    healthCheck(): Promise<McpServerStatus>;
     /**
      * Get server info for debugging
      */

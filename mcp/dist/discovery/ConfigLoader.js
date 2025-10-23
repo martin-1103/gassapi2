@@ -70,7 +70,7 @@ class ConfigLoader {
                     return config;
                 }
                 catch (error) {
-                    console.warn(`Invalid config file at ${configPath}:`, error.message);
+                    console.warn(`Invalid config file at ${configPath}:`, error instanceof Error ? error.message : 'Unknown error');
                 }
             }
             // Move up to parent directory
@@ -270,7 +270,7 @@ class ConfigLoader {
             return config;
         }
         catch (error) {
-            console.warn(`Failed to load config ${configPath}:`, error.message);
+            console.warn(`Failed to load config ${configPath}:`, error instanceof Error ? error.message : 'Unknown error');
             return null;
         }
     }
@@ -284,17 +284,17 @@ class ConfigLoader {
      * Validate configuration file exists
      */
     async configExists(configPath) {
-        const path = configPath || path.join(process.cwd(), 'gassapi.json');
-        return this.fileExists(path);
+        const configFilePath = configPath || path.join(process.cwd(), 'gassapi.json');
+        return this.fileExists(configFilePath);
     }
     /**
      * Get project directory from configuration
      */
     async getProjectDirectory(configPath) {
-        const path = configPath || await this.detectProjectConfig();
-        if (!path)
+        const detectedPath = configPath || await this.detectProjectConfig();
+        if (!detectedPath)
             return null;
-        return path.dirname(configPath || path);
+        return path.dirname(String(configPath || detectedPath));
     }
     /**
      * Check if file exists
@@ -381,3 +381,4 @@ class ConfigLoader {
     }
 }
 exports.ConfigLoader = ConfigLoader;
+//# sourceMappingURL=ConfigLoader.js.map

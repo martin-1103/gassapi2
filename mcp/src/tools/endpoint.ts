@@ -278,12 +278,12 @@ Please check:
       const client = await this.getBackendClient();
       const endpointData = {
         name: args.name,
-        method: args.method,
+        method: (args.method as 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' | 'HEAD' | 'OPTIONS'),
         url: args.url,
         headers: args.headers || {},
         body: args.body || null,
         collection_id: args.collectionId,
-        description: args.description || null
+        description: args.description || undefined
       };
 
       const result = await client.createEndpoint(endpointData);

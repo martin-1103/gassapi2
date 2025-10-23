@@ -64,7 +64,7 @@ class UserRepository extends BaseRepository {
         $this->validateCreateData($userData);
 
         // Generate unique ID if not provided
-        if (!isset($userData['id'])) {
+        if (!isset($userData['id']) || empty($userData['id'])) {
             $userData['id'] = 'user_' . time() . '_' . substr(md5(uniqid()), 0, 6);
         }
 
@@ -74,7 +74,7 @@ class UserRepository extends BaseRepository {
             'token_version' => 0
         ], $userData);
 
-        return parent::create($userData);
+                return parent::create($userData);
     }
 
     /**
@@ -260,5 +260,45 @@ class UserRepository extends BaseRepository {
         if (!$hasUpper || !$hasLower || !$hasNumber) {
             throw new RepositoryException('Password must contain uppercase, lowercase, and numbers', 400);
         }
+    }
+
+    /**
+     * Update password reset token
+     */
+    public function updatePasswordResetToken($userId, $token, $expiry) {
+        return parent::update($userId, [
+            'password_reset_token' => $token,
+            'password_reset_token_expires_at' => $expiry
+        ]);
+    }
+
+    /**
+     * Find user by password reset token
+     */
+    public function findByPasswordResetToken($token) {
+        $db = self::getConnection();
+
+        $db->where('password_reset_token', $token);
+        $db->where('password_reset_token_expires_at', date('Y-m-d H:i:s'), '>');
+
+        $user = $db->getOne($this->getTableName());
+
+        if ($db->getLastErrno()) {
+            throw new RepositoryException('Failed to find user by reset token: ' . $db->getLastError());
+        }
+
+        return $user ?: null;
+    }
+
+    /**
+     * Reset password and clear reset token
+     */
+    public function resetPassword($userId, $passwordHash) {
+        return parent::update($userId, [
+            'password_hash' => $passwordHash,
+            'password_reset_token' => null,
+            'password_reset_token_expires_at' => null,
+            'token_version' => $this->getTokenVersion($userId) + 1 // Invalidate all tokens
+        ]);
     }
 }

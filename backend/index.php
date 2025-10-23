@@ -50,6 +50,7 @@ $method = $_SERVER['REQUEST_METHOD'];
 $allowedActions = [
     'help', 'health',
     'login', 'register', 'logout', 'refresh', 'logout-all', 'change-password',
+    'forgot-password', 'reset-password',
     'users', 'users_stats', 'user', 'profile',
     'user_update', 'user_toggle_status', 'user_delete',
     // Projects
@@ -95,6 +96,8 @@ function resolveRoutePath($action, $id = null) {
         'logout-all' => '/logout-all',
         'refresh' => '/refresh',
         'change-password' => '/change-password',
+        'forgot-password' => '/forgot-password',
+        'reset-password' => '/reset-password',
         'users' => '/users',
         'users_stats' => '/users/stats',
         'profile' => '/profile',

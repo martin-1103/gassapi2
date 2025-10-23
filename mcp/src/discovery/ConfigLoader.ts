@@ -41,7 +41,7 @@ export class ConfigLoader {
           console.log(`Found GASSAPI config at: ${configPath}`);
           return config;
         } catch (error) {
-          console.warn(`Invalid config file at ${configPath}:`, error.message);
+          console.warn(`Invalid config file at ${configPath}:`, error instanceof Error ? error.message : 'Unknown error');
         }
       }
 
@@ -94,7 +94,7 @@ export class ConfigLoader {
   /**
    * Validate GASSAPI configuration structure
    */
-  private validateConfig(config: any): asserts config is GassapiConfig {
+  public validateConfig(config: any): asserts config is GassapiConfig {
     // Required fields validation
     if (!config.project || typeof config.project !== 'object') {
       throw new Error('Missing or invalid project configuration');
@@ -271,7 +271,7 @@ export class ConfigLoader {
 
       return config;
     } catch (error) {
-      console.warn(`Failed to load config ${configPath}:`, error.message);
+      console.warn(`Failed to load config ${configPath}:`, error instanceof Error ? error.message : 'Unknown error');
       return null;
     }
   }
@@ -287,19 +287,19 @@ export class ConfigLoader {
    * Validate configuration file exists
    */
   async configExists(configPath?: string): Promise<boolean> {
-    const path = configPath || path.join(process.cwd(), 'gassapi.json');
-    return this.fileExists(path);
+    const configFilePath = configPath || path.join(process.cwd(), 'gassapi.json');
+    return this.fileExists(configFilePath);
   }
 
   /**
    * Get project directory from configuration
    */
   async getProjectDirectory(configPath?: string): Promise<string | null> {
-    const path = configPath || await this.detectProjectConfig();
+    const detectedPath = configPath || await this.detectProjectConfig();
 
-    if (!path) return null;
+    if (!detectedPath) return null;
 
-    return path.dirname(configPath || path);
+    return path.dirname(String(configPath || detectedPath));
   }
 
   /**

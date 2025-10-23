@@ -18,26 +18,29 @@ class AuthHandler {
     }
 
     /**
-     * User login
+     * User login dengan enhanced validation
      */
     public function login() {
         $input = ValidationHelper::getJsonInput();
+
         // Validate required fields
         ValidationHelper::required($input, ['email', 'password']);
-        // Validate email format
+
+        // Enhanced validation
         $email = ValidationHelper::email($input['email']);
-        $password = $input['password']; // AuthService handles validation
+        $password = ValidationHelper::password($input['password']);
+
         try {
             $result = $this->authService->login($email, $password);
-            ResponseHelper::success($result, 'Login successful');
+            ResponseHelper::success($result, 'Login berhasil');
         } catch (\Exception $e) {
             error_log("Login error: " . $e->getMessage());
-            ResponseHelper::error('Login failed', 500);
+            ResponseHelper::error('Login gagal', 401);
         }
     }
 
     /**
-     * User registration
+     * User registration dengan enhanced validation
      */
     public function register() {
         $input = ValidationHelper::getJsonInput();
@@ -45,17 +48,17 @@ class AuthHandler {
         // Validate required fields
         ValidationHelper::required($input, ['email', 'name', 'password']);
 
-        // Validate email and sanitize name
+        // Enhanced validation
         $email = ValidationHelper::email($input['email']);
-        $name = ValidationHelper::sanitize($input['name']);
-        $password = $input['password'];
+        $name = ValidationHelper::name($input['name'], 100);
+        $password = ValidationHelper::password($input['password']);
 
         try {
             $result = $this->authService->register($email, $name, $password);
-            ResponseHelper::created($result, 'User registered successfully');
+            ResponseHelper::created($result, 'Registrasi berhasil');
         } catch (\Exception $e) {
             error_log("Registration error: " . $e->getMessage());
-            ResponseHelper::error('Registration failed', 500);
+            ResponseHelper::error('Registrasi gagal', 400);
         }
     }
 
@@ -139,6 +142,13 @@ class AuthHandler {
 
         ValidationHelper::required($input, ['current_password', 'new_password']);
 
+        // Add password confirmation validation if provided
+        if (isset($input['confirm_password'])) {
+            if ($input['new_password'] !== $input['confirm_password']) {
+                ResponseHelper::error('New password and confirmation do not match', 400);
+            }
+        }
+
         try {
             $result = $this->authService->changePassword(
                 $user['id'],
@@ -146,10 +156,60 @@ class AuthHandler {
                 $input['new_password']
             );
 
-            ResponseHelper::success($result, 'Password changed successfully');
+            // Password change successful - include info about re-authentication
+            ResponseHelper::success($result, $result['message'] ?? 'Password changed successfully');
         } catch (\Exception $e) {
             error_log("Password change error: " . $e->getMessage());
             ResponseHelper::error('Password change failed', 500);
+        }
+    }
+
+    /**
+     * Forgot password - send reset link
+     */
+    public function forgotPassword() {
+        $input = ValidationHelper::getJsonInput();
+
+        ValidationHelper::required($input, ['email']);
+
+        // Validate email format
+        $email = ValidationHelper::email($input['email']);
+
+        try {
+            $result = $this->authService->forgotPassword($email);
+            ResponseHelper::success($result, 'Password reset instructions sent to email');
+        } catch (\Exception $e) {
+            error_log("Forgot password error: " . $e->getMessage());
+            ResponseHelper::error('Failed to process password reset request', 500);
+        }
+    }
+
+    /**
+     * Reset password - validate token and set new password
+     */
+    public function resetPassword() {
+        $input = ValidationHelper::getJsonInput();
+
+        ValidationHelper::required($input, ['token', 'email', 'new_password']);
+
+        // Validate email format
+        $email = ValidationHelper::email($input['email']);
+        $token = $input['token'];
+        $newPassword = $input['new_password'];
+
+        // Add password confirmation validation if provided
+        if (isset($input['confirm_password'])) {
+            if ($newPassword !== $input['confirm_password']) {
+                ResponseHelper::error('New password and confirmation do not match', 400);
+            }
+        }
+
+        try {
+            $result = $this->authService->resetPassword($token, $email, $newPassword);
+            ResponseHelper::success($result, 'Password reset successfully');
+        } catch (\Exception $e) {
+            error_log("Reset password error: " . $e->getMessage());
+            ResponseHelper::error('Password reset failed', 500);
         }
     }
 }

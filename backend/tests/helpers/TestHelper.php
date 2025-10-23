@@ -219,6 +219,39 @@ class TestHelper {
     }
 
     /**
+     * Handle re-authentication after token invalidation
+     */
+    public function reauthenticateIfNeeded($email, $password) {
+        // Try to use existing token first to test if it's still valid
+        if ($this->authToken) {
+            // Test current token with a simple request
+            try {
+                $testResult = $this->get('profile');
+                if ($testResult['status'] === 200) {
+                    return true; // Token still valid
+                }
+            } catch (Exception $e) {
+                // Token invalid, proceed with re-authentication
+            }
+        }
+
+        // Re-authenticate with provided credentials
+        $loginData = [
+            'email' => $email,
+            'password' => $password
+        ];
+
+        $loginResult = $this->post('login', $loginData);
+
+        if ($loginResult['status'] === 200 && isset($loginResult['data']['access_token'])) {
+            $this->authToken = $loginResult['data']['access_token'];
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
      * Delay between requests (rate limiting)
      */
     public function delay($seconds = 0.5) {

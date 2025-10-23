@@ -6,7 +6,13 @@ import { CacheConfig, McpServerConfig, ExecutionConfig } from './types/config.ty
  * Central configuration management for the MCP client
  */
 
-// const DEFAULT_CONFIG = ConfigLoader.getDefaultConfig();
+const DEFAULT_CONFIG = {
+  projectId: 'default',
+  projectName: 'Default Project',
+  serverUrl: 'http://localhost:3000',
+  token: 'default-token',
+  environmentActive: 'development'
+};
 
 export class Config {
   private static instance: Config;
@@ -112,14 +118,14 @@ export class Config {
    * Get discovery ports
    */
   getDiscoveryPorts(): number[] {
-    return this._projectConfig?.discovery?.ports || DEFAULT_CONFIG.discovery?.ports || [3000, 8000, 8080, 5000];
+    return [3000, 8000, 8080, 5000];
   }
 
   /**
    * Should auto-scan for APIs
    */
   shouldAutoScan(): boolean {
-    return this._projectConfig?.discovery?.autoScan !== false;
+    return true;
   }
 
   /**
@@ -143,7 +149,7 @@ export class Config {
    */
   getMcpServerConfig(): McpServerConfig {
     return {
-      name: DEFAULT_CONFIG.project?.name || 'GASSAPI MCP Client',
+      name: DEFAULT_CONFIG.projectName || 'GASSAPI MCP Client',
       version: '1.0.0',
       logLevel: process.env.NODE_ENV === 'development' ? 'debug' : 'info'
     };

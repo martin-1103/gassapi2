@@ -3,6 +3,22 @@ export declare class TestingTools {
     private configLoader;
     private backendClient;
     constructor();
+    /**
+     * Validate UUID format
+     */
+    private isValidUUID;
+    /**
+     * Sanitize and validate input parameters
+     */
+    private validateTestEndpointArgs;
+    /**
+     * Safely transform environment variables array to Record
+     */
+    private transformEnvironmentVariables;
+    /**
+     * Safe API call wrapper
+     */
+    private safeApiCall;
     private getBackendClient;
     /**
      * Test single endpoint with environment variables

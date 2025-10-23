@@ -6,6 +6,7 @@ use App\Helpers\ValidationHelper;
 use App\Repositories\UserRepository;
 use App\Services\AuthService;
 use App\Helpers\JwtHelper;
+use App\Middleware\CSRFMiddleware;
 
 /**
  * User management handler dengan repository pattern
@@ -98,60 +99,94 @@ class UserHandler {
     }
 
     /**
-     * Update user (admin only)
+     * Update user (admin only) dengan enhanced validation
      */
     public function update($id) {
         if (empty($id)) {
-            ResponseHelper::error('User ID is required', 400);
+            ResponseHelper::error('ID user wajib diisi', 400);
         }
+
+        // Validate ID
+        $userId = ValidationHelper::integer($id, 1);
+
+        // CSRF validation for admin operations
+        CSRFMiddleware::validateCSRF();
 
         $input = ValidationHelper::getJsonInput();
 
         try {
             // Check if user exists
-            $existingUser = $this->userRepository->findById($id);
+            $existingUser = $this->userRepository->findById($userId);
             if (!$existingUser) {
-                ResponseHelper::error('User not found', 404);
+                ResponseHelper::error('User tidak ditemukan', 404);
             }
 
-            // Validate update data
-            if (!empty($input)) {
-                $this->userRepository->update($id, $input);
+            // Allowed fields for admin update
+            $allowedFields = ['name', 'email', 'is_active', 'role'];
+            $updateData = [];
+
+            foreach ($allowedFields as $field) {
+                if (isset($input[$field])) {
+                    switch ($field) {
+                        case 'name':
+                            $updateData[$field] = ValidationHelper::name($input[$field], 100);
+                            break;
+                        case 'email':
+                            $updateData[$field] = ValidationHelper::email($input[$field]);
+                            break;
+                        case 'is_active':
+                            $updateData[$field] = ValidationHelper::boolean($input[$field]);
+                            break;
+                        case 'role':
+                            $updateData[$field] = ValidationHelper::text($input[$field], 2, 50);
+                            break;
+                    }
+                }
+            }
+
+            if (!empty($updateData)) {
+                $this->userRepository->update($userId, $updateData);
             }
 
             // Return updated user
-            $updatedUser = $this->userRepository->findByIdSanitized($id);
-            ResponseHelper::success($updatedUser, 'User updated successfully');
+            $updatedUser = $this->userRepository->findByIdSanitized($userId);
+            ResponseHelper::success($updatedUser, 'User berhasil diperbarui');
         } catch (\App\Repositories\RepositoryException $e) {
             error_log("Update user validation error: " . $e->getMessage());
             ResponseHelper::error($e->getMessage(), $e->getCode() ?: 400);
         } catch (\Exception $e) {
             error_log("Update user error: " . $e->getMessage());
-            ResponseHelper::error('Failed to update user', 500);
+            ResponseHelper::error('Gagal memperbarui user', 500);
         }
     }
 
     /**
-     * Delete user (admin only)
+     * Delete user (admin only) dengan CSRF validation
      */
     public function delete($id) {
         if (empty($id)) {
-            ResponseHelper::error('User ID is required', 400);
+            ResponseHelper::error('ID user wajib diisi', 400);
         }
+
+        // Validate ID
+        $userId = ValidationHelper::integer($id, 1);
+
+        // CSRF validation for admin operations
+        CSRFMiddleware::validateCSRF();
 
         try {
             // Check if user exists
-            $user = $this->userRepository->findById($id);
+            $user = $this->userRepository->findById($userId);
             if (!$user) {
-                ResponseHelper::error('User not found', 404);
+                ResponseHelper::error('User tidak ditemukan', 404);
             }
 
             // Delete user
-            $this->userRepository->delete($id);
-            ResponseHelper::success(null, 'User deleted successfully');
+            $this->userRepository->delete($userId);
+            ResponseHelper::success(null, 'User berhasil dihapus');
         } catch (\Exception $e) {
             error_log("Delete user error: " . $e->getMessage());
-            ResponseHelper::error('Failed to delete user', 500);
+            ResponseHelper::error('Gagal menghapus user', 500);
         }
     }
 
@@ -213,24 +248,29 @@ class UserHandler {
     }
 
     /**
-     * Update current user profile (authenticated user)
+     * Update current user profile dengan enhanced validation
      */
     public function updateProfile() {
         try {
             // Get user from JWT token
             $token = JwtHelper::getTokenFromRequest();
             if (!$token) {
-                ResponseHelper::error('No access token provided', 401);
+                ResponseHelper::error('Token akses tidak ditemukan', 401);
             }
 
             $user = $this->authService->validateAccessToken($token);
             $input = ValidationHelper::getJsonInput();
 
+            // Validasi field yang diizinkan untuk update profile
+            if (empty($input)) {
+                ResponseHelper::error('Tidak ada data yang akan diupdate', 400);
+            }
+
             $result = $this->authService->updateProfile($user['id'], $input);
-            ResponseHelper::success(['user' => $result], 'Profile updated successfully');
+            ResponseHelper::success(['user' => $result], 'Profile berhasil diperbarui');
         } catch (\Exception $e) {
             error_log("Update profile error: " . $e->getMessage());
-            ResponseHelper::error('Failed to update profile', 500);
+            ResponseHelper::error('Gagal memperbarui profile', 400);
         }
     }
 

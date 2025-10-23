@@ -243,7 +243,7 @@ Please check:
                 headers: args.headers || {},
                 body: args.body || null,
                 collection_id: args.collectionId,
-                description: args.description || null
+                description: args.description || undefined
             };
             const result = await client.createEndpoint(endpointData);
             return {

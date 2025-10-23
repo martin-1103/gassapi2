@@ -250,8 +250,8 @@ Please check:
       const collectionData = {
         name: args.name,
         project_id: args.projectId,
-        parent_id: args.parentId || null,
-        description: args.description || null
+        parent_id: args.parentId || undefined,
+        description: args.description || undefined
       };
 
       const result = await client.createCollection(collectionData);
