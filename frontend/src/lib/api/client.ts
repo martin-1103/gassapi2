@@ -2,7 +2,7 @@ import axios, { AxiosError, type AxiosInstance, type InternalAxiosRequestConfig 
 import { useAuthStore } from '@/stores/authStore'
 
 // Base URL untuk backend API
-const API_BASE_URL = '/gassapi2/backend/'
+const API_BASE_URL = 'http://localhost:8000/'
 
 // Create axios instance
 export const apiClient: AxiosInstance = axios.create({
