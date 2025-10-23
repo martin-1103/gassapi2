@@ -14,7 +14,7 @@ class ProjectTest extends BaseTest {
         $this->password = 'ProjTest1234';
     }
 
-    protected function testRegisterAndLogin() {
+    protected function test1RegisterAndLogin() {
         $this->printHeader('Register & Login');
         $res1 = $this->testHelper->post('register', [
             'email' => $this->email,
@@ -27,8 +27,8 @@ class ProjectTest extends BaseTest {
             'password' => $this->password
         ]);
         $ok2 = $this->testHelper->printResult('Login (ProjectTest)', $res2, 200);
-        if ($ok2 && isset($res2['data']['data']['access_token'])) {
-            $this->testHelper->setAuthToken($res2['data']['data']['access_token']);
+        if ($ok2 && isset($res2['data']['access_token'])) {
+            $this->testHelper->setAuthToken($res2['data']['access_token']);
         }
         return $ok1 && $ok2;
     }
@@ -40,8 +40,8 @@ class ProjectTest extends BaseTest {
             'description' => 'Created by automated test'
         ]);
         $ok = $this->testHelper->printResult('Create Project', $res, 201);
-        if ($ok && isset($res['data']['data']['id'])) {
-            $this->projectId = $res['data']['data']['id'];
+        if ($ok && isset($res['data']['id'])) {
+            $this->projectId = $res['data']['id'];
         }
         return $ok;
     }

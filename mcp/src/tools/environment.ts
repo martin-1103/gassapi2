@@ -1,4 +1,4 @@
-import { McpTool } from '../types/mcp.types';
+import { McpTool, GassapiEnvironment, GassapiEnvironmentVariable, GassapiEnvironmentVariableImport, McpToolHandler } from '../types/mcp.types';
 import { ConfigLoader } from '../discovery/ConfigLoader';
 import { BackendClient } from '../client/BackendClient';
 
@@ -113,7 +113,16 @@ const import_environment: McpTool = {
       variables: {
         type: 'array',
         description: 'Array of variables to import',
-        enum: ['dev', 'prod', 'staging']
+        items: {
+          type: 'object',
+          properties: {
+            key: { type: 'string', description: 'Variable key' },
+            value: { type: 'string', description: 'Variable value' },
+            enabled: { type: 'boolean', description: 'Whether variable is enabled', default: true },
+            description: { type: 'string', description: 'Variable description' }
+          },
+          required: ['key', 'value']
+        }
       },
       overwrite: {
         type: 'boolean',
@@ -187,7 +196,7 @@ To create environments:
         };
       }
 
-      const environmentList = result.environments.map((env: any) =>
+      const environmentList = result.environments.map((env: GassapiEnvironment) =>
         `${env.is_default ? '🟢' : '⚪'} ${env.name} (ID: ${env.id})`
       ).join('\n');
 
@@ -263,16 +272,16 @@ To add variables:
       }
 
       const includeDisabled = args.includeDisabled || false;
-      const activeVars = result.variables.filter((v: any) => includeDisabled || v.enabled);
-      const disabledVars = result.variables.filter((v: any) => !v.enabled);
+      const activeVars = result.variables.filter((v: GassapiEnvironmentVariable) => includeDisabled || v.enabled);
+      const disabledVars = result.variables.filter((v: GassapiEnvironmentVariable) => !v.enabled);
 
-      let variablesText = activeVars.map((v: any) =>
+      let variablesText = activeVars.map((v: GassapiEnvironmentVariable) =>
         `🟢 ${v.key} = "${v.value}"${v.description ? ` // ${v.description}` : ''}`
       ).join('\n');
 
       if (includeDisabled && disabledVars.length > 0) {
         variablesText += '\n\n🔴 Disabled Variables:\n';
-        variablesText += disabledVars.map((v: any) =>
+        variablesText += disabledVars.map((v: GassapiEnvironmentVariable) =>
           `🔴 ${v.key} = "${v.value}"${v.description ? ` // ${v.description}` : ''}`
         ).join('\n');
       }
@@ -464,7 +473,7 @@ Please check:
       await client.importEnvironment(importData);
 
       const successCount = args.variables.length;
-      const variablesText = args.variables.map((v: any) =>
+      const variablesText = args.variables.map((v: GassapiEnvironmentVariableImport) =>
         `${v.enabled !== false ? '🟢' : '🔴'} ${v.key} = "${v.value}"${v.description ? ` // ${v.description}` : ''}`
       ).join('\n');
 
@@ -524,7 +533,7 @@ Please check:
   /**
    * Handle tool calls
    */
-  async handleToolCall(toolName: string, args: any): Promise<any> {
+  async handleToolCall(toolName: string, args: Record<string, unknown>): Promise<unknown> {
     switch (toolName) {
       case 'list_environments':
         return this.listEnvironments(args);

@@ -1,4 +1,4 @@
-import { McpTool } from '../types/mcp.types';
+import { McpTool, GassapiEndpoint, GassapiTestExecution, McpToolHandler } from '../types/mcp.types';
 import { ConfigLoader } from '../discovery/ConfigLoader';
 import { BackendClient } from '../client/BackendClient';
 
@@ -223,7 +223,7 @@ ${bodyText}
         detailsText += `
 
 Recent Test Results:`;
-        result.test_results.slice(-3).forEach((test: any, index) => {
+        result.test_results.slice(-3).forEach((test: GassapiTestExecution, index) => {
           const status = test.status >= 200 && test.status < 300 ? '🟢' : '🔴';
           detailsText += `\n${index + 1}. ${status} ${test.status} (${test.response_time}ms) - ${new Date(test.created_at).toLocaleString()}`;
         });
@@ -267,7 +267,7 @@ Please check:
     method: string;
     url: string;
     headers?: Record<string, string>;
-    body?: any;
+    body?: Record<string, unknown> | unknown[] | string | null;
     collectionId: string;
     description?: string;
   }): Promise<{
@@ -346,7 +346,7 @@ Please check:
     method?: string;
     url?: string;
     headers?: Record<string, string>;
-    body?: any;
+    body?: Record<string, unknown> | unknown[] | string | null;
     description?: string;
   }): Promise<{
     content: Array<{ type: 'text'; text: string }>;

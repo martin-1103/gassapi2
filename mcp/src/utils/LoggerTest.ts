@@ -1,4 +1,4 @@
-import { logger, initializeLogger, LogLevel } from './Logger';
+import { logger, initializeLogger } from './Logger';
 
 /**
  * Simple test to validate the logging infrastructure

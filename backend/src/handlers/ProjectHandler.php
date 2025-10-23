@@ -51,7 +51,7 @@ class ProjectHandler {
             $this->envs->createForProject($projectId, [
                 'name' => 'development',
                 'description' => 'Default development environment',
-                'variables' => new \stdClass(),
+                'variables' => '{}',  // JSON string instead of object
                 'is_default' => 1
             ]);
 

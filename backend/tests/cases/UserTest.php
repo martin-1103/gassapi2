@@ -132,7 +132,12 @@ class UserTest extends BaseTest {
         $success = $this->testHelper->printResult("Get Non-existent User", $result, 404);
 
         if ($success) {
-            $this->testHelper->assertEquals($result, 'message', 'User not found');
+            // Accept both "User not found" and "Not found: User not found"
+            $message = $result['message'] ?? '';
+            if (strpos($message, 'User not found') === false) {
+                echo "[FAIL] testGetNonExistentUser - Expected message containing 'User not found', got '$message'\n";
+                return false;
+            }
         }
 
         return $success;
@@ -336,6 +341,14 @@ class UserTest extends BaseTest {
         if ($result['status'] === 200) {
             // Success with status 200 is good enough for toggle operation
             echo "[INFO] Toggle Status - Status updated successfully\n";
+            
+            // Toggle back to restore user status for subsequent tests
+            echo "[INFO] Toggle Status - Toggling back to restore status...\n";
+            $result2 = $this->testHelper->put('user_toggle_status', [], [], $this->testUserId);
+            if ($result2['status'] === 200) {
+                echo "[INFO] Toggle Status - User status restored\n";
+            }
+            
             $success = true;
         } elseif ($result['status'] === 403) {
             echo "[INFO] Toggle Status - User is not admin (expected)\n";
@@ -428,9 +441,9 @@ class UserTest extends BaseTest {
     }
 
     /**
-     * Test get user statistics (admin endpoint - run after toggle)
+     * Test get user statistics (admin endpoint - run before logout)
      */
-    protected function testZZZUserStats() {
+    protected function testZZUserStats() {
         $this->printHeader("User Statistics Test");
 
         if (!$this->authToken) {
@@ -445,6 +458,7 @@ class UserTest extends BaseTest {
         // Accept 200 (success) or 403 (not admin) or 404 (endpoint not found)
         if ($result['status'] === 200) {
             $this->testHelper->assertHasKey($result, 'data');
+            $success = true;
         } elseif ($result['status'] === 403) {
             echo "[INFO] User Stats - User is not admin (expected)\n";
             $success = true;

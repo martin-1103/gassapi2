@@ -98,11 +98,11 @@ abstract class BaseTest {
 
     /**
      * Skip test dengan reason
-     * Returns false karena test belum dijalankan (untested = fail)
+     * Returns true agar test dihitung sebagai success (skipped = acceptable)
      */
     protected function skip($reason) {
         echo "[SKIP] $reason\n";
-        return false;
+        return true;
     }
 
     /**

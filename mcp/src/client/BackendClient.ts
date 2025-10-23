@@ -1,7 +1,6 @@
 import { CacheManager } from '../cache/CacheManager';
 import {
   ApiResponse,
-  PaginatedResponse,
   ProjectDetailsResponse,
   CollectionsResponse,
   EnvironmentsResponse,
@@ -9,7 +8,6 @@ import {
   EndpointsResponse,
   EndpointDetailsResponse,
   TokenValidationResponse,
-  McpConfigResponse,
   TestExecutionResponse,
   EnvironmentSetVariableRequest,
   EnvironmentImportRequest,
@@ -612,7 +610,7 @@ export class BackendClient {
         timeout: 5000 // 5 seconds
       });
 
-      const result = await response.json();
+      await response.json();
       return {
         status: 'ok',
         timestamp: Date.now()

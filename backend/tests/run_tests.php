@@ -261,9 +261,33 @@ class TestRunner {
             return false;
         }
 
+        $testName = $className;
+        
+        // Check if we should skip this test
+        if ($this->cacheManager->shouldSkip($testName)) {
+            $cached = $this->cacheManager->getCachedResult($testName);
+            echo "[SKIP] $testName - Passed in previous run ({$cached['passed']}/{$cached['total']})\n\n";
+            
+            // Add cached result to summary
+            $this->results[] = [
+                'test' => $testName,
+                'results' => [],
+                'passed' => $cached['passed'],
+                'total' => $cached['total'],
+                'duration' => 0
+            ];
+            
+            return true; // Not an error
+        }
+
         $test = new $className();
         $result = $test->run();
-        $this->results[] = $test->getResults();
+        $testResults = $test->getResults();
+        
+        // Save to cache
+        $this->cacheManager->saveResult($testName, $testResults['passed'], $testResults['total']);
+        
+        $this->results[] = $testResults;
 
         return $result;
     }

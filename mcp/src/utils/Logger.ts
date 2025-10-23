@@ -196,7 +196,6 @@ export class Logger {
    * CLI-specific logging (user-friendly output)
    */
   public cli(message: string, type: 'info' | 'success' | 'warning' | 'error' = 'info'): void {
-    const timestamp = new Date().toISOString().split('T')[1].substring(0, 8);
 
     switch (type) {
       case 'success':

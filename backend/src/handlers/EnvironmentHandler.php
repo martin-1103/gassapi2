@@ -41,6 +41,9 @@ class EnvironmentHandler {
         $input = ValidationHelper::getJsonInput();
         ValidationHelper::required($input, ['name']);
         $name = ValidationHelper::sanitize($input['name']);
+        if (empty(trim($name))) {
+            ResponseHelper::error('Environment name cannot be empty', 400);
+        }
         $description = isset($input['description']) ? ValidationHelper::sanitize($input['description']) : null;
         $variables = $input['variables'] ?? new \stdClass();
         $isDefault = isset($input['is_default']) ? (int)!!$input['is_default'] : 0;
@@ -87,7 +90,13 @@ class EnvironmentHandler {
         }
         $input = ValidationHelper::getJsonInput();
         $data = [];
-        if (isset($input['name'])) { $data['name'] = ValidationHelper::sanitize($input['name']); }
+        if (isset($input['name'])) {
+            $name = ValidationHelper::sanitize($input['name']);
+            if (empty(trim($name))) {
+                ResponseHelper::error('Environment name cannot be empty', 400);
+            }
+            $data['name'] = $name;
+        }
         if (isset($input['description'])) { $data['description'] = ValidationHelper::sanitize($input['description']); }
         if (isset($input['variables'])) { $data['variables'] = is_array($input['variables']) ? json_encode($input['variables']) : $input['variables']; }
         if (isset($input['is_default'])) { $data['is_default'] = (int)!!$input['is_default']; }
