@@ -68,6 +68,12 @@ class JwtHelper {
      * Validate and decode access token
      */
     public static function validateAccessToken($token) {
+        // Check if token is null or empty
+        if ($token === null || $token === '') {
+            error_log("JWT Access Token Error: Token is null or empty");
+            return null;
+        }
+
         try {
             $payload = JWT::decode($token, new Key(self::getAccessSecret(), 'HS256'));
 
@@ -92,6 +98,12 @@ class JwtHelper {
      * Validate and decode refresh token
      */
     public static function validateRefreshToken($token) {
+        // Check if token is null or empty
+        if ($token === null || $token === '') {
+            error_log("JWT Refresh Token Error: Token is null or empty");
+            return null;
+        }
+
         try {
             $payload = JWT::decode($token, new Key(self::getRefreshSecret(), 'HS256'));
 

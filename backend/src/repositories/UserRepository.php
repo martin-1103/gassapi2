@@ -22,8 +22,22 @@ class UserRepository extends BaseRepository {
     /**
      * Check if email exists
      */
-    public function emailExists($email) {
-        return $this->exists('email', $email);
+    public function emailExists($email, $excludeUserId = null) {
+        $db = self::getConnection();
+
+        $db->where('email', $email);
+
+        if ($excludeUserId !== null) {
+            $db->where('id', $excludeUserId, '!=');
+        }
+
+        $count = $db->getValue($this->getTableName(), 'COUNT(*)');
+
+        if ($db->getLastErrno()) {
+            throw new RepositoryException('Email exists check failed: ' . $db->getLastError());
+        }
+
+        return $count > 0;
     }
 
     /**

@@ -278,4 +278,3 @@ class Config {
 exports.Config = Config;
 // Export singleton getter
 exports.config = Config.getInstance();
-//# sourceMappingURL=config.js.map

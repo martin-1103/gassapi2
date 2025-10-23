@@ -38,6 +38,7 @@ export declare class BackendClient {
     healthCheck(): Promise<{
         status: string;
         timestamp: number;
+        error?: string;
     }>;
 }
 //# sourceMappingURL=BackendClient.d.ts.map

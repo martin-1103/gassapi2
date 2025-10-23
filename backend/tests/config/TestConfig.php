@@ -5,8 +5,8 @@
  */
 class TestConfig {
     // Base Configuration
-    const BASE_URL = 'http://localhost:8080/gassapi2/backend/';
-    const TIMEOUT = 5; // 1 detik sesuai permintaan
+    const BASE_URL = 'http://localhost:8081/gassapi/backend/';
+    const TIMEOUT = 5; // 5 detik timeout untuk testing
 
     // Test Settings
     const DEBUG = true;
@@ -84,7 +84,15 @@ class TestConfig {
         'flow_duplicate' => '?act=flow_duplicate&id=',
         'flow_execute' => '?act=flow_execute&id=',
         'flow_activate' => '?act=flow_activate&id=',
-        'flow_deactivate' => '?act=flow_deactivate&id='
+        'flow_deactivate' => '?act=flow_deactivate&id=',
+
+        // Additional endpoints (may not be implemented)
+        'forgot-password' => '?act=forgot-password',
+        'reset-password' => '?act=reset-password',
+        'status' => '?act=status',
+        'health/' => '?act=health',
+        '/help' => '?act=help',
+        '' => '?act=help'
     ];
 
     // Headers default
@@ -104,6 +112,11 @@ class TestConfig {
      * Get full URL untuk endpoint
      */
     public static function getUrl($endpoint, $id = null) {
+        // Ensure endpoint exists to prevent undefined array key warnings
+        if (!isset(self::ENDPOINTS[$endpoint])) {
+            throw new InvalidArgumentException("Endpoint '$endpoint' is not defined in TestConfig::ENDPOINTS");
+        }
+
         $url = self::BASE_URL . self::ENDPOINTS[$endpoint];
 
         // Handle endpoints that need ID
@@ -167,7 +180,15 @@ class TestConfig {
     public static function saveResponse($testName, $response) {
         if (!self::SAVE_RESPONSES) return;
 
-        $filename = self::REPORTS_DIR . $testName . '_' . date('Y-m-d_H-i-s') . '.json';
+        // Sanitize filename and limit length
+        $sanitizedName = substr(preg_replace('/[^a-zA-Z0-9_-]/', '_', $testName), 0, 50);
+        $filename = self::REPORTS_DIR . $sanitizedName . '_' . date('Y-m-d_H-i-s') . '.json';
+
+        // Ensure reports directory exists
+        if (!is_dir(self::REPORTS_DIR)) {
+            mkdir(self::REPORTS_DIR, 0755, true);
+        }
+
         $data = [
             'test' => $testName,
             'timestamp' => date('Y-m-d H:i:s'),

@@ -49,7 +49,7 @@ class UserProfileTest extends BaseTest {
     /**
      * Test get current user profile
      */
-    protected function testGetProfile() {
+    public function testGetProfile() {
         $this->printHeader("Get User Profile Test");
 
         if (!$this->authToken) {
@@ -81,7 +81,7 @@ class UserProfileTest extends BaseTest {
     /**
      * Test update user profile - name only
      */
-    protected function testUpdateProfileName() {
+    public function testUpdateProfileName() {
         $this->printHeader("Update Profile Name Test");
 
         if (!$this->authToken) {
@@ -119,7 +119,7 @@ class UserProfileTest extends BaseTest {
     /**
      * Test update user profile - email only
      */
-    protected function testUpdateProfileEmail() {
+    public function testUpdateProfileEmail() {
         $this->printHeader("Update Profile Email Test");
 
         if (!$this->authToken) {
@@ -153,7 +153,7 @@ class UserProfileTest extends BaseTest {
     /**
      * Test update user profile - both name and email
      */
-    protected function testUpdateProfileBoth() {
+    public function testUpdateProfileBoth() {
         $this->printHeader("Update Profile Name and Email Test");
 
         if (!$this->authToken) {
@@ -180,7 +180,7 @@ class UserProfileTest extends BaseTest {
     /**
      * Test update profile dengan invalid email format
      */
-    protected function testUpdateProfileInvalidEmail() {
+    public function testUpdateProfileInvalidEmail() {
         $this->printHeader("Update Profile Invalid Email Test");
 
         if (!$this->authToken) {
@@ -215,7 +215,7 @@ class UserProfileTest extends BaseTest {
     /**
      * Test update profile dengan duplicate email
      */
-    protected function testUpdateProfileDuplicateEmail() {
+    public function testUpdateProfileDuplicateEmail() {
         $this->printHeader("Update Profile Duplicate Email Test");
 
         if (!$this->authToken) {
@@ -254,7 +254,7 @@ class UserProfileTest extends BaseTest {
     /**
      * Test update profile dengan empty name
      */
-    protected function testUpdateProfileEmptyName() {
+    public function testUpdateProfileEmptyName() {
         $this->printHeader("Update Profile Empty Name Test");
 
         if (!$this->authToken) {
@@ -279,7 +279,7 @@ class UserProfileTest extends BaseTest {
     /**
      * Test update profile dengan XSS attempt
      */
-    protected function testUpdateProfileXSS() {
+    public function testUpdateProfileXSS() {
         $this->printHeader("Update Profile XSS Test");
 
         if (!$this->authToken) {
@@ -312,7 +312,7 @@ class UserProfileTest extends BaseTest {
     /**
      * Test get profile tanpa authentication
      */
-    protected function testGetProfileUnauthorized() {
+    public function testGetProfileUnauthorized() {
         $this->printHeader("Get Profile Without Authentication");
 
         // Clear token untuk unauthorized test
@@ -332,7 +332,7 @@ class UserProfileTest extends BaseTest {
     /**
      * Test update profile tanpa authentication
      */
-    protected function testUpdateProfileUnauthorized() {
+    public function testUpdateProfileUnauthorized() {
         $this->printHeader("Update Profile Without Authentication");
 
         // Clear token untuk unauthorized test
@@ -356,7 +356,7 @@ class UserProfileTest extends BaseTest {
     /**
      * Test update profile dengan data kosong
      */
-    protected function testUpdateProfileEmptyData() {
+    public function testUpdateProfileEmptyData() {
         $this->printHeader("Update Profile Empty Data Test");
 
         if (!$this->authToken) {

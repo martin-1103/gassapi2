@@ -1,0 +1,11 @@
+{
+  "project": {
+    "id": "proj_sample_123",
+    "name": "Sample GASSAPI Project",
+    "description": "Sample project for testing MCP client"
+  },
+  "mcpClient": {
+    "token": "YOUR_MCP_TOKEN_HERE",
+    "serverURL": "http://localhost:3000"
+  }
+}

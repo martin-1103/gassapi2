@@ -40,6 +40,10 @@ foreach ($testFiles as $file) {
     }
 }
 
+// Load composite test classes
+require_once __DIR__ . '/helpers/AllApiTests.php';
+require_once __DIR__ . '/helpers/AllTests.php';
+
 class TestRunner {
     private $args = [];
     private $debug = false;

@@ -116,7 +116,7 @@ export class BackendClient {
 
       if (!environments) {
         await this.cacheManager.cacheEnvironments(projectId, projectData.environments || [], { ttlMs: 600000 }); // 10 minutes
-        environments = projectData.environments || [];
+        environments = (projectData.environments || []) as any[];
       }
 
       if (!collections) {
@@ -585,7 +585,7 @@ export class BackendClient {
   }
 
   // Health check
-  async healthCheck(): Promise<{ status: string; timestamp: number }> {
+  async healthCheck(): Promise<{ status: string; timestamp: number; error?: string }> {
     try {
       const response = await this.fetchWithTimeout('/health', {
         method: 'GET',
@@ -600,7 +600,7 @@ export class BackendClient {
     } catch (error) {
       return {
         status: 'error',
-        error: error.message,
+        error: error instanceof Error ? error.message : 'Unknown error',
         timestamp: Date.now()
       };
     }

@@ -1,9 +1,5 @@
-/**
- * Simple GASSAPI MCP Client
- * Basic implementation for testing core functionality
- */
-
-interface SimpleConfig {
+// Simple MCP client for testing
+interface Config {
   project?: {
     id: string;
     name: string;
@@ -14,18 +10,14 @@ interface SimpleConfig {
   };
 }
 
-interface SimpleTestResult {
-  status: string;
-  responseTime: number;
-  responseBody?: any;
-  error?: string;
-}
+// Use node-fetch for better HTTP client support
+const fetch = require('node-fetch').default || require('node-fetch');
 
 /**
  * Simple MCP client for testing
  */
 export class SimpleMcpClient {
-  private config: SimpleConfig | null = null;
+  private config: Config | null = null;
 
   constructor() {
     this.loadConfig();
@@ -51,8 +43,8 @@ export class SimpleMcpClient {
           this.config = JSON.parse(content);
 
           console.log('✅ Loaded configuration from:', configPath);
-          console.log('📋 Project:', this.config.project?.name);
-          console.log('🔗 Server:', this.config.mcpClient?.serverURL);
+          console.log('📋 Project:', this.config.project?.name || 'N/A');
+          console.log('🔗 Server:', this.config.mcpClient?.serverURL || 'N/A');
 
           return;
         }
@@ -95,7 +87,7 @@ export class SimpleMcpClient {
 
         const startTime = Date.now();
 
-        // Simple HTTP request using Node.js built-in fetch
+        // Use node-fetch for better HTTP client support
         const response = await fetch(this.config.mcpClient.serverURL + '/health', {
           method: 'GET',
           headers: {
@@ -114,9 +106,9 @@ export class SimpleMcpClient {
         if (response.ok) {
           try {
             const data = await response.json();
-            console.log(`  Server Response:`, JSON.stringify(data, null, 2));
+            console.log('  Server Response:', JSON.stringify(data, null, 2));
           } catch (e) {
-            console.log('  Response: Unable to parse JSON');
+            console.log('  Response: Unable to parse JSON:', e instanceof Error ? e.message : 'Unknown error');
           }
         } else {
           console.log(`  Error: ${response.statusText || 'Unknown error'}`);
@@ -125,6 +117,8 @@ export class SimpleMcpClient {
       } catch (error) {
         console.log(`  ❌ Request failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
       }
+    } else {
+      console.log('⚠️ No server URL configured');
     }
 
     console.log('✅ Basic functionality test completed');
@@ -140,13 +134,11 @@ export class SimpleMcpClient {
     if (this.config) {
       console.log('✅ Configuration: Loaded');
       console.log(`  Project: ${this.config.project?.name || 'N/A'}`);
-      console.log(`  ID: ${this.config.project?.id || 'N/A'}`);
       console.log(`  Server: ${this.config.mcpClient?.serverURL || 'N/A'}`);
       console.log(`  Token: ${this.config.mcpClient?.token ? 'Configured' : 'Missing'}`);
     } else {
       console.log('❌ Configuration: Not found');
-      console.log('  gassapi.json: Missing in project directory');
-      console.log('💡 Solution: Create gassapi.json file');
+      console.log('  gassapi.json: Missing');
     }
 
     console.log('='.repeat(40));
@@ -176,9 +168,9 @@ export class SimpleMcpClient {
     try {
       fs.writeFileSync(configPath, JSON.stringify(sampleConfig, null, 2), 'utf-8');
       console.log('✅ Sample configuration created:', configPath);
-      console.log('📝 Please edit the file and:');
-      console.log('  1. Replace YOUR_MCP_TOKEN_HERE with your actual token');
-      console.log('  2. Update project details as needed');
+      console.log('📝 Please edit to file and:');
+      console.log('  1. Replace YOUR_MCP_TOKEN_HERE with your actual MCP token');
+      console.log('  2. Update project details');
       console.log('  3. Configure server URL');
     } catch (error) {
       console.error('❌ Failed to create sample configuration:', error instanceof Error ? error.message : 'Unknown error');
@@ -186,49 +178,5 @@ export class SimpleMcpClient {
   }
 }
 
-// Export for use
-export { SimpleMcpClient };
-
-// If run directly
-if (require.main === module) {
-  const client = new SimpleMcpClient();
-
-  const command = process.argv[2] || 'help';
-
-  switch (command) {
-    case 'test':
-      client.testBasicFunctionality();
-      break;
-
-    case 'status':
-      client.showStatus();
-      break;
-
-    case 'init':
-      client.createSampleConfig();
-      break;
-
-    case 'help':
-      console.log('🚀 Simple GASSAPI MCP Client');
-      console.log('');
-      console.log('USAGE:');
-      console.log('  node simple.js [command]');
-      console.log('');
-      console.log('COMMANDS:');
-      console.log('  test     - Test basic functionality');
-      console.log('  status   - Show configuration status');
-      console.log('  init     - Create sample gassapi.json');
-      console.log('  help     - Show this help message');
-      console.log('');
-      console.log('EXAMPLES:');
-      console.log('  node simple.js test');
-      console.log('  node simple.js init');
-      console.log('  node simple.js status');
-      break;
-
-    default:
-      console.log(`❌ Unknown command: ${command}`);
-      console.log('Use "node simple.js help" for usage information');
-      process.exit(1);
-  }
-}
+// Export for simple testing without full MCP server
+// SimpleMcpClient is already exported at class declaration

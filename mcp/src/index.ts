@@ -7,6 +7,7 @@
 
 import { McpServer } from './server/McpServer';
 import { config } from './config';
+const prompt = require('readline-sync');
 
 // Load project configuration before starting server
 async function loadConfigurationAndStart() {
@@ -34,35 +35,7 @@ async function loadConfigurationAndStart() {
   }
 }
 
-// Main execution function
-async function main(): Promise<void> {
-  const args = process.argv.slice(2);
-  const command = args[0] || 'help';
-
-  switch (command) {
-    case 'start':
-      await loadConfigurationAndStart();
-      break;
-
-    case 'help':
-    case '--help':
-    case '-h':
-      showHelp();
-      break;
-
-    case 'version':
-    case '--version':
-    case '-v':
-      showVersion();
-      break;
-
-    default:
-      console.error(`❌ Unknown command: ${command}`);
-      console.error('Use "gassapi-mcp help" for usage information');
-      process.exit(1);
-  }
-}
-
+// Helper functions
 function showHelp(): void {
   console.log('🚀 GASSAPI MCP Client v1.0.0');
   console.log('');
@@ -222,8 +195,8 @@ class GassapiMcpClient {
     try {
       console.log('📝 Creating GASSAPI sample configuration...');
 
-      const name = projectName || prompt('Enter project name:') || 'My GASSAPI Project';
-      const id = projectId || prompt('Enter project ID:') || 'proj_' + Date.now();
+      const name = projectName || prompt.question('Enter project name:') || 'My GASSAPI Project';
+      const id = projectId || prompt.question('Enter project ID:') || 'proj_' + Date.now();
 
       await config.createSampleConfig(name, id);
 

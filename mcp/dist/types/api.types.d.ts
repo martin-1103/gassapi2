@@ -51,6 +51,13 @@ export interface ProjectDetailsResponse {
         name?: string;
         role: string;
     }>;
+    environments?: Array<{
+        id: string;
+        name: string;
+        description?: string;
+        is_active: boolean;
+        created_at: string;
+    }>;
     stats?: {
         collections: number;
         endpoints: number;

@@ -274,8 +274,13 @@ class AuthService {
      * Update user profile
      */
     public function updateProfile($userId, $data) {
-        // Validate update data
-        $allowedFields = ['name', 'avatar_url'];
+        // Handle empty data case
+        if (empty($data)) {
+            ResponseHelper::error('No update data provided', 400);
+        }
+
+        // Allowed fields for profile update
+        $allowedFields = ['name', 'email', 'avatar_url'];
         $updateData = [];
 
         foreach ($allowedFields as $field) {
@@ -286,6 +291,15 @@ class AuthService {
 
         if (empty($updateData)) {
             ResponseHelper::error('No valid fields to update', 400);
+        }
+
+        // Validate specific fields
+        if (isset($updateData['name'])) {
+            $this->validateProfileName($updateData['name']);
+        }
+
+        if (isset($updateData['email'])) {
+            $this->validateProfileEmail($updateData['email'], $userId);
         }
 
         // Update user
@@ -328,6 +342,13 @@ class AuthService {
             ResponseHelper::error('Name must be at least 2 characters', 400);
         }
 
+        if (strlen($name) > 100) {
+            ResponseHelper::error('Name must be less than 100 characters', 400);
+        }
+
+        // XSS protection for registration name
+        $this->validateXSS($name);
+
         if (strlen($password) < 8) {
             ResponseHelper::error('Password must be at least 8 characters', 400);
         }
@@ -339,6 +360,154 @@ class AuthService {
 
         if (!$hasUpper || !$hasLower || !$hasNumber) {
             ResponseHelper::error('Password must contain uppercase, lowercase, and numbers', 400);
+        }
+    }
+
+    /**
+     * Validate profile name
+     */
+    private function validateProfileName($name) {
+        if (empty($name) || trim($name) === '') {
+            ResponseHelper::error('Name cannot be empty', 400);
+        }
+
+        if (strlen(trim($name)) < 2) {
+            ResponseHelper::error('Name must be at least 2 characters', 400);
+        }
+
+        if (strlen($name) > 100) {
+            ResponseHelper::error('Name must be less than 100 characters', 400);
+        }
+
+        // Comprehensive XSS protection
+        $this->validateXSS($name);
+    }
+
+    /**
+     * Comprehensive XSS validation
+     */
+    private function validateXSS($input) {
+        // Convert to lowercase for case-insensitive matching
+        $lowerInput = strtolower($input);
+
+        // Check for dangerous HTML tags
+        $dangerousTags = [
+            'script', 'iframe', 'object', 'embed', 'form', 'input', 'textarea',
+            'link', 'meta', 'style', 'applet', 'body', 'html', 'head', 'title',
+            'base', 'bgsound', 'blink', 'ilayer', 'layer', 'marquee', 'xml'
+        ];
+
+        foreach ($dangerousTags as $tag) {
+            if (strpos($lowerInput, '<' . $tag) !== false ||
+                strpos($lowerInput, $tag . '>') !== false) {
+                ResponseHelper::error('Name contains invalid content', 400);
+            }
+        }
+
+        // Check for JavaScript protocols (case-insensitive)
+        $dangerousProtocols = [
+            'javascript:', 'data:', 'vbscript:', 'file:', 'ftp:', 'http:', 'https:'
+        ];
+
+        foreach ($dangerousProtocols as $protocol) {
+            if (strpos($lowerInput, $protocol) !== false) {
+                ResponseHelper::error('Name contains invalid content', 400);
+            }
+        }
+
+        // Check for dangerous event handlers (case-insensitive)
+        $dangerousEvents = [
+            'onerror', 'onclick', 'onload', 'onmouseover', 'onmouseout', 'onfocus',
+            'onblur', 'onchange', 'onsubmit', 'onreset', 'onselect', 'onkeydown',
+            'onkeyup', 'onkeypress', 'onmousedown', 'onmouseup', 'onmousemove',
+            'ondblclick', 'oncontextmenu', 'ondrag', 'ondrop', 'onfocusin',
+            'onfocusout', 'onhashchange', 'oninput', 'oninvalid', 'onkeydown',
+            'onkeypress', 'onkeyup', 'onload', 'onloadeddata', 'onloadedmetadata',
+            'onloadstart', 'onmessage', 'onmousedown', 'onmouseenter', 'onmouseleave',
+            'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'onmousewheel',
+            'onoffline', 'ononline', 'onpagehide', 'onpageshow', 'onpaste', 'onpause',
+            'onplay', 'onplaying', 'onpopstate', 'onprogress', 'onratechange',
+            'onreset', 'onresize', 'onscroll', 'onsearch', 'onseeked', 'onseeking',
+            'onselect', 'onstalled', 'onstorage', 'onsubmit', 'onsuspend', 'ontimeupdate',
+            'ontoggle', 'onunload', 'onvolumechange', 'onwaiting', 'onwheel'
+        ];
+
+        foreach ($dangerousEvents as $event) {
+            if (strpos($lowerInput, $event) !== false) {
+                ResponseHelper::error('Name contains invalid content', 400);
+            }
+        }
+
+        // Check for dangerous attributes (case-insensitive)
+        $dangerousAttributes = [
+            'src=', 'href=', 'action=', 'background=', 'dynsrc=', 'lowsrc=',
+            'codebase=', 'classid=', 'data=', 'formaction=', 'poster=', 'archive=',
+            'usemap=', 'profile=', 'manifest=', 'xlink:href=', 'xml:base='
+        ];
+
+        foreach ($dangerousAttributes as $attr) {
+            if (strpos($lowerInput, $attr) !== false) {
+                ResponseHelper::error('Name contains invalid content', 400);
+            }
+        }
+
+        // Check for encoded/obfuscated attacks
+        if (preg_match('/&[#\w]+;/', $input)) {
+            // Decode HTML entities and check again
+            $decoded = html_entity_decode($input, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+            if ($decoded !== $input) {
+                $this->validateXSS($decoded); // Recursive check
+                return;
+            }
+        }
+
+        // Check for common XSS patterns
+        $xssPatterns = [
+            '/<[^>]*>[^<]*<[^>]*>/', // Nested tags
+            '/expression\s*\(/i', // CSS expression
+            '/@import/i', // CSS import
+            '/url\s*\(/i', // CSS URL
+            '/&#\d+;/', // HTML entities
+            '/&#x[0-9a-f]+;/i', // Hex entities
+            '/\\u[0-9a-f]{4}/i', // Unicode escapes
+            '/%[0-9a-f]{2}/i', // URL encoding
+        ];
+
+        foreach ($xssPatterns as $pattern) {
+            if (preg_match($pattern, $input)) {
+                ResponseHelper::error('Name contains invalid content', 400);
+            }
+        }
+
+        // Final sanitization check - strip tags should not change the input
+        $cleanInput = strip_tags($input);
+        $cleanInput = htmlspecialchars($cleanInput, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+
+        // If after sanitization the content is different, it was likely malicious
+        if (strip_tags($input) !== $input ||
+            htmlspecialchars_decode($cleanInput, ENT_QUOTES | ENT_HTML5) !== $input) {
+            ResponseHelper::error('Name contains invalid characters', 400);
+        }
+    }
+
+    /**
+     * Validate profile email
+     */
+    private function validateProfileEmail($email, $excludeUserId = null) {
+        if (empty($email) || trim($email) === '') {
+            ResponseHelper::error('Email cannot be empty', 400);
+        }
+
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            ResponseHelper::error('Invalid email format', 400);
+        }
+
+        // XSS protection for email field
+        $this->validateXSS($email);
+
+        // Check if email already exists (exclude current user)
+        if ($this->userRepository->emailExists($email, $excludeUserId)) {
+            ResponseHelper::error('Email already exists', 400);
         }
     }
 }

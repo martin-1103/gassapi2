@@ -6,7 +6,7 @@ import { CacheConfig, McpServerConfig, ExecutionConfig } from './types/config.ty
  * Central configuration management for the MCP client
  */
 
-const DEFAULT_CONFIG: ConfigLoader['getDefaultConfig'] = ConfigLoader.getDefaultConfig();
+// const DEFAULT_CONFIG = ConfigLoader.getDefaultConfig();
 
 export class Config {
   private static instance: Config;

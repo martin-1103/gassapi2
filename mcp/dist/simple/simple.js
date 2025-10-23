@@ -1,14 +1,25 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.SimpleMcpClient = void 0;
+// Simple MCP client for testing
+const config = {
+    project: {
+        id: string,
+        name: string
+    },
+    mcpClient: {
+        token: string,
+        serverURL: string
+    }
+};
 // Use node-fetch for better HTTP client support
-const fetch = require('node-fetch').default || require('node-fetch');
+const fetch = require('node-fetch');
 /**
  * Simple MCP client for testing
  */
 class SimpleMcpClient {
-    config = null;
     constructor() {
+        this.config = null;
         this.loadConfig();
     }
     /**
@@ -27,8 +38,8 @@ class SimpleMcpClient {
                     const content = fs.readFileSync(configPath, 'utf-8');
                     this.config = JSON.parse(content);
                     console.log('✅ Loaded configuration from:', configPath);
-                    console.log('📋 Project:', this.config.project?.name || 'N/A');
-                    console.log('🔗 Server:', this.config.mcpClient?.serverURL || 'N/A');
+                    console.log('📋 Project:', this.config.project?.name);
+                    console.log('🔗 Server:', this.config.mcpClient?.serverURL);
                     return;
                 }
                 // Move up to parent directory
@@ -82,7 +93,7 @@ class SimpleMcpClient {
                         console.log('  Server Response:', JSON.stringify(data, null, 2));
                     }
                     catch (e) {
-                        console.log('  Response: Unable to parse JSON:', e instanceof Error ? e.message : 'Unknown error');
+                        console.log('  Response: Unable to parse JSON:', e.message);
                     }
                 }
                 else {
@@ -148,5 +159,3 @@ class SimpleMcpClient {
     }
 }
 exports.SimpleMcpClient = SimpleMcpClient;
-// Export for simple testing without full MCP server
-// SimpleMcpClient is already exported at class declaration

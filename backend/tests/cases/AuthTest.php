@@ -19,7 +19,7 @@ class AuthTest extends BaseTest {
     /**
      * Test user registration
      */
-    protected function testRegister() {
+    protected function test1Register() {
         $this->printHeader("User Registration Test");
 
         $userData = [
@@ -42,7 +42,7 @@ class AuthTest extends BaseTest {
     /**
      * Test login dengan valid credentials
      */
-    protected function testLoginValid() {
+    protected function test2LoginValid() {
         $this->printHeader("Login with Valid Credentials Test");
 
         $loginData = [
@@ -75,7 +75,7 @@ class AuthTest extends BaseTest {
     /**
      * Test login dengan invalid credentials
      */
-    protected function testLoginInvalid() {
+    protected function test3LoginInvalid() {
         $this->printHeader("Login with Invalid Credentials Test");
 
         $loginData = [
@@ -96,7 +96,7 @@ class AuthTest extends BaseTest {
     /**
      * Test login dengan missing fields
      */
-    protected function testLoginMissingFields() {
+    protected function test4LoginMissingFields() {
         $this->printHeader("Login with Missing Fields Test");
 
         // Test missing password
@@ -113,7 +113,7 @@ class AuthTest extends BaseTest {
     /**
      * Test login dengan invalid email format
      */
-    protected function testLoginInvalidEmail() {
+    protected function test5LoginInvalidEmail() {
         $this->printHeader("Login with Invalid Email Format Test");
 
         $loginData = [
@@ -130,7 +130,7 @@ class AuthTest extends BaseTest {
     /**
      * Test logout
      */
-    protected function testLogout() {
+    protected function test6Logout() {
         $this->printHeader("Logout Test");
 
         if (!$this->authToken) {
@@ -138,7 +138,8 @@ class AuthTest extends BaseTest {
             return true;
         }
 
-        $result = $this->testHelper->post('logout');
+        // Logout tidak memerlukan refresh_token, bisa langsung POST
+        $result = $this->testHelper->post('logout', []);
         $success = $this->testHelper->printResult("Logout", $result, 200);
 
         if ($success) {
@@ -152,7 +153,7 @@ class AuthTest extends BaseTest {
     /**
      * Test register dengan duplicate email
      */
-    protected function testRegisterDuplicate() {
+    protected function test7RegisterDuplicate() {
         $this->printHeader("Register Duplicate Email Test");
 
         $userData = [
@@ -174,7 +175,7 @@ class AuthTest extends BaseTest {
     /**
      * Test register dengan invalid data
      */
-    protected function testRegisterInvalidData() {
+    protected function test8RegisterInvalidData() {
         $this->printHeader("Register Invalid Data Test");
 
         // Test invalid email
@@ -206,7 +207,7 @@ class AuthTest extends BaseTest {
     /**
      * Test access protected endpoint without token
      */
-    protected function testProtectedEndpointNoToken() {
+    protected function test9ProtectedEndpointNoToken() {
         $this->printHeader("Protected Endpoint Without Token Test");
 
         // Clear any existing token
@@ -221,12 +222,12 @@ class AuthTest extends BaseTest {
     /**
      * Test refresh token
      */
-    protected function testRefreshToken() {
+    protected function test10RefreshToken() {
         $this->printHeader("Refresh Token Test");
 
         if (!$this->authToken) {
             // Try login first
-            $this->testLoginValid();
+            $this->test2LoginValid();
         }
 
         if (!$this->authToken) {

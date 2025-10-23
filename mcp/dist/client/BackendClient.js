@@ -483,7 +483,7 @@ class BackendClient {
         catch (error) {
             return {
                 status: 'error',
-                error: error.message,
+                error: error instanceof Error ? error.message : 'Unknown error',
                 timestamp: Date.now()
             };
         }

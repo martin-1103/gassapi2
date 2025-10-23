@@ -1,0 +1,413 @@
+{
+    "timestamp": "2025-10-23 06:24:38",
+    "total_tests": 251,
+    "passed": 214,
+    "failed": 37,
+    "duration_ms": 180055.09000000003,
+    "success_rate": 85.3,
+    "results": [
+        {
+            "test": "AuthTest",
+            "results": [
+                true,
+                true,
+                true,
+                true,
+                true,
+                true,
+                true,
+                true,
+                true,
+                true,
+                true,
+                true
+            ],
+            "passed": 12,
+            "total": 12,
+            "duration": 7205.31
+        },
+        {
+            "test": "UserTest",
+            "results": [
+                true,
+                true,
+                true,
+                true,
+                true,
+                true,
+                true,
+                true,
+                true,
+                true,
+                true,
+                true,
+                false,
+                true,
+                true,
+                true,
+                true
+            ],
+            "passed": 16,
+            "total": 17,
+            "duration": 13559.11
+        },
+        {
+            "test": "PasswordTest",
+            "results": [
+                true,
+                true,
+                false,
+                false,
+                false,
+                true,
+                false,
+                false,
+                true,
+                true,
+                false,
+                false,
+                true
+            ],
+            "passed": 6,
+            "total": 13,
+            "duration": 11298.24
+        },
+        {
+            "test": "UserProfileTest",
+            "results": [
+                true,
+                true,
+                true,
+                true,
+                true,
+                true,
+                true,
+                false,
+                true,
+                true,
+                false,
+                true,
+                true,
+                true,
+                true,
+                false
+            ],
+            "passed": 13,
+            "total": 16,
+            "duration": 12090.68
+        },
+        {
+            "test": "UserManagementTest",
+            "results": [
+                true,
+                true,
+                true,
+                true,
+                true,
+                true,
+                true,
+                true,
+                true,
+                true,
+                true,
+                true,
+                false,
+                true
+            ],
+            "passed": 13,
+            "total": 14,
+            "duration": 10119.71
+        },
+        {
+            "test": "ProjectTest",
+            "results": [
+                true,
+                true,
+                false,
+                true,
+                true,
+                true,
+                true,
+                false,
+                true,
+                true,
+                true,
+                true
+            ],
+            "passed": 10,
+            "total": 12,
+            "duration": 7442.41
+        },
+        {
+            "test": "EnvironmentTest",
+            "results": [
+                true,
+                true,
+                false,
+                true,
+                false,
+                true,
+                true,
+                true,
+                true,
+                true,
+                true,
+                true,
+                true
+            ],
+            "passed": 11,
+            "total": 13,
+            "duration": 8018.99
+        },
+        {
+            "test": "McpTest",
+            "results": [
+                true,
+                false,
+                true,
+                false,
+                true,
+                true,
+                true,
+                true,
+                true,
+                true,
+                false,
+                false,
+                true,
+                false,
+                false
+            ],
+            "passed": 9,
+            "total": 15,
+            "duration": 8895.89
+        },
+        {
+            "test": "SystemTest",
+            "results": [
+                true,
+                false,
+                true,
+                false,
+                true,
+                false,
+                true,
+                true,
+                true
+            ],
+            "passed": 6,
+            "total": 9,
+            "duration": 5599.93
+        },
+        {
+            "test": "UserFlowTest",
+            "results": [
+                true,
+                true,
+                true,
+                true,
+                true,
+                false,
+                false,
+                false
+            ],
+            "passed": 5,
+            "total": 8,
+            "duration": 13163.8
+        },
+        {
+            "test": "CollectionTest",
+            "results": [
+                true,
+                true,
+                true,
+                true,
+                true,
+                true,
+                true,
+                true,
+                true,
+                true,
+                true,
+                true,
+                true
+            ],
+            "passed": 13,
+            "total": 13,
+            "duration": 7760.95
+        },
+        {
+            "test": "EndpointTest",
+            "results": [
+                true,
+                true,
+                true,
+                true,
+                true,
+                true,
+                true,
+                true,
+                true,
+                true,
+                true,
+                true,
+                true,
+                true,
+                true,
+                true
+            ],
+            "passed": 16,
+            "total": 16,
+            "duration": 10125.54
+        },
+        {
+            "test": "FlowTest",
+            "results": [
+                true,
+                true,
+                true,
+                true,
+                true,
+                true,
+                true,
+                true,
+                true,
+                true,
+                true,
+                true,
+                true,
+                true,
+                true,
+                true,
+                true
+            ],
+            "passed": 17,
+            "total": 17,
+            "duration": 9695.44
+        },
+        {
+            "test": "UserManagementTest",
+            "results": [
+                true,
+                true,
+                true,
+                true,
+                true,
+                true,
+                true,
+                true,
+                true,
+                true,
+                true,
+                true,
+                false,
+                true
+            ],
+            "passed": 13,
+            "total": 14,
+            "duration": 10209.57
+        },
+        {
+            "test": "ProjectTest",
+            "results": [
+                true,
+                true,
+                false,
+                true,
+                true,
+                true,
+                true,
+                false,
+                true,
+                true,
+                true,
+                true
+            ],
+            "passed": 10,
+            "total": 12,
+            "duration": 7165.3
+        },
+        {
+            "test": "EnvironmentTest",
+            "results": [
+                true,
+                true,
+                false,
+                true,
+                false,
+                true,
+                true,
+                true,
+                true,
+                true,
+                true,
+                true,
+                true
+            ],
+            "passed": 11,
+            "total": 13,
+            "duration": 7455.78
+        },
+        {
+            "test": "CollectionTest",
+            "results": [
+                true,
+                true,
+                true,
+                true,
+                true,
+                true,
+                true,
+                true,
+                true,
+                true,
+                true,
+                true,
+                true
+            ],
+            "passed": 13,
+            "total": 13,
+            "duration": 7491.49
+        },
+        {
+            "test": "EndpointTest",
+            "results": [
+                true,
+                true,
+                true,
+                true,
+                true,
+                true,
+                true,
+                true,
+                true,
+                true,
+                true,
+                true,
+                true,
+                true,
+                true,
+                true
+            ],
+            "passed": 16,
+            "total": 16,
+            "duration": 9119.35
+        },
+        {
+            "test": "UserFlowTest",
+            "results": [
+                true,
+                true,
+                true,
+                true,
+                true,
+                false,
+                false,
+                false
+            ],
+            "passed": 5,
+            "total": 8,
+            "duration": 13637.6
+        }
+    ]
+}
