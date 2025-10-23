@@ -145,27 +145,5 @@ class DatabaseHelper {
         }
     }
 
-    // DEPRECATED METHODS - Use Repository Pattern Instead
-    // These methods are kept for backward compatibility but should be migrated
-
-    /**
-     * @deprecated Use UserRepository instead
-     */
-    public static function findUserByEmail($email) {
-        trigger_error("DatabaseHelper::findUserByEmail is deprecated. Use UserRepository::findByEmail()", E_USER_DEPRECATED);
-        $db = self::getConnection();
-        $db->where('email', $email);
-        return $db->getOne('users');
-    }
-
-    /**
-     * @deprecated Use UserRepository instead
-     */
-    public static function sanitizeUser($user) {
-        trigger_error("DatabaseHelper::sanitizeUser is deprecated. Use UserRepository::sanitize()", E_USER_DEPRECATED);
-        if (isset($user['password_hash'])) {
-            unset($user['password_hash']);
-        }
-        return $user;
-    }
+    // Note: Model-specific operations should be implemented in Repositories
 }

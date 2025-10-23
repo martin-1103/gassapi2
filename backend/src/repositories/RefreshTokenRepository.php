@@ -174,9 +174,8 @@ class RefreshTokenRepository extends BaseRepository {
         $db->where('is_active', 1);
         $db->where('expires_at', date('Y-m-d H:i:s'), '>');
         $db->orderBy('created_at', 'DESC');
-        $db->limit($keepCount);
 
-        $tokensToKeep = $db->get($this->getTableName(), null, 'id');
+        $tokensToKeep = $db->get($this->getTableName(), $keepCount, 'id');
 
         if (empty($tokensToKeep)) {
             return 0;

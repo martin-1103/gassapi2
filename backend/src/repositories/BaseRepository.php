@@ -69,10 +69,7 @@ abstract class BaseRepository {
     public function findManyBy($field, $value, $limit = null) {
         $db = self::getConnection();
         $db->where($field, $value);
-        if ($limit) {
-            $db->limit($limit);
-        }
-        $result = $db->get($this->getTableName());
+        $result = $db->get($this->getTableName(), $limit);
         if ($db->getLastErrno()) {
             throw new RepositoryException('Find many by field failed: ' . $db->getLastError());
         }
@@ -87,10 +84,7 @@ abstract class BaseRepository {
         if ($orderBy) {
             $db->orderBy($orderBy);
         }
-        if ($limit) {
-            $db->limit($limit);
-        }
-        $result = $db->get($this->getTableName());
+        $result = $db->get($this->getTableName(), $limit);
         if ($db->getLastErrno()) {
             throw new RepositoryException('Get all failed: ' . $db->getLastError());
         }

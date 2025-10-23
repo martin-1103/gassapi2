@@ -24,11 +24,13 @@ class UserHandler {
      * Get all users
      */
     public function getAll() {
-        // Check authentication
+        // Check authentication via AuthService for consistency
         $token = JwtHelper::getTokenFromRequest();
-        if (!$token || !JwtHelper::validateAccessToken($token)) {
+        if (!$token) {
             ResponseHelper::error('Authentication required', 401);
         }
+        // Will throw response error if invalid/expired
+        $this->authService->validateAccessToken($token);
 
         $input = $_GET; // GET parameters for filtering/pagination
 

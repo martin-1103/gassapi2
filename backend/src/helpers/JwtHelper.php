@@ -166,58 +166,11 @@ class JwtHelper {
     }
 
     /**
-     * Get token expiration time
-     */
-    public static function getTokenExpiration($token) {
-        try {
-            $payload = JWT::decode($token, new Key(self::getAccessSecret(), 'HS256'));
-            return $payload->exp ?? null;
-        } catch (\Exception $e) {
-            return null;
-        }
-    }
-
-    /**
-     * Check if token will expire soon (within 5 minutes)
-     */
-    public static function isTokenExpiringSoon($token) {
-        $exp = self::getTokenExpiration($token);
-        if (!$exp) {
-            return true;
-        }
-
-        return ($exp - time()) < (5 * 60); // 5 minutes
-    }
-
-    /**
      * Get user ID from token
      */
     public static function getUserIdFromToken($token) {
         $payload = self::validateAccessToken($token);
         return $payload['sub'] ?? null;
-    }
-
-    /**
-     * Get user email from token
-     */
-    public static function getEmailFromToken($token) {
-        $payload = self::validateAccessToken($token);
-        return $payload['email'] ?? null;
-    }
-
-    /**
-     * Get token version from token
-     */
-    public static function getVersionFromToken($token) {
-        $payload = self::validateAccessToken($token);
-        return $payload['version'] ?? 0;
-    }
-
-    /**
-     * Generate secure random string for tokens
-     */
-    public static function generateSecureRandomString($length = 32) {
-        return bin2hex(random_bytes($length));
     }
 
     /**
@@ -251,20 +204,5 @@ class JwtHelper {
         return true;
     }
 
-    /**
-     * Get token payload without validation (for debugging)
-     */
-    public static function decodeTokenUnsafe($token) {
-        try {
-            $parts = explode('.', $token);
-            if (count($parts) !== 3) {
-                return null;
-            }
-
-            $payload = base64_decode($parts[1]);
-            return json_decode($payload, true);
-        } catch (\Exception $e) {
-            return null;
-        }
-    }
+    // Keep helper surface minimal; add utilities on demand.
 }

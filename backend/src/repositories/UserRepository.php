@@ -134,11 +134,7 @@ class UserRepository extends BaseRepository {
         $db = self::getConnection();
         $db->where('is_active', 1);
 
-        if ($limit) {
-            $db->limit($limit);
-        }
-
-        return $db->get($this->getTableName());
+        return $db->get($this->getTableName(), $limit);
     }
 
     /**
@@ -149,11 +145,7 @@ class UserRepository extends BaseRepository {
         $db->where('is_active', 1);
         $db->where("(`name` LIKE ? OR `email` LIKE ?)", ["%$query%", "%$query%"]);
 
-        if ($limit) {
-            $db->limit($limit);
-        }
-
-        return $db->get($this->getTableName());
+        return $db->get($this->getTableName(), $limit);
     }
 
     /**
