@@ -1,5 +1,5 @@
 // Export types dari types.ts
-export { RequestData, CodeSnippet } from './types';
+export type { RequestData, CodeSnippet } from './types';
 
 // Re-export dari TemplateManager untuk backward compatibility
 export { TemplateManager, generateCodeSnippets } from './TemplateManager';

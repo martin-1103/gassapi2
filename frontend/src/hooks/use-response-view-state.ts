@@ -95,7 +95,14 @@ export const useResponseViewState = ({
     });
 
     onDownloadResponse?.();
-  }, [response, formatMode, onDownloadResponse, formatResponseContent, generateDownloadFilename, toast]);
+  }, [
+    response,
+    formatMode,
+    onDownloadResponse,
+    formatResponseContent,
+    generateDownloadFilename,
+    toast,
+  ]);
 
   const handleSaveResponse = useCallback(() => {
     // Implementasi save response logic

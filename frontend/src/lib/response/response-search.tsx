@@ -8,7 +8,9 @@
 export const highlightSearch = (text: string, searchTerm: string) => {
   if (!searchTerm) return text;
 
-  const regex = new RegExp(`(${searchTerm})`, 'gi');
+  // Safe regex construction with escaping
+  const escapedTerm = searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const regex = new RegExp(`(${escapedTerm})`, 'gi');
   const parts = text.split(regex);
   return parts.map((part, index) => {
     if (index % 2 === 1) {
@@ -52,10 +54,15 @@ export const filterObjectKeys = (
 ) => {
   if (!searchTerm) return Object.keys(obj);
 
-  return Object.keys(obj).filter(
-    key =>
+  return Object.keys(obj).filter(key => {
+    // Validate key to prevent prototype pollution
+    if (key === '__proto__' || key === 'constructor' || key === 'prototype') {
+      return false;
+    }
+    return (
       key.toLowerCase().includes(searchTerm.toLowerCase()) ||
       (typeof obj[key] === 'string' &&
-        obj[key].toLowerCase().includes(searchTerm.toLowerCase())),
-  );
+        obj[key].toLowerCase().includes(searchTerm.toLowerCase()))
+    );
+  });
 };

@@ -61,13 +61,17 @@ export function MethodBadge({ method, size = 'md' }: MethodBadgeProps) {
     lg: 'text-base px-3 py-1.5',
   };
 
+  // Validate size prop to prevent injection
+  const validSize =
+    size === 'sm' || size === 'md' || size === 'lg' ? size : 'md';
+
   return (
     <Badge
       variant={config.variant}
       className={cn(
         'font-mono font-semibold',
         config.className,
-        sizeClasses[size],
+        sizeClasses[validSize],
       )}
     >
       {method.toUpperCase()}

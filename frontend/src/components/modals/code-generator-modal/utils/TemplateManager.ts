@@ -21,7 +21,11 @@ import type { CodeSnippet, RequestData } from './types';
  * Template generator untuk berbagai bahasa
  */
 export class TemplateManager {
-  constructor(private requestData: RequestData) {}
+  private requestData: RequestData;
+
+  constructor(requestData: RequestData) {
+    this.requestData = requestData;
+  }
 
   // Generate all available code snippets
   public generateAllSnippets(): CodeSnippet[] {

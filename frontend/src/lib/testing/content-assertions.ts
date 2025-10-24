@@ -193,7 +193,9 @@ export class ContentAssertions implements IContentAssertions {
     let regex: RegExp;
 
     if (typeof pattern === 'string') {
-      regex = new RegExp(pattern, 'gi');
+      // Safe regex construction with escaping
+      const escapedPattern = pattern.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      regex = new RegExp(escapedPattern, 'gi');
     } else {
       regex = pattern;
     }

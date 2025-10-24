@@ -1,3 +1,4 @@
+import { CodeEditor } from '@/components/common/code-editor';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -7,8 +8,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-
-import { CodeEditor } from '@/components/common/CodeEditor';
 
 interface JsonBodyEditorProps {
   rawType: 'text' | 'javascript' | 'json' | 'html' | 'xml' | 'yaml';
@@ -70,7 +69,7 @@ export function JsonBodyEditor({
         <CodeEditor
           value={rawContent}
           onChange={onRawContentChange}
-          language={getLanguage()}
+          language={getLanguage() as 'json' | 'xml' | 'html' | 'javascript' | 'text'}
           placeholder='Enter request body...'
           rows={20}
         />

@@ -9,7 +9,8 @@ import {
   MoreHorizontal,
   Terminal,
 } from 'lucide-react';
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+// import React from 'react'; // Removed unused React import
+import { useState, useEffect, useCallback, useMemo } from 'react';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';

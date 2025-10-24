@@ -1,5 +1,6 @@
-import React from 'react';
+// import React from 'react'; // Removed unused React import
 
+// Internal modules
 import { CodeEditor } from '@/components/common/code-editor';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -18,12 +19,14 @@ import {
   RequestBodyTab,
   BodyData,
 } from '@/components/workspace/request-tabs/body-tab';
-
 import {
   RequestHeadersTab,
   RequestHeader,
-} from '../../request-tabs/headers-tab';
-import { RequestParamsTab, QueryParam } from '../../request-tabs/params-tab';
+} from '@/components/workspace/request-tabs/headers-tab';
+import {
+  RequestParamsTab,
+  QueryParam,
+} from '@/components/workspace/request-tabs/params-tab';
 
 interface Environment {
   id: string;

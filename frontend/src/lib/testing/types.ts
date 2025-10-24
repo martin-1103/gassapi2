@@ -42,6 +42,10 @@ export interface TestScript {
   name: string;
   script: string;
   enabled: boolean;
+  type?: 'pre-request' | 'post-response';
+  timeout?: number;
+  lastResult?: TestResult;
+  created_at?: string;
 }
 
 export interface ScriptExecutionResult {

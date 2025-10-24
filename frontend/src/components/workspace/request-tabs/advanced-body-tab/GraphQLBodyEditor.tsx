@@ -1,9 +1,10 @@
+// External libraries
 import { Database } from 'lucide-react';
 
+// Internal modules
+import { CodeEditor } from '@/components/common/code-editor';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-
-import { CodeEditor } from '@/components/common/CodeEditor';
 
 interface GraphQLBodyEditorProps {
   graphqlQuery: string;

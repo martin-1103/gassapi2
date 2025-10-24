@@ -43,6 +43,10 @@ export function TimeDisplay({
     lg: 'text-base px-3 py-1.5',
   };
 
+  // Validate size prop to prevent injection
+  const validSize =
+    size === 'sm' || size === 'md' || size === 'lg' ? size : 'md';
+
   const getPerformanceLabel = (ms: number) => {
     if (ms < 200) return 'Fast';
     if (ms < 1000) return 'Normal';
@@ -55,7 +59,7 @@ export function TimeDisplay({
         <Badge
           variant='outline'
           className={cn(
-            sizeClasses[size],
+            sizeClasses[validSize],
             colorClass,
             'flex items-center gap-1',
           )}
@@ -72,7 +76,7 @@ export function TimeDisplay({
   return (
     <Badge
       variant='outline'
-      className={cn(sizeClasses[size], colorClass, 'font-mono')}
+      className={cn(sizeClasses[validSize], colorClass, 'font-mono')}
     >
       {formatTime(time)}
     </Badge>

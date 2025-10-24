@@ -300,6 +300,7 @@ export const createFlowTool: McpTool = {
             description: 'Array of flow nodes',
             items: {
               type: 'object',
+              description: 'Flow node configuration',
               properties: {
                 id: { type: 'string', description: 'Unique node identifier' },
                 type: { type: 'string', enum: ['http_request', 'delay', 'condition', 'variable_set'], description: 'Node type' },
@@ -308,8 +309,8 @@ export const createFlowTool: McpTool = {
                   type: 'object',
                   description: 'Node position in canvas',
                   properties: {
-                    x: { type: 'number' },
-                    y: { type: 'number' }
+                    x: { type: 'number', description: 'X coordinate' },
+                    y: { type: 'number', description: 'Y coordinate' }
                   }
                 }
               },
@@ -321,6 +322,7 @@ export const createFlowTool: McpTool = {
             description: 'Array of flow edges/connections',
             items: {
               type: 'object',
+              description: 'Flow edge configuration',
               properties: {
                 id: { type: 'string', description: 'Unique edge identifier' },
                 source: { type: 'string', description: 'Source node ID' },
@@ -489,6 +491,424 @@ export const executeFlowTool: McpTool = {
  */
 export function createFlowToolHandlers(): Record<string, (args: any) => Promise<McpToolResponse>> {
   return {
+    [createFlowTool.name]: async (args: Record<string, any>) => {
+      try {
+        const { configManager, backendClient } = await getFlowDependencies();
+
+        const projectId = args.project_id as string;
+        const name = args.name as string;
+        const description = args.description as string | undefined;
+        const collectionId = args.collection_id as string | undefined;
+        const flowData = args.flow_data as any;
+        const isActive = args.is_active as boolean | undefined;
+
+        if (!projectId || !name) {
+          throw new Error('Project ID and name are required');
+        }
+
+        console.error(`[FlowTools] Creating flow: ${name} in project: ${projectId}`);
+
+        // Prepare create data
+        const createData: any = {
+          name,
+          description: description || '',
+          is_active: isActive !== undefined ? isActive : true
+        };
+
+        if (collectionId) {
+          createData.collection_id = collectionId;
+        }
+
+        if (flowData) {
+          createData.flow_data = flowData;
+        }
+
+        // Create flow via backend API
+        const createUrl = `/gassapi2/backend/?act=flow_create&id=${encodeURIComponent(projectId)}`;
+        const createFullUrl = `${backendClient.getBaseUrl()}${createUrl}`;
+
+        const response = await fetch(createFullUrl, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${backendClient.getToken()}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(createData)
+        });
+
+        const result = await response.json() as any;
+
+        if (!response.ok || !result.success) {
+          throw new Error(`Failed to create flow: ${result.message || 'Unknown error'}`);
+        }
+
+        let responseText = `✅ Flow Created Successfully\n\n`;
+        responseText += `📝 Name: ${result.data?.name || name}\n`;
+        responseText += `🆔 ID: ${result.data?.id || 'Unknown'}\n`;
+        responseText += `📁 Project: ${projectId}\n`;
+        responseText += `🔗 Collection: ${collectionId || 'None'}\n`;
+        responseText += `🟢 Active: ${isActive !== undefined ? isActive : true}\n`;
+        responseText += `📅 Created: ${new Date().toISOString()}\n`;
+
+        if (description) {
+          responseText += `📄 Description: ${description}\n`;
+        }
+
+        if (flowData) {
+          const nodeCount = flowData.nodes?.length || 0;
+          const edgeCount = flowData.edges?.length || 0;
+          responseText += `🔧 Flow Data: ${nodeCount} nodes, ${edgeCount} edges\n`;
+        }
+
+        return {
+          content: [
+            {
+              type: 'text',
+              text: responseText
+            }
+          ]
+        };
+
+      } catch (error) {
+        return {
+          content: [
+            {
+              type: 'text',
+              text: `❌ Flow creation error: ${error instanceof Error ? error.message : 'Unknown error'}`
+            }
+          ],
+          isError: true
+        };
+      }
+    },
+
+    [listFlowsTool.name]: async (args: Record<string, any>) => {
+      try {
+        const { configManager, backendClient } = await getFlowDependencies();
+
+        const projectId = args.project_id as string;
+        const activeOnly = args.active_only as boolean | undefined;
+        const includeInactive = args.include_inactive as boolean | undefined;
+        const collectionId = args.collection_id as string | undefined;
+
+        if (!projectId) {
+          throw new Error('Project ID is required');
+        }
+
+        console.error(`[FlowTools] Listing flows for project: ${projectId}`);
+
+        // Build URL with parameters
+        let listUrl = `/gassapi2/backend/?act=flows&id=${encodeURIComponent(projectId)}`;
+
+        if (activeOnly) {
+          listUrl = `/gassapi2/backend/?act=flows_active&id=${encodeURIComponent(projectId)}`;
+        }
+
+        if (collectionId) {
+          listUrl += `&collection_id=${encodeURIComponent(collectionId)}`;
+        }
+
+        const listFullUrl = `${backendClient.getBaseUrl()}${listUrl}`;
+
+        const response = await fetch(listFullUrl, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${backendClient.getToken()}`,
+            'Content-Type': 'application/json'
+          }
+        });
+
+        const result = await response.json() as any;
+
+        if (!response.ok || !result.success) {
+          throw new Error(`Failed to list flows: ${result.message || 'Unknown error'}`);
+        }
+
+        const flows = result.data?.flows || [];
+
+        let responseText = `📋 Flow List\n\n`;
+        responseText += `📁 Project: ${projectId}\n`;
+        responseText += `📊 Total flows: ${flows.length}\n`;
+
+        if (collectionId) {
+          responseText += `🔗 Collection: ${collectionId}\n`;
+        }
+
+        if (activeOnly) {
+          responseText += `🟢 Filter: Active flows only\n`;
+        }
+
+        responseText += `🕐 Retrieved: ${new Date().toISOString()}\n\n`;
+
+        if (flows.length === 0) {
+          responseText += `No flows found matching the criteria.`;
+        } else {
+          responseText += `📝 Flow Details:\n`;
+          flows.forEach((flow: any, index: number) => {
+            const statusIcon = flow.is_active ? '🟢' : '🔴';
+            responseText += `${index + 1}. ${statusIcon} ${flow.name}\n`;
+            responseText += `   🆔 ID: ${flow.id}\n`;
+            responseText += `   📄 Description: ${flow.description || 'No description'}\n`;
+            responseText += `   🔗 Collection: ${flow.collection_id || 'None'}\n`;
+            responseText += `   📅 Created: ${flow.created_at || 'Unknown'}\n`;
+            responseText += `   ✏️ Updated: ${flow.updated_at || 'Unknown'}\n\n`;
+          });
+        }
+
+        return {
+          content: [
+            {
+              type: 'text',
+              text: responseText
+            }
+          ]
+        };
+
+      } catch (error) {
+        return {
+          content: [
+            {
+              type: 'text',
+              text: `❌ Flow listing error: ${error instanceof Error ? error.message : 'Unknown error'}`
+            }
+          ],
+          isError: true
+        };
+      }
+    },
+
+    [getFlowDetailTool.name]: async (args: Record<string, any>) => {
+      try {
+        const { configManager, backendClient } = await getFlowDependencies();
+
+        const flowId = args.flow_id as string;
+
+        if (!flowId) {
+          throw new Error('Flow ID is required');
+        }
+
+        console.error(`[FlowTools] Getting flow details: ${flowId}`);
+
+        const detailUrl = `/gassapi2/backend/?act=flow&id=${encodeURIComponent(flowId)}`;
+        const detailFullUrl = `${backendClient.getBaseUrl()}${detailUrl}`;
+
+        const response = await fetch(detailFullUrl, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${backendClient.getToken()}`,
+            'Content-Type': 'application/json'
+          }
+        });
+
+        const result = await response.json() as any;
+
+        if (!response.ok || !result.success) {
+          throw new Error(`Failed to get flow details: ${result.message || 'Unknown error'}`);
+        }
+
+        const flow = result.data;
+
+        let responseText = `📄 Flow Details\n\n`;
+        responseText += `📝 Name: ${flow.name}\n`;
+        responseText += `🆔 ID: ${flow.id}\n`;
+        responseText += `📄 Description: ${flow.description || 'No description'}\n`;
+        responseText += `📁 Project: ${flow.project_id}\n`;
+        responseText += `🔗 Collection: ${flow.collection_id || 'None'}\n`;
+        responseText += `🟢 Active: ${flow.is_active ? 'Yes' : 'No'}\n`;
+        responseText += `📅 Created: ${flow.created_at || 'Unknown'}\n`;
+        responseText += `✏️ Updated: ${flow.updated_at || 'Unknown'}\n\n`;
+
+        // Flow structure details
+        if (flow.flow_data) {
+          const nodeCount = flow.flow_data.nodes?.length || 0;
+          const edgeCount = flow.flow_data.edges?.length || 0;
+
+          responseText += `🔧 Flow Structure:\n`;
+          responseText += `   • Nodes: ${nodeCount}\n`;
+          responseText += `   • Edges: ${edgeCount}\n\n`;
+
+          // Node summary
+          if (flow.flow_data.nodes && flow.flow_data.nodes.length > 0) {
+            responseText += `📦 Node Summary:\n`;
+            flow.flow_data.nodes.forEach((node: any, index: number) => {
+              responseText += `${index + 1}. ${node.type} - ${node.id}\n`;
+              if (node.data?.url) {
+                responseText += `   📍 URL: ${node.data.url}\n`;
+              }
+              if (node.data?.method) {
+                responseText += `   🔧 Method: ${node.data.method}\n`;
+              }
+            });
+            responseText += '\n';
+          }
+
+          // Edge summary
+          if (flow.flow_data.edges && flow.flow_data.edges.length > 0) {
+            responseText += `🔗 Connections:\n`;
+            flow.flow_data.edges.forEach((edge: any, index: number) => {
+              responseText += `${index + 1}. ${edge.source} → ${edge.target} (${edge.type})\n`;
+            });
+          }
+        }
+
+        return {
+          content: [
+            {
+              type: 'text',
+              text: responseText
+            }
+          ]
+        };
+
+      } catch (error) {
+        return {
+          content: [
+            {
+              type: 'text',
+              text: `❌ Flow detail error: ${error instanceof Error ? error.message : 'Unknown error'}`
+            }
+          ],
+          isError: true
+        };
+      }
+    },
+
+    [updateFlowTool.name]: async (args: Record<string, any>) => {
+      try {
+        const { configManager, backendClient } = await getFlowDependencies();
+
+        const flowId = args.flow_id as string;
+        const updateData: FlowUpdateData = {};
+
+        // Collect optional fields
+        if (args.name !== undefined) updateData.name = args.name as string;
+        if (args.description !== undefined) updateData.description = args.description as string;
+        if (args.collection_id !== undefined) updateData.collection_id = args.collection_id as string;
+        if (args.flow_data !== undefined) updateData.flow_data = args.flow_data;
+        if (args.is_active !== undefined) updateData.is_active = args.is_active as boolean;
+
+        if (!flowId) {
+          throw new Error('Flow ID is required');
+        }
+
+        if (Object.keys(updateData).length === 0) {
+          throw new Error('At least one field must be provided for update');
+        }
+
+        console.error(`[FlowTools] Updating flow: ${flowId}`);
+
+        const updateUrl = `/gassapi2/backend/?act=flow_update&id=${encodeURIComponent(flowId)}`;
+        const updateFullUrl = `${backendClient.getBaseUrl()}${updateUrl}`;
+
+        const response = await fetch(updateFullUrl, {
+          method: 'PUT',
+          headers: {
+            'Authorization': `Bearer ${backendClient.getToken()}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(updateData)
+        });
+
+        const result = await response.json() as any;
+
+        if (!response.ok || !result.success) {
+          throw new Error(`Failed to update flow: ${result.message || 'Unknown error'}`);
+        }
+
+        let responseText = `✅ Flow Updated Successfully\n\n`;
+        responseText += `🆔 Flow ID: ${flowId}\n`;
+        responseText += `🕐 Updated: ${new Date().toISOString()}\n\n`;
+
+        responseText += `📝 Updated Fields:\n`;
+        Object.entries(updateData).forEach(([key, value]) => {
+          if (key === 'flow_data' && value) {
+            const nodeCount = value.nodes?.length || 0;
+            const edgeCount = value.edges?.length || 0;
+            responseText += `   • ${key}: ${nodeCount} nodes, ${edgeCount} edges\n`;
+          } else {
+            const displayValue = typeof value === 'boolean' ? (value ? 'Yes' : 'No') : String(value);
+            responseText += `   • ${key}: ${displayValue}\n`;
+          }
+        });
+
+        return {
+          content: [
+            {
+              type: 'text',
+              text: responseText
+            }
+          ]
+        };
+
+      } catch (error) {
+        return {
+          content: [
+            {
+              type: 'text',
+              text: `❌ Flow update error: ${error instanceof Error ? error.message : 'Unknown error'}`
+            }
+          ],
+          isError: true
+        };
+      }
+    },
+
+    [deleteFlowTool.name]: async (args: Record<string, any>) => {
+      try {
+        const { configManager, backendClient } = await getFlowDependencies();
+
+        const flowId = args.flow_id as string;
+
+        if (!flowId) {
+          throw new Error('Flow ID is required');
+        }
+
+        console.error(`[FlowTools] Deleting flow: ${flowId}`);
+
+        const deleteUrl = `/gassapi2/backend/?act=flow_delete&id=${encodeURIComponent(flowId)}`;
+        const deleteFullUrl = `${backendClient.getBaseUrl()}${deleteUrl}`;
+
+        const response = await fetch(deleteFullUrl, {
+          method: 'DELETE',
+          headers: {
+            'Authorization': `Bearer ${backendClient.getToken()}`,
+            'Content-Type': 'application/json'
+          }
+        });
+
+        const result = await response.json() as any;
+
+        if (!response.ok || !result.success) {
+          throw new Error(`Failed to delete flow: ${result.message || 'Unknown error'}`);
+        }
+
+        let responseText = `✅ Flow Deleted Successfully\n\n`;
+        responseText += `🆔 Flow ID: ${flowId}\n`;
+        responseText += `🕐 Deleted: ${new Date().toISOString()}\n`;
+        responseText += `⚠️ Note: This action cannot be undone`;
+
+        return {
+          content: [
+            {
+              type: 'text',
+              text: responseText
+            }
+          ]
+        };
+
+      } catch (error) {
+        return {
+          content: [
+            {
+              type: 'text',
+              text: `❌ Flow deletion error: ${error instanceof Error ? error.message : 'Unknown error'}`
+            }
+          ],
+          isError: true
+        };
+      }
+    },
+
     [executeFlowTool.name]: async (args: Record<string, any>) => {
       try {
         const { configManager, backendClient } = await getFlowDependencies();
@@ -732,6 +1152,11 @@ export function createFlowToolHandlers(): Record<string, (args: any) => Promise<
 
 // Export for server integration
 export const FLOW_TOOLS: McpTool[] = [
+  createFlowTool,
+  listFlowsTool,
+  getFlowDetailTool,
+  updateFlowTool,
+  deleteFlowTool,
   executeFlowTool
 ];
 

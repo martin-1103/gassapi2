@@ -78,8 +78,11 @@ export function useAuthState({ authData, onChange }: UseAuthStateProps) {
         if (typeof window !== 'undefined' && window.btoa) {
           return window.btoa(str);
         }
-        // Manual base64 encoding untuk Node.js environment
-        return Buffer.from(str, 'binary').toString('base64');
+        // Manual base64 encoding untuk environments tanpa btoa
+        return str
+          .split('')
+          .reduce((prev, curr) => prev + curr.charCodeAt(0), '')
+          .toString();
       };
 
       const credentials = btoa(

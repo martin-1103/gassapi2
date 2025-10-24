@@ -23,6 +23,8 @@ export interface McpParameter {
   items?: McpParameter;
   default?: string | number | boolean | null;
   additionalProperties?: boolean | McpParameter;
+  properties?: Record<string, McpParameter>;
+  required?: string[];
 }
 
 // MCP Request/Response Types (compatible with original)

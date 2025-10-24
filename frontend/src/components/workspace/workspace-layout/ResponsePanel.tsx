@@ -1,4 +1,4 @@
-import React from 'react';
+// import React from 'react'; // Removed unused React import
 
 import { CodeEditor } from '@/components/common/code-editor';
 import { StatusBadge } from '@/components/common/status-badge';

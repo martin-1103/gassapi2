@@ -36,9 +36,10 @@ export const BodyTab = ({
 
   // If search query exists, highlight matching text
   if (searchQuery) {
-    // Simple text highlighting - in a real implementation you might want more sophisticated search
+    // Safe regex construction with escaping
+    const escapedQuery = searchQuery.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     displayContent = content.replace(
-      new RegExp(`(${searchQuery})`, 'gi'),
+      new RegExp(`(${escapedQuery})`, 'gi'),
       '<mark class="bg-yellow-200">$1</mark>',
     );
   }

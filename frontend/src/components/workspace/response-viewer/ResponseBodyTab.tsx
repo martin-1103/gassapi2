@@ -39,7 +39,7 @@ export function ResponseBodyTab({
   formatMode,
   onFormatModeChange,
   searchQuery,
-  _onSearchChange,
+  onSearchChange: _onSearchChange,
 }: ResponseBodyTabProps) {
   const { resolvedTheme } = useTheme();
   const { toast } = useToast();

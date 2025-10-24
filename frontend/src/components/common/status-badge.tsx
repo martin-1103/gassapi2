@@ -60,11 +60,19 @@ export function StatusBadge({
     lg: 'text-base px-3 py-1.5',
   };
 
+  // Validate size prop to prevent injection
+  const validSize =
+    size === 'sm' || size === 'md' || size === 'lg' ? size : 'md';
+
   return (
     <div className='flex items-center gap-2'>
       <Badge
         variant={variant}
-        className={cn(sizeClasses[size], className, 'flex items-center gap-1')}
+        className={cn(
+          sizeClasses[validSize],
+          className,
+          'flex items-center gap-1',
+        )}
       >
         <Icon className='w-3 h-3' />
         {status}

@@ -12,8 +12,8 @@ interface TextViewerProps {
 }
 
 export const TextViewer = ({
-  _data,
-  _formatMode,
+  data: _data,
+  formatMode: _formatMode,
   formattedData,
   searchQuery,
   lineNumbers,

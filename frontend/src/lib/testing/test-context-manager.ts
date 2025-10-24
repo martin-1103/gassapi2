@@ -206,7 +206,7 @@ export class TestContextManager {
   /**
    * Add variable interpolation support
    */
-  interpolateInContext(context: TestContext, text: string): string {
+  interpolateInContext(_context: TestContext, text: string): string {
     return this.variableInterpolator.interpolate(text);
   }
 

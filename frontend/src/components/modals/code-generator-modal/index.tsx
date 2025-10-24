@@ -37,13 +37,7 @@ export function CodeGeneratorModal({
   // Generate code snippets - memoize with deep comparison
   const snippets = React.useMemo(() => {
     return generateCodeSnippets(requestData);
-  }, [
-    requestData.method,
-    requestData.url,
-    requestData.headers,
-    requestData.body,
-    generateCodeSnippets,
-  ]);
+  }, [requestData, generateCodeSnippets]);
 
   // Copy to clipboard
   const copyToClipboard = React.useCallback(

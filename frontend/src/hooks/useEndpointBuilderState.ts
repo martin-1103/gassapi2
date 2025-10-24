@@ -83,7 +83,7 @@ export interface EndpointBuilderState {
 
 export const useEndpointBuilderState = ({
   initialEndpoint,
-  _environment, // Prefix with underscore to indicate intentionally unused
+  environment: _environment, // Prefix with underscore to indicate intentionally unused
 }: UseEndpointBuilderStateProps): EndpointBuilderState => {
   // Endpoint state
   const [endpoint, setEndpoint] = useState<Endpoint>(initialEndpoint);

@@ -1,5 +1,5 @@
 import { List, Eye, AlertCircle } from 'lucide-react';
-import * as React from 'react';
+// import * as React from 'react'; // Removed unused React import
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useTestResultsState } from '@/hooks/useTestResultsState';

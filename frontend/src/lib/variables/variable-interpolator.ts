@@ -20,6 +20,14 @@ export class VariableInterpolator {
 
     return str.replace(/\{\{([^}]+)\}\}/g, (match, key) => {
       const trimmedKey = key.trim();
+      // Validate key to prevent prototype pollution
+      if (
+        trimmedKey === '__proto__' ||
+        trimmedKey === 'constructor' ||
+        trimmedKey === 'prototype'
+      ) {
+        return match;
+      }
       return variables[trimmedKey] !== undefined
         ? variables[trimmedKey]
         : match;
@@ -36,6 +44,10 @@ export class VariableInterpolator {
     const interpolated: Record<string, string> = {};
 
     for (const [key, value] of Object.entries(headers)) {
+      // Validate key to prevent prototype pollution
+      if (key === '__proto__' || key === 'constructor' || key === 'prototype') {
+        continue;
+      }
       interpolated[key] = this.interpolate(value, variables);
     }
 
@@ -76,6 +88,14 @@ export class VariableInterpolator {
     } else if (typeof obj === 'object' && obj !== null) {
       const result: InterpolatedObject = {};
       for (const [key, value] of Object.entries(obj)) {
+        // Validate key to prevent prototype pollution
+        if (
+          key === '__proto__' ||
+          key === 'constructor' ||
+          key === 'prototype'
+        ) {
+          continue;
+        }
         if (typeof value === 'string') {
           result[key] = this.interpolate(value, variables);
         } else {
@@ -230,10 +250,17 @@ export class VariableInterpolator {
     // Process special variables
     for (const [pattern, generator] of Object.entries(specialVars)) {
       if (result.includes(pattern)) {
-        result = result.replace(
-          new RegExp(pattern.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g'),
-          generator(),
-        );
+        // Safe regex construction with whitelist of allowed patterns
+        const allowedPatterns = [
+          '{{$uuid}}',
+          '{{$timestamp}}',
+          '{{$randomInt}}',
+          '{{$randomString}}',
+        ];
+        if (allowedPatterns.includes(pattern)) {
+          const escapedPattern = pattern.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+          result = result.replace(new RegExp(escapedPattern, 'g'), generator());
+        }
       }
     }
 

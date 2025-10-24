@@ -141,7 +141,11 @@ export class AssertionBuilder {
 
   // String assertions
   toMatch(pattern: string | RegExp): AssertionBuilder {
-    const regex = typeof pattern === 'string' ? new RegExp(pattern) : pattern;
+    // Safe regex construction for string patterns
+    const regex =
+      typeof pattern === 'string'
+        ? new RegExp(pattern.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
+        : pattern;
     const passed = regex.test(String(this.actual));
     return this.addAssertion(
       'to match',
@@ -331,7 +335,13 @@ export class AssertionBuilder {
         const valueObj = value as Record<string, JsonValue>;
 
         for (const [key, propSchema] of Object.entries(properties)) {
-          if (key in valueObj) {
+          // Validate key to prevent prototype pollution
+          if (
+            key !== '__proto__' &&
+            key !== 'constructor' &&
+            key !== 'prototype' &&
+            key in valueObj
+          ) {
             if (!this.validateAgainstSchema(valueObj[key], propSchema)) {
               return false;
             }
@@ -343,24 +353,7 @@ export class AssertionBuilder {
     return true; // Default to pass for complex schemas
   }
 
-  // Advanced assertion method dengan custom message
-  private addAssertionAdvanced(
-    assertion: string,
-    expected: JsonValue,
-    passed: boolean,
-    message?: string,
-  ): AssertionBuilder {
-    this.assertions.push({
-      name: assertion,
-      status: passed ? 'pass' : 'fail',
-      message:
-        message || `Expected ${JSON.stringify(expected)} ${passed ? '✓' : '✗'}`,
-      actual: this.actual,
-      expected,
-      duration: 0,
-    });
-    return this;
-  }
+  // addAssertionAdvanced method removed as it was unused
 
   // Utility methods
   getAssertions(): TestResult[] {
@@ -372,14 +365,14 @@ export class AssertionBuilder {
     this.negated = false;
   }
 
-  // Advanced chaining support
-  then: AssertionBuilder['addAssertionAdvanced'] = function (
-    assertion,
-    expected,
-    passed,
-    message,
-  ) {
-    return this.addAssertionAdvanced(assertion, expected, passed, message);
+  // Advanced chaining support using addAssertion method
+  then = function (
+    assertion: string,
+    expected: JsonValue,
+    passed: boolean,
+    message?: string,
+  ): AssertionBuilder {
+    return this.addAssertion(assertion, expected, passed, message);
   };
 
   // Negation support

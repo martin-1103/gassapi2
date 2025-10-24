@@ -13,40 +13,30 @@ export default defineConfig({
     target: "es2015",
     minify: "esbuild",
     sourcemap: false,
-    rollupOptions: {
-      output: {
-        manualChunks: {
-          // Core React chunks
-          "react-core": ["react", "react-dom"],
-          "react-router": ["react-router-dom"],
+    // rollupOptions: {
+    //   output: {
+    //     manualChunks: {
+    //       // Core React chunks
+    //       "react-core": ["react", "react-dom"],
+    //       "react-router": ["react-router-dom"],
 
-          // UI component libraries
-          "ui-radix": [
-            "@radix-ui/react-accordion",
-            "@radix-ui/react-dialog",
-            "@radix-ui/react-dropdown-menu",
-            "@radix-ui/react-select",
-            "@radix-ui/react-tabs",
-            "@radix-ui/react-toast",
-          ],
-          "ui-icons": ["lucide-react"],
+    //       // UI component libraries
+    //       "ui-radix": [
+    //         "@radix-ui/react-accordion",
+    //         "@radix-ui/react-dialog",
+    //         "@radix-ui/react-dropdown-menu",
+    //         "@radix-ui/react-select",
+    //         "@radix-ui/react-tabs",
+    //         "@radix-ui/react-toast",
+    //       ],
+    //       "ui-icons": ["lucide-react"],
 
-          // Utility libraries
-          "utils-core": ["clsx", "class-variance-authority", "tailwind-merge"],
-          "utils-api": ["axios"],
-
-          // Feature-based chunks
-          "testing": ["@/lib/testing"],
-          "workspace": ["@/components/workspace", "@/lib/response"],
-          "modals": ["@/components/modals"],
-          "import": ["@/utils/import"],
-
-          // Development/Analysis chunks
-          "console": ["@/lib/console"],
-          "testing-framework": ["@/lib/testing"],
-        },
-      },
-    },
+    //       // Utility libraries
+    //       "utils-core": ["clsx", "class-variance-authority", "tailwind-merge"],
+    //       "utils-api": ["axios"],
+    //     },
+    //   },
+    // },
   },
   optimizeDeps: {
     include: [
@@ -70,30 +60,44 @@ export default defineConfig({
     host: true,
     port: 3000,
     fs: {
-      // Mitigate GHSA-93m4-6634-74q7: Restrict file system access
+      // Mitigate GHSA-93m4-6634-74q7: Enhanced file system access restrictions
       strict: true,
-      allow: [".."], // Only allow parent directory access
-      deny: [".env", ".env.*", "*.{crt,key,pem}", "**/.git/**"],
+      // Only allow specific directories instead of ".." to prevent backslash bypass
+      allow: [
+        path.resolve(__dirname, "./src"),
+        path.resolve(__dirname, "../backend"),
+        path.resolve(__dirname, "../")
+      ],
+      deny: [
+        ".env", ".env.*",
+        "*.{crt,key,pem,p12,pfx}",
+        "**/.git/**",
+        "**/node_modules/**",
+        "**/.DS_Store",
+        "**/Thumbs.db"
+      ],
     },
     headers: {
-      // Security headers
+      // Enhanced security headers
       "X-Content-Type-Options": "nosniff",
       "X-Frame-Options": "DENY",
       "X-XSS-Protection": "1; mode=block",
       "Referrer-Policy": "strict-origin-when-cross-origin",
-      "Permissions-Policy": "camera=(), microphone=(), geolocation=()",
+      "Permissions-Policy": "camera=(), microphone=(), geolocation=(), payment=()",
+      "Content-Security-Policy": "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline';",
     },
   },
   preview: {
     host: true,
     port: 3000,
     headers: {
-      // Security headers for preview
+      // Enhanced security headers for preview
       "X-Content-Type-Options": "nosniff",
       "X-Frame-Options": "DENY",
       "X-XSS-Protection": "1; mode=block",
       "Referrer-Policy": "strict-origin-when-cross-origin",
-      "Permissions-Policy": "camera=(), microphone=(), geolocation=()",
+      "Permissions-Policy": "camera=(), microphone=(), geolocation=(), payment=()",
+      "Content-Security-Policy": "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline';",
     },
   },
 })

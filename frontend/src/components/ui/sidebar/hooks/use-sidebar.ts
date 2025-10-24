@@ -1,7 +1,7 @@
 import * as React from 'react';
 
-import { SidebarContext } from '../SidebarProvider';
-import type { SidebarContextProps } from '../SidebarProvider';
+import { SidebarContext } from '../context';
+import type { SidebarContextProps } from '../context';
 
 /**
  * Hook untuk menggunakan sidebar context
