@@ -1,7 +1,8 @@
 import { CheckCircle, XCircle, AlertCircle, Clock } from 'lucide-react';
 import * as React from 'react';
 
-import { Badge } from '@/components/ui/badge';
+import Badge from '@/components/ui/badge';
+import { cn } from '@/lib/utils/index';
 
 interface StatusBadgeProps {
   status: number;

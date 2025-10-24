@@ -6,7 +6,7 @@ import {
   ChevronDown,
   FileText,
 } from 'lucide-react';
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { toast } from 'sonner';
 
 import CreateEndpointModal from '@/features/endpoints/CreateEndpointModal';
@@ -43,7 +43,7 @@ export default function CollectionsSidebar({
       setShowCreateModal(false);
       setNewCollectionName('');
     },
-    onError: (error: any) => {
+    onError: (error: { response?: { data?: { message?: string } } }) => {
       toast.error(error.response?.data?.message || 'Gagal membuat collection');
     },
   });
@@ -116,16 +116,19 @@ export default function CollectionsSidebar({
 
             <form onSubmit={handleCreateCollection} className='space-y-4'>
               <div>
-                <label className='block text-sm font-medium text-gray-700 mb-1'>
+                <label
+                  htmlFor='collection-name'
+                  className='block text-sm font-medium text-gray-700 mb-1'
+                >
                   Nama Collection *
                 </label>
                 <input
+                  id='collection-name'
                   type='text'
                   value={newCollectionName}
                   onChange={e => setNewCollectionName(e.target.value)}
                   className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500'
                   placeholder='Contoh: User API'
-                  autoFocus
                   required
                 />
               </div>
@@ -185,7 +188,12 @@ function CollectionItem({
   projectId: string;
   isExpanded: boolean;
   onToggleExpand: (id: string) => void;
-  onOpenTab: (tab: any) => void;
+  onOpenTab: (tab: {
+    id: string;
+    type: string;
+    title: string;
+    data: unknown;
+  }) => void;
   onCreateEndpoint: () => void;
 }) {
   const { data: endpointsResponse } = useQuery({
@@ -202,9 +210,17 @@ function CollectionItem({
   return (
     <div>
       <div className='flex items-center gap-2 px-2 py-1.5 rounded hover:bg-gray-100 group'>
-        <div
+        <button
           onClick={() => onToggleExpand(collection.id)}
-          className='flex items-center gap-2 flex-1 cursor-pointer'
+          onKeyDown={e => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              onToggleExpand(collection.id);
+            }
+          }}
+          className='flex items-center gap-2 flex-1 cursor-pointer bg-transparent border-none text-left p-0 hover:bg-transparent focus:outline-none focus:ring-2 focus:ring-blue-500 rounded'
+          aria-expanded={isExpanded}
+          aria-controls={`collection-${collection.id}-content`}
         >
           {isExpanded ? (
             <ChevronDown className='w-4 h-4 text-gray-500' />
@@ -215,7 +231,7 @@ function CollectionItem({
           <span className='text-sm font-medium text-gray-900 flex-1 truncate'>
             {collection.name}
           </span>
-        </div>
+        </button>
         <button
           onClick={e => {
             e.stopPropagation();
@@ -231,7 +247,7 @@ function CollectionItem({
       {isExpanded && (
         <div className='ml-6 mt-1 space-y-1'>
           {endpoints.map(endpoint => (
-            <div
+            <button
               key={endpoint.id}
               onClick={() =>
                 onOpenTab({
@@ -241,7 +257,7 @@ function CollectionItem({
                   data: endpoint,
                 })
               }
-              className='flex items-center gap-2 px-2 py-1.5 rounded hover:bg-gray-100 cursor-pointer'
+              className='flex items-center gap-2 px-2 py-1.5 rounded hover:bg-gray-100 cursor-pointer bg-transparent border-none text-left p-0 hover:bg-transparent focus:outline-none focus:ring-2 focus:ring-blue-500 rounded w-full'
             >
               <FileText className='w-4 h-4 text-gray-400' />
               <span className='text-xs font-medium text-blue-600 w-12'>
@@ -250,7 +266,7 @@ function CollectionItem({
               <span className='text-sm text-gray-700 flex-1 truncate'>
                 {endpoint.name}
               </span>
-            </div>
+            </button>
           ))}
         </div>
       )}

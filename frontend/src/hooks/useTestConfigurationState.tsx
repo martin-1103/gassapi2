@@ -1,6 +1,6 @@
-import React from 'react';
-import { useState } from 'react';
 import { CheckCircle, XCircle, AlertCircle, Play } from 'lucide-react';
+import React, { useState } from 'react';
+
 import { useToast } from '@/hooks/use-toast';
 
 export interface TestScript {
@@ -22,10 +22,10 @@ export interface TestResult {
 
 export function useTestConfigurationState(
   initialScripts: TestScript[],
-  onChange: (scripts: TestScript[]) => void
+  onChange: (scripts: TestScript[]) => void,
 ) {
   const [selectedScript, setSelectedScript] = useState<TestScript | null>(
-    initialScripts[0] || null
+    initialScripts[0] || null,
   );
   const [testResults, setTestResults] = useState<TestResult[]>([]);
   const [isRunning, setIsRunning] = useState(false);
@@ -49,7 +49,7 @@ export function useTestConfigurationState(
 
   const updateTestScript = (id: string, updates: Partial<TestScript>) => {
     const updatedScripts = initialScripts.map(script =>
-      script.id === id ? { ...script, ...updates } : script
+      script.id === id ? { ...script, ...updates } : script,
     );
     onChange(updatedScripts);
 

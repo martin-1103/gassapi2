@@ -1,7 +1,7 @@
-import { FileText, Plus, Upload } from 'lucide-react';
+import { FileText } from 'lucide-react';
 
+import { CodeEditor } from '@/components/common/code-editor';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import {
   Select,
   SelectContent,
@@ -9,19 +9,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import {
-  Tooltip,
-  TooltipProvider,
-} from '@/components/ui/tooltip';
+import { TooltipProvider } from '@/components/ui/tooltip';
+import { BinaryBodyEditor } from '@/components/workspace/request-tabs/editors/binary-body-editor';
+import { FormDataEditor } from '@/components/workspace/request-tabs/editors/form-data-editor';
+import { GraphQLBodyEditor } from '@/components/workspace/request-tabs/editors/graphql-body-editor';
+import { UrlEncodedEditor } from '@/components/workspace/request-tabs/editors/url-encoded-editor';
 import { useRequestBodyState } from '@/hooks/use-request-body-state';
 import { BodyPreview } from '@/lib/preview/body-preview';
 import { getContentType } from '@/lib/utils/body-utils';
-import { CodeEditor } from '@/components/common/code-editor';
-import { FormDataEditor } from '@/components/workspace/request-tabs/editors/form-data-editor';
-import { BinaryBodyEditor } from '@/components/workspace/request-tabs/editors/binary-body-editor';
-import { GraphQLBodyEditor } from '@/components/workspace/request-tabs/editors/graphql-body-editor';
-import { UrlEncodedEditor } from '@/components/workspace/request-tabs/editors/url-encoded-editor';
 
 export interface BodyData {
   type:
@@ -115,7 +110,10 @@ export function RequestBodyTab({ bodyData, onChange }: RequestBodyTabProps) {
           {currentBodyData.type === 'raw' && (
             <div className='h-full flex flex-col'>
               <div className='flex items-center justify-between mb-4'>
-                <Select value={currentBodyData.rawType} onValueChange={updateRawType}>
+                <Select
+                  value={currentBodyData.rawType}
+                  onValueChange={updateRawType}
+                >
                   <SelectTrigger className='w-32'>
                     <SelectValue />
                   </SelectTrigger>
@@ -172,9 +170,7 @@ export function RequestBodyTab({ bodyData, onChange }: RequestBodyTabProps) {
             />
           )}
 
-          {currentBodyData.type === 'binary' && (
-            <BinaryBodyEditor />
-          )}
+          {currentBodyData.type === 'binary' && <BinaryBodyEditor />}
 
           {currentBodyData.type === 'graphql' && (
             <GraphQLBodyEditor

@@ -13,37 +13,13 @@ export interface TestResult {
     assertion: string;
     status: 'pass' | 'fail';
     message: string;
-    actual?: any;
-    expected?: any;
+    actual?: unknown;
+    expected?: unknown;
   }>;
 }
 
 export interface ResponseTestsTabProps {
   testResults: TestResult[];
-}
-
-export interface TestStatistics {
-  passedTests: number;
-  failedTests: number;
-  skippedTests: number;
-  errorTests: number;
-  totalTests: number;
-  averageDuration: number;
-  successRate: number;
-}
-
-export interface PerformanceMetrics {
-  fastest: number;
-  slowest: number;
-  average: number;
-  total: number;
-}
-
-export interface TestSummary {
-  label: string;
-  description: string;
-  color: string;
-  bgColor: string;
 }
 
 export interface TestCategories {

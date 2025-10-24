@@ -1,13 +1,17 @@
-import { ConsoleStats } from '@/lib/console/console-utils';
 import { Terminal } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
 
-interface ConsoleStatsProps {
-  stats: ConsoleStats;
+import { Badge } from '@/components/ui/badge';
+import { ConsoleStats as ConsoleStatsType } from '@/lib/console/console-utils';
+
+interface ConsoleStatsComponentProps {
+  stats: ConsoleStatsType;
   totalEntries: number;
 }
 
-export default function ConsoleStats({ stats, totalEntries }: ConsoleStatsProps) {
+export default function ConsoleStats({
+  stats,
+  totalEntries,
+}: ConsoleStatsComponentProps) {
   return (
     <div className='flex items-center gap-3'>
       <h3 className='font-semibold flex items-center gap-2'>

@@ -4,6 +4,7 @@ namespace App\Handlers;
 use App\Helpers\ResponseHelper;
 use App\Helpers\ValidationHelper;
 use App\Helpers\JwtHelper;
+use App\Helpers\AuthHelper;
 use App\Repositories\ProjectRepository;
 use App\Repositories\CollectionRepository;
 
@@ -23,7 +24,8 @@ class CollectionHandler {
         if (!$projectId) { 
             ResponseHelper::error('Project ID is required', 400); 
         }
-        $userId = $this->requireUserId();
+        $user = AuthHelper::requireAuth();
+        $userId = $user['id'];
         
         if (!$this->projects->isMember($projectId, $userId)) {
             ResponseHelper::error('Forbidden', 403);
@@ -40,7 +42,8 @@ class CollectionHandler {
         if (!$projectId) { 
             ResponseHelper::error('Project ID is required', 400); 
         }
-        $userId = $this->requireUserId();
+        $user = AuthHelper::requireAuth();
+        $userId = $user['id'];
         
         if (!$this->projects->isMember($projectId, $userId)) {
             ResponseHelper::error('Forbidden', 403);
@@ -98,7 +101,8 @@ class CollectionHandler {
         if (!$id) { 
             ResponseHelper::error('Collection ID is required', 400); 
         }
-        $userId = $this->requireUserId();
+        $user = AuthHelper::requireAuth();
+        $userId = $user['id'];
         
         $collection = $this->collections->findById($id);
         if (!$collection) { 
@@ -119,7 +123,8 @@ class CollectionHandler {
         if (!$id) { 
             ResponseHelper::error('Collection ID is required', 400); 
         }
-        $userId = $this->requireUserId();
+        $user = AuthHelper::requireAuth();
+        $userId = $user['id'];
         
         $collection = $this->collections->findById($id);
         if (!$collection) { 
@@ -174,7 +179,8 @@ class CollectionHandler {
         if (!$id) { 
             ResponseHelper::error('Collection ID is required', 400); 
         }
-        $userId = $this->requireUserId();
+        $user = AuthHelper::requireAuth();
+        $userId = $user['id'];
         
         $collection = $this->collections->findById($id);
         if (!$collection) { 
@@ -192,14 +198,5 @@ class CollectionHandler {
             error_log('Collection delete error: ' . $e->getMessage());
             ResponseHelper::error('Failed to delete collection', 500);
         }
-    }
-
-    private function requireUserId() {
-        $token = JwtHelper::getTokenFromRequest();
-        $payload = JwtHelper::validateAccessToken($token);
-        if (!$payload) { 
-            ResponseHelper::error('Unauthorized', 401); 
-        }
-        return $payload['sub'];
     }
 }

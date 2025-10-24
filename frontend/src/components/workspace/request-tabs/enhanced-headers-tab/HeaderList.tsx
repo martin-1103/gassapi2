@@ -1,25 +1,34 @@
-import { useState } from 'react'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { Badge } from '@/components/ui/badge'
-import { MoreHorizontal, Plus } from 'lucide-react'
+import { MoreHorizontal, Plus } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+
+import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-  DropdownMenuSeparator
-} from '@/components/ui/dropdown-menu'
-import { RequestHeader } from './index'
-import HeaderValidator from './HeaderValidator'
+  DropdownMenuSeparator,
+} from '@/components/ui/dropdown-menu';
+import { Input } from '@/components/ui/input';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+
+import HeaderValidator from './HeaderValidator';
+
+import { RequestHeader } from './index';
 
 interface HeaderListProps {
-  headers: RequestHeader[]
-  onUpdateHeader: (id: string, updates: Partial<RequestHeader>) => void
-  onDeleteHeader: (id: string) => void
-  onDuplicateHeader: (header: RequestHeader) => void
-  onAddHeader: () => void
+  headers: RequestHeader[];
+  onUpdateHeader: (id: string, updates: Partial<RequestHeader>) => void;
+  onDeleteHeader: (id: string) => void;
+  onDuplicateHeader: (header: RequestHeader) => void;
+  onAddHeader: () => void;
 }
 
 export default function HeaderList({
@@ -27,68 +36,100 @@ export default function HeaderList({
   onUpdateHeader,
   onDeleteHeader,
   onDuplicateHeader,
-  onAddHeader
+  onAddHeader,
 }: HeaderListProps) {
-  const [validatingHeaders, setValidatingHeaders] = useState<Set<string>>(new Set())
+  const [validatingHeaders, setValidatingHeaders] = useState<Set<string>>(
+    new Set(),
+  );
 
-  const updateHeaderWithValidation = (id: string, updates: Partial<RequestHeader>) => {
-    setValidatingHeaders(prev => new Set(prev).add(id))
-    onUpdateHeader(id, updates)
+  // Timer refs untuk prevent memory leaks
+  const timerRefs = useRef<Map<string, number>>(new Map());
 
-    // Remove validation status after a delay
-    setTimeout(() => {
+  // Cleanup timers saat component unmount
+  useEffect(() => {
+    const timers = timerRefs.current;
+    return () => {
+      timers.forEach(timerId => {
+        window.clearTimeout(timerId);
+      });
+      timers.clear();
+    };
+  }, []);
+
+  const updateHeaderWithValidation = (
+    id: string,
+    updates: Partial<RequestHeader>,
+  ) => {
+    setValidatingHeaders(prev => new Set(prev).add(id));
+    onUpdateHeader(id, updates);
+
+    // Clear existing timer untuk header yang sama
+    const existingTimer = timerRefs.current.get(id);
+    if (existingTimer) {
+      window.clearTimeout(existingTimer);
+    }
+
+    // Set timer baru untuk hapus validation status
+    const timerId = window.setTimeout(() => {
       setValidatingHeaders(prev => {
-        const next = new Set(prev)
-        next.delete(id)
-        return next
-      })
-    }, 500)
-  }
+        const next = new Set(prev);
+        next.delete(id);
+        return next;
+      });
+      timerRefs.current.delete(id);
+    }, 500);
+
+    timerRefs.current.set(id, timerId);
+  };
 
   const handleValidationChange = (headerId: string, isValid: boolean) => {
     if (!isValid) {
-      setValidatingHeaders(prev => new Set(prev).add(headerId))
+      setValidatingHeaders(prev => new Set(prev).add(headerId));
     } else {
       setValidatingHeaders(prev => {
-        const next = new Set(prev)
-        next.delete(headerId)
-        return next
-      })
+        const next = new Set(prev);
+        next.delete(headerId);
+        return next;
+      });
     }
-  }
+  };
 
   return (
-    <div className="border rounded-lg overflow-hidden">
+    <div className='border rounded-lg overflow-hidden'>
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead className="w-12">Enabled</TableHead>
+            <TableHead className='w-12'>Enabled</TableHead>
             <TableHead>Header Name</TableHead>
             <TableHead>Value</TableHead>
             <TableHead>Description</TableHead>
-            <TableHead className="w-20">Actions</TableHead>
+            <TableHead className='w-20'>Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
-          {headers.map((header) => (
+          {headers.map(header => (
             <TableRow key={header.id}>
               <TableCell>
                 <input
-                  type="checkbox"
+                  type='checkbox'
                   checked={header.enabled}
-                  onChange={(e) =>
-                    updateHeaderWithValidation(header.id, { enabled: e.target.checked })
+                  onChange={e =>
+                    updateHeaderWithValidation(header.id, {
+                      enabled: e.target.checked,
+                    })
                   }
-                  className="rounded"
+                  className='rounded'
                 />
               </TableCell>
               <TableCell>
-                <div className="space-y-1">
+                <div className='space-y-1'>
                   <Input
-                    placeholder="Header name"
+                    placeholder='Header name'
                     value={header.key}
-                    onChange={(e) =>
-                      updateHeaderWithValidation(header.id, { key: e.target.value })
+                    onChange={e =>
+                      updateHeaderWithValidation(header.id, {
+                        key: e.target.value,
+                      })
                     }
                     className={`font-mono text-sm ${
                       validatingHeaders.has(header.id) && !header.key.trim()
@@ -100,12 +141,14 @@ export default function HeaderList({
                 </div>
               </TableCell>
               <TableCell>
-                <div className="space-y-1">
+                <div className='space-y-1'>
                   <Input
-                    placeholder="Header value"
+                    placeholder='Header value'
                     value={header.value}
-                    onChange={(e) =>
-                      updateHeaderWithValidation(header.id, { value: e.target.value })
+                    onChange={e =>
+                      updateHeaderWithValidation(header.id, {
+                        value: e.target.value,
+                      })
                     }
                     className={`font-mono text-sm ${
                       validatingHeaders.has(header.id) && !header.value.trim()
@@ -117,20 +160,22 @@ export default function HeaderList({
                 </div>
               </TableCell>
               <TableCell>
-                <div className="space-y-1">
+                <div className='space-y-1'>
                   <Input
-                    placeholder="Description (optional)"
+                    placeholder='Description (optional)'
                     value={header.description || ''}
-                    onChange={(e) =>
-                      updateHeaderWithValidation(header.id, { description: e.target.value })
+                    onChange={e =>
+                      updateHeaderWithValidation(header.id, {
+                        description: e.target.value,
+                      })
                     }
-                    className="text-sm"
+                    className='text-sm'
                     disabled={!header.enabled}
                   />
                   {validatingHeaders.has(header.id) && (
                     <HeaderValidator
                       header={header}
-                      onValidationChange={(isValid) =>
+                      onValidationChange={isValid =>
                         handleValidationChange(header.id, isValid)
                       }
                     />
@@ -140,8 +185,8 @@ export default function HeaderList({
               <TableCell>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button size="sm" variant="ghost">
-                      <MoreHorizontal className="w-4 h-4" />
+                    <Button size='sm' variant='ghost'>
+                      <MoreHorizontal className='w-4 h-4' />
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent>
@@ -151,7 +196,7 @@ export default function HeaderList({
                     <DropdownMenuSeparator />
                     <DropdownMenuItem
                       onClick={() => onDeleteHeader(header.id)}
-                      className="text-destructive"
+                      className='text-destructive'
                     >
                       Delete
                     </DropdownMenuItem>
@@ -164,22 +209,20 @@ export default function HeaderList({
       </Table>
 
       {headers.length === 0 && (
-        <div className="text-center py-8 text-muted-foreground">
-          <div className="mb-4">
-            <Plus className="w-8 h-8 mx-auto text-muted-foreground/50" />
+        <div className='text-center py-8 text-muted-foreground'>
+          <div className='mb-4'>
+            <Plus className='w-8 h-8 mx-auto text-muted-foreground/50' />
           </div>
-          <p className="mb-2">No headers added yet</p>
-          <p className="text-sm">Click "Add" to create a new header.</p>
-          <Button
-            size="sm"
-            onClick={onAddHeader}
-            className="mt-4"
-          >
-            <Plus className="w-4 h-4 mr-2" />
+          <p className='mb-2'>No headers added yet</p>
+          <p className='text-sm'>
+            Click &quot;Add&quot; to create a new header.
+          </p>
+          <Button size='sm' onClick={onAddHeader} className='mt-4'>
+            <Plus className='w-4 h-4 mr-2' />
             Add First Header
           </Button>
         </div>
       )}
     </div>
-  )
+  );
 }

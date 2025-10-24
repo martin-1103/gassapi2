@@ -1,4 +1,5 @@
-import { encodeParamValue, decodeParamValue } from '@/lib/utils/param-building-utils';
+// Utility functions for parameter encoding
+// These will be used when implementing the encode/decode functionality
 
 interface ParamEncodingUtilsProps {
   onEncodeAll: () => void;
@@ -6,31 +7,32 @@ interface ParamEncodingUtilsProps {
   onClearDisabled: () => void;
 }
 
+// Component untuk parameter encoding utilities
 export function ParamEncodingUtils({
   onEncodeAll,
   onDecodeAll,
   onClearDisabled,
 }: ParamEncodingUtilsProps) {
   return (
-    <div className="flex items-center gap-2">
-      <button 
-        type="button"
+    <div className='flex items-center gap-2'>
+      <button
+        type='button'
         onClick={onEncodeAll}
-        className="px-3 py-1.5 text-sm border rounded hover:bg-accent"
+        className='px-3 py-1.5 text-sm border rounded hover:bg-accent'
       >
         URL Encode All
       </button>
-      <button 
-        type="button"
+      <button
+        type='button'
         onClick={onDecodeAll}
-        className="px-3 py-1.5 text-sm border rounded hover:bg-accent"
+        className='px-3 py-1.5 text-sm border rounded hover:bg-accent'
       >
         URL Decode All
       </button>
-      <button 
-        type="button"
+      <button
+        type='button'
         onClick={onClearDisabled}
-        className="px-3 py-1.5 text-sm border rounded hover:bg-accent"
+        className='px-3 py-1.5 text-sm border rounded hover:bg-accent'
       >
         Clear Disabled
       </button>
@@ -38,5 +40,6 @@ export function ParamEncodingUtils({
   );
 }
 
-// Export utility functions for encoding/decoding
-export { encodeParamValue, decodeParamValue };
+// Utility functions dipisahkan ke file terpisah untuk Fast Refresh
+// Export komponen saja
+export { ParamEncodingUtils };

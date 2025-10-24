@@ -9,12 +9,12 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { useHeadersState } from '@/hooks/useHeadersState';
+import { RequestHeader } from '@/lib/utils/header-utils';
 
 import { HeaderEmptyState } from './components/HeaderEmptyState';
 import { HeaderTable } from './components/HeaderTable';
 import { HeaderTemplates } from './components/HeaderTemplates';
-import { useHeadersState } from '@/hooks/useHeadersState';
-import { RequestHeader } from '@/lib/utils/header-utils';
 
 interface RequestHeadersTabProps {
   headers: RequestHeader[];

@@ -1,9 +1,10 @@
 import { Copy } from 'lucide-react';
+import { BookOpen, Code } from 'lucide-react';
+
 import { CodeEditor } from '@/components/common/code-editor';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { BookOpen, Code } from 'lucide-react';
 import { TestScript } from '@/hooks/useTestConfigurationState';
 import { TEST_TEMPLATES } from '@/lib/testing/test-templates';
 

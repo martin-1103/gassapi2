@@ -39,7 +39,18 @@ export const useAuthStore = create<AuthStore>()(
         set({ isLoading: true, error: null });
         try {
           const response = await authApi.login(credentials);
-          const { user, access_token, refresh_token } = response.data.data!;
+          const responseData = response.data.data;
+
+          if (
+            !responseData ||
+            !('user' in responseData) ||
+            !('access_token' in responseData) ||
+            !('refresh_token' in responseData)
+          ) {
+            throw new Error('Respons login tidak valid');
+          }
+
+          const { user, access_token, refresh_token } = responseData;
 
           set({
             user,
@@ -48,9 +59,10 @@ export const useAuthStore = create<AuthStore>()(
             isAuthenticated: true,
             isLoading: false,
           });
-        } catch (error: any) {
+        } catch (error: unknown) {
           const errorMessage =
-            error.response?.data?.message || 'Login gagal. Coba lagi.';
+            (error as { response?: { data?: { message?: string } } })?.response
+              ?.data?.message || 'Login gagal. Coba lagi.';
           set({ error: errorMessage, isLoading: false });
           throw error;
         }
@@ -60,7 +72,18 @@ export const useAuthStore = create<AuthStore>()(
         set({ isLoading: true, error: null });
         try {
           const response = await authApi.register(data);
-          const { user, access_token, refresh_token } = response.data.data!;
+          const responseData = response.data.data;
+
+          if (
+            !responseData ||
+            !('user' in responseData) ||
+            !('access_token' in responseData) ||
+            !('refresh_token' in responseData)
+          ) {
+            throw new Error('Respons registrasi tidak valid');
+          }
+
+          const { user, access_token, refresh_token } = responseData;
 
           set({
             user,
@@ -69,9 +92,10 @@ export const useAuthStore = create<AuthStore>()(
             isAuthenticated: true,
             isLoading: false,
           });
-        } catch (error: any) {
+        } catch (error: unknown) {
           const errorMessage =
-            error.response?.data?.message || 'Registrasi gagal. Coba lagi.';
+            (error as { response?: { data?: { message?: string } } })?.response
+              ?.data?.message || 'Registrasi gagal. Coba lagi.';
           set({ error: errorMessage, isLoading: false });
           throw error;
         }
@@ -98,7 +122,17 @@ export const useAuthStore = create<AuthStore>()(
 
         try {
           const response = await authApi.refresh(refreshToken);
-          const { access_token, refresh_token } = response.data.data!;
+          const responseData = response.data.data;
+
+          if (
+            !responseData ||
+            !('access_token' in responseData) ||
+            !('refresh_token' in responseData)
+          ) {
+            throw new Error('Respons refresh tidak valid');
+          }
+
+          const { access_token, refresh_token } = responseData;
 
           set({
             accessToken: access_token,

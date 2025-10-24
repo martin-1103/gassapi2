@@ -183,7 +183,7 @@ export const flowsApi = {
       name: string;
       description?: string;
       collection_id?: string;
-      flow_data?: any;
+      flow_data?: Record<string, unknown>;
       is_active?: boolean;
     },
   ) =>

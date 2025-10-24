@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { X } from 'lucide-react';
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { toast } from 'sonner';
 
 import { environmentsApi } from '@/lib/api/endpoints';
@@ -29,7 +29,7 @@ export default function CreateEnvironmentModal({
       toast.success('Environment berhasil dibuat!');
       onClose();
     },
-    onError: (error: any) => {
+    onError: (error: { response?: { data?: { message?: string } } }) => {
       toast.error(error.response?.data?.message || 'Gagal membuat environment');
     },
   });
@@ -77,16 +77,19 @@ export default function CreateEnvironmentModal({
 
         <form onSubmit={handleSubmit} className='p-6 space-y-4'>
           <div>
-            <label className='block text-sm font-medium text-gray-700 mb-1'>
+            <label
+              htmlFor='env-name'
+              className='block text-sm font-medium text-gray-700 mb-1'
+            >
               Nama Environment *
             </label>
             <input
+              id='env-name'
               type='text'
               value={formData.name}
               onChange={e => setFormData({ ...formData, name: e.target.value })}
               className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500'
               placeholder='Contoh: Development, Production'
-              autoFocus
               required
             />
           </div>
@@ -95,6 +98,7 @@ export default function CreateEnvironmentModal({
             <label className='flex items-center gap-2'>
               <input
                 type='checkbox'
+                id='env-default'
                 checked={formData.is_default}
                 onChange={e =>
                   setFormData({ ...formData, is_default: e.target.checked })
@@ -106,61 +110,81 @@ export default function CreateEnvironmentModal({
           </div>
 
           <div>
-            <label className='block text-sm font-medium text-gray-700 mb-2'>
-              Variables
-            </label>
+            <fieldset>
+              <legend className='block text-sm font-medium text-gray-700 mb-2'>
+                Variables
+              </legend>
 
-            {/* Existing variables */}
-            {Object.entries(formData.variables).length > 0 && (
-              <div className='space-y-2 mb-3'>
-                {Object.entries(formData.variables).map(([key, value]) => (
-                  <div
-                    key={key}
-                    className='flex items-center gap-2 p-2 bg-gray-50 rounded'
-                  >
-                    <span className='text-sm font-mono flex-1'>
-                      {key} = {value}
-                    </span>
-                    <button
-                      type='button'
-                      onClick={() => removeVariable(key)}
-                      className='text-red-600 hover:bg-red-50 p-1 rounded'
+              {/* Existing variables */}
+              {Object.entries(formData.variables).length > 0 && (
+                <div className='space-y-2 mb-3'>
+                  {Object.entries(formData.variables).map(([key, value]) => (
+                    <div
+                      key={key}
+                      className='flex items-center gap-2 p-2 bg-gray-50 rounded'
                     >
-                      <X className='w-4 h-4' />
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
+                      <span className='text-sm font-mono flex-1'>
+                        {key} = {value}
+                      </span>
+                      <button
+                        type='button'
+                        onClick={() => removeVariable(key)}
+                        className='text-red-600 hover:bg-red-50 p-1 rounded'
+                      >
+                        <X className='w-4 h-4' />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
 
-            {/* Add new variable */}
-            <div className='flex gap-2'>
-              <input
-                type='text'
-                value={variableInput.key}
-                onChange={e =>
-                  setVariableInput({ ...variableInput, key: e.target.value })
-                }
-                className='flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500'
-                placeholder='Key (contoh: base_url)'
-              />
-              <input
-                type='text'
-                value={variableInput.value}
-                onChange={e =>
-                  setVariableInput({ ...variableInput, value: e.target.value })
-                }
-                className='flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500'
-                placeholder='Value'
-              />
-              <button
-                type='button'
-                onClick={addVariable}
-                className='px-3 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 text-sm'
-              >
-                Tambah
-              </button>
-            </div>
+              {/* Add new variable */}
+              <div className='flex gap-2'>
+                <div className='flex-1'>
+                  <label htmlFor='var-key' className='sr-only'>
+                    Variable Key
+                  </label>
+                  <input
+                    id='var-key'
+                    type='text'
+                    value={variableInput.key}
+                    onChange={e =>
+                      setVariableInput({
+                        ...variableInput,
+                        key: e.target.value,
+                      })
+                    }
+                    className='w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500'
+                    placeholder='Key (contoh: base_url)'
+                  />
+                </div>
+                <div className='flex-1'>
+                  <label htmlFor='var-value' className='sr-only'>
+                    Variable Value
+                  </label>
+                  <input
+                    id='var-value'
+                    type='text'
+                    value={variableInput.value}
+                    onChange={e =>
+                      setVariableInput({
+                        ...variableInput,
+                        value: e.target.value,
+                      })
+                    }
+                    className='w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500'
+                    placeholder='Value'
+                  />
+                </div>
+                <button
+                  type='button'
+                  onClick={addVariable}
+                  className='px-3 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 text-sm'
+                >
+                  Tambah
+                </button>
+              </div>
+            </fieldset>
           </div>
 
           <div className='flex gap-3 pt-4'>

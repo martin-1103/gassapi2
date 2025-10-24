@@ -1,17 +1,14 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'sonner';
 
-// Pages
 import AppLayout from '@/components/layout/AppLayout';
-import WorkspaceLayout from '@/components/workspace/workspace-layout';
 import DashboardPage from '@/pages/DashboardPage';
 import LoginPage from '@/pages/LoginPage';
 import ProjectsPage from '@/pages/ProjectsPage';
 import RegisterPage from '@/pages/RegisterPage';
 import WorkspacePage from '@/pages/WorkspacePage';
-
-// Layout
 import { useAuthStore } from '@/stores/authStore';
 
 // Create React Query client

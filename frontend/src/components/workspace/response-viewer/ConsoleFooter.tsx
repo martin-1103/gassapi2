@@ -15,7 +15,7 @@ export default function ConsoleFooter({
         <div className='flex items-center gap-4'>
           <span>Console entries: {totalEntries}</span>
           <span>Showing: {filteredEntries} filtered</span>
-          {searchQuery && <span>Filtered by: "{searchQuery}"</span>}
+          {searchQuery && <span>Filtered by: &quot;{searchQuery}&quot;</span>}
         </div>
         <div className='flex items-center gap-4'>
           <span>Auto-refresh: Enabled</span>

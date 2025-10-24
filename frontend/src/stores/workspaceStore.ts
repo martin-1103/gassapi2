@@ -5,7 +5,7 @@ interface Tab {
   id: string;
   type: 'endpoint' | 'flow' | 'collection';
   title: string;
-  data?: any;
+  data?: Record<string, unknown>;
 }
 
 interface WorkspaceState {

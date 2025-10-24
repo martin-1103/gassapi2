@@ -3,9 +3,14 @@ import { ApiResponse } from '@/types/api';
 /**
  * Processes response headers to extract content type
  */
-export const getContentType = (headers?: Record<string, string> | null): string => {
+export const getContentType = (
+  headers?: Record<string, string> | null,
+): string => {
   if (!headers) return 'unknown';
-  const contentType = headers['content-type'] || headers['Content-Type'] || headers['Content-type'];
+  const contentType =
+    headers['content-type'] ||
+    headers['Content-Type'] ||
+    headers['Content-type'];
   return contentType?.split(';')[0] || 'unknown';
 };
 
@@ -39,16 +44,19 @@ export const getResponseSummary = (response: ApiResponse | null) => {
 /**
  * Processes response data to prepare for copying or downloading
  */
-export const formatResponseContent = (response: ApiResponse | null, formatMode: 'pretty' | 'raw') => {
+export const formatResponseContent = (
+  response: ApiResponse | null,
+  formatMode: 'pretty' | 'raw',
+) => {
   if (!response) return '';
-  
-  const content = 
+
+  const content =
     formatMode === 'pretty'
       ? JSON.stringify(response.data, null, 2)
       : typeof response.data === 'string'
         ? response.data
         : JSON.stringify(response.data);
-        
+
   return content;
 };
 

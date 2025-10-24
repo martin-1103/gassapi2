@@ -1,7 +1,7 @@
-import { ImportResult, Parser, ImportType } from './types';
-import { parsePostmanCollection } from './parsers/postman-parser';
-import { parseOpenAPISpec } from './parsers/openapi-parser';
 import { parseCurlCommand } from './parsers/curl-parser';
+import { parseOpenAPISpec } from './parsers/openapi-parser';
+import { parsePostmanCollection } from './parsers/postman-parser';
+import type { ImportResult, Parser, ImportType } from './types';
 
 /**
  * Factory untuk memilih parser yang tepat berdasarkan import type
@@ -10,15 +10,15 @@ export function createParser(importType: ImportType): Parser {
   switch (importType) {
     case 'postman':
       return {
-        parse: parsePostmanCollection
+        parse: parsePostmanCollection,
       };
     case 'openapi':
       return {
-        parse: parseOpenAPISpec
+        parse: parseOpenAPISpec,
       };
     case 'curl':
       return {
-        parse: parseCurlCommand
+        parse: parseCurlCommand,
       };
     default:
       throw new Error(`Unsupported import type: ${importType}`);
@@ -30,16 +30,18 @@ export function createParser(importType: ImportType): Parser {
  */
 export const parseImportContent = async (
   content: string,
-  importType: ImportType
+  importType: ImportType,
 ): Promise<ImportResult> => {
   try {
     const parser = createParser(importType);
     return await parser.parse(content);
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const errorMessage =
+      error instanceof Error ? error.message : 'Unknown error';
     return {
       success: false,
-      message: `Parser error for ${importType}: ${error.message}`,
-      warnings: [`Tidak bisa membuat parser untuk type: ${importType}`]
+      message: `Parser error for ${importType}: ${errorMessage}`,
+      warnings: [`Tidak bisa membuat parser untuk type: ${importType}`],
     };
   }
 };
@@ -55,15 +57,18 @@ export const detectImportType = (content: string): ImportType => {
     return 'openapi';
   }
 
-  if (lowerContent.includes('info.schema') ||
-      lowerContent.includes('"item"') &&
-      lowerContent.includes('"request"')) {
+  if (
+    lowerContent.includes('info.schema') ||
+    (lowerContent.includes('"item"') && lowerContent.includes('"request"'))
+  ) {
     return 'postman';
   }
 
-  if (lowerContent.startsWith('curl') ||
-      lowerContent.includes('-x') ||
-      lowerContent.includes('-h')) {
+  if (
+    lowerContent.startsWith('curl') ||
+    lowerContent.includes('-x') ||
+    lowerContent.includes('-h')
+  ) {
     return 'curl';
   }
 
@@ -75,7 +80,7 @@ export const detectImportType = (content: string): ImportType => {
  * Parse dengan auto-detection type
  */
 export const parseWithAutoDetection = async (
-  content: string
+  content: string,
 ): Promise<ImportResult> => {
   const detectedType = detectImportType(content);
   return await parseImportContent(content, detectedType);

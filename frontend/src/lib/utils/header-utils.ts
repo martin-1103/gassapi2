@@ -62,12 +62,17 @@ export function createHeader(data: Partial<RequestHeader> = {}): RequestHeader {
 /**
  * Convert header array ke object untuk API request
  */
-export function headersToObject(headers: RequestHeader[]): Record<string, string> {
+export function headersToObject(
+  headers: RequestHeader[],
+): Record<string, string> {
   const enabledHeaders = headers.filter(header => header.enabled && header.key);
-  return enabledHeaders.reduce((acc, header) => {
-    acc[header.key] = header.value;
-    return acc;
-  }, {} as Record<string, string>);
+  return enabledHeaders.reduce(
+    (acc, header) => {
+      acc[header.key] = header.value;
+      return acc;
+    },
+    {} as Record<string, string>,
+  );
 }
 
 /**
@@ -83,7 +88,10 @@ export function headersToText(headers: RequestHeader[]): string {
 /**
  * Format headers sebagai cURL command
  */
-export function headersToCurl(headers: RequestHeader[], url = 'https://example.com'): string {
+export function headersToCurl(
+  headers: RequestHeader[],
+  url = 'https://example.com',
+): string {
   const headersObj = headersToObject(headers);
   const curlHeaders = Object.entries(headersObj)
     .map(([key, value]) => `-H "${key}: ${value}"`)
@@ -111,7 +119,10 @@ export function getEnabledHeaders(headers: RequestHeader[]): RequestHeader[] {
 /**
  * Cari header berdasarkan ID
  */
-export function findHeaderById(headers: RequestHeader[], id: string): RequestHeader | undefined {
+export function findHeaderById(
+  headers: RequestHeader[],
+  id: string,
+): RequestHeader | undefined {
   return headers.find(header => header.id === id);
 }
 
@@ -121,24 +132,30 @@ export function findHeaderById(headers: RequestHeader[], id: string): RequestHea
 export function updateHeaderById(
   headers: RequestHeader[],
   id: string,
-  updates: Partial<RequestHeader>
+  updates: Partial<RequestHeader>,
 ): RequestHeader[] {
   return headers.map(header =>
-    header.id === id ? { ...header, ...updates } : header
+    header.id === id ? { ...header, ...updates } : header,
   );
 }
 
 /**
  * Hapus header berdasarkan ID
  */
-export function deleteHeaderById(headers: RequestHeader[], id: string): RequestHeader[] {
+export function deleteHeaderById(
+  headers: RequestHeader[],
+  id: string,
+): RequestHeader[] {
   return headers.filter(header => header.id !== id);
 }
 
 /**
  * Duplicate header
  */
-export function duplicateHeader(headers: RequestHeader[], id: string): RequestHeader[] {
+export function duplicateHeader(
+  headers: RequestHeader[],
+  id: string,
+): RequestHeader[] {
   const header = findHeaderById(headers, id);
   if (!header) return headers;
 

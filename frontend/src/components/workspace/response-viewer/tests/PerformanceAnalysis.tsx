@@ -7,7 +7,7 @@ import { Zap, TrendingUp, TrendingDown, Activity } from 'lucide-react';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
-import { TestResult, PerformanceMetrics } from './types/test-types';
+import { TestResult } from './types/test-types';
 import {
   calculatePerformanceMetrics,
   formatDuration,

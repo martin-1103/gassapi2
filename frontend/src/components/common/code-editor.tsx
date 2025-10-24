@@ -1,8 +1,7 @@
 import { Check, X, FileText, Code } from 'lucide-react';
 import * as React from 'react';
 
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
+import Button from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils/index';
 

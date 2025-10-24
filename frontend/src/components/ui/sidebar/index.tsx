@@ -1,6 +1,6 @@
-// Main sidebar components
-export { Sidebar } from "./Sidebar"
-export { SidebarProvider, useSidebar, type SidebarContextProps } from "./SidebarProvider"
+// Main sidebar components only for React Fast Refresh
+export { Sidebar } from './Sidebar';
+export { SidebarProvider } from './SidebarProvider';
 
 // Layout components
 export {
@@ -10,11 +10,11 @@ export {
   SidebarFooter,
   SidebarSeparator,
   SidebarContent,
-} from "./SidebarLayout"
+} from './SidebarLayout';
 
 // Interactive components
-export { SidebarTrigger } from "./SidebarTrigger"
-export { SidebarRail } from "./SidebarRail"
+export { SidebarTrigger } from './SidebarTrigger';
+export { SidebarRail } from './SidebarRail';
 
 // Group components
 export {
@@ -22,7 +22,7 @@ export {
   SidebarGroupLabel,
   SidebarGroupAction,
   SidebarGroupContent,
-} from "./SidebarGroup"
+} from './SidebarGroup';
 
 // Menu components
 export {
@@ -31,7 +31,7 @@ export {
   SidebarMenuButton,
   SidebarMenuAction,
   SidebarMenuBadge,
-} from "./SidebarMenu"
+} from './SidebarMenu';
 
 // Menu extras
 export {
@@ -39,16 +39,13 @@ export {
   SidebarMenuSub,
   SidebarMenuSubItem,
   SidebarMenuSubButton,
-} from "./SidebarMenuExtras"
+} from './SidebarMenuExtras';
 
 // Re-export types
-export type {
-  SidebarProps,
-  SidebarProviderProps
-} from "./Sidebar"
+export type { SidebarProps, SidebarProviderProps } from './Sidebar';
 
 export type {
   UseSidebarStateProps,
   UseSidebarStateReturn,
   SidebarState,
-} from "./hooks/use-sidebar-state"
+} from './hooks/use-sidebar-state';

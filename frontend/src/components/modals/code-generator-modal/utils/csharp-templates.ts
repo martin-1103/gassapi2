@@ -1,5 +1,5 @@
-import { CodeSnippet, RequestData } from './types'
-import { escapeJsonString, formatHeaders } from './code-gen-utils'
+import { escapeJsonString, formatHeaders } from './code-gen-utils';
+import type { CodeSnippet, RequestData } from './types';
 
 export function generateCSharp(requestData: RequestData): CodeSnippet {
   return {
@@ -14,7 +14,7 @@ class Program
     static async Task Main()
     {
         using var client = new HttpClient();
-        var jsonBody = ${requestData.body ? `"${escapeJsonString(requestData.body)}"` : ""};
+        var jsonBody = ${requestData.body ? `"${escapeJsonString(requestData.body)}"` : ''};
 
         var content = new StringContent(jsonBody, Encoding.UTF8, "application/json");
 
@@ -32,6 +32,6 @@ class Program
     }
 }`,
     description: 'C# (HttpClient)',
-    framework: '.NET'
-  }
+    framework: '.NET',
+  };
 }

@@ -3,7 +3,7 @@
  * GASSAPI MCP Client Entry Point
  * Titik awal aplikasi MCP Client
  */
-import { McpServer } from './server/McpServer.js';
+import { GassapiMcpServer } from './server/McpServer.js';
 import { config } from './config.js';
 import { logger } from './utils/Logger.js';
 import * as readlineSync from 'readline-sync';
@@ -13,7 +13,7 @@ import * as readlineSync from 'readline-sync';
  */
 class GassapiMcpClient {
     constructor() {
-        this.server = new McpServer();
+        this.server = new GassapiMcpServer();
     }
     /**
      * Initialize MCP client
@@ -318,15 +318,17 @@ process.on('unhandledRejection', (reason, promise) => {
     process.exit(1);
 });
 // Export for external usage
-export { GassapiMcpClient, McpServer, config };
+export { GassapiMcpClient, GassapiMcpServer, config };
 // Run if called directly
 // Jalankan jika dipanggil langsung
 if (import.meta.url === `file://${process.argv[1]}`) {
+    console.error('DEBUG: Starting GASSAPI MCP Server...');
     main().catch(error => {
         logger.error('Fatal error in main', {
             error: error instanceof Error ? error.message : String(error),
             stack: error instanceof Error ? error.stack : undefined
         }, 'Main');
+        console.error('DEBUG: Fatal error:', error);
         process.exit(1);
     });
 }

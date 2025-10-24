@@ -1,10 +1,12 @@
-import { ImportResult } from '../types';
+import type { ImportResult } from '../types';
 
 /**
  * Parser untuk cURL commands
  * Mengekstrak method, URL, headers, body, dan options dari command cURL
  */
-export const parseCurlCommand = async (content: string): Promise<ImportResult> => {
+export const parseCurlCommand = async (
+  content: string,
+): Promise<ImportResult> => {
   try {
     const cleanContent = content.trim();
 
@@ -21,7 +23,7 @@ export const parseCurlCommand = async (content: string): Promise<ImportResult> =
     const urlMatches = [
       cleanContent.match(/'([^']+?)'/g),
       cleanContent.match(/"([^"]+?)"/g),
-      cleanContent.match(/([^\s"']+)/g)
+      cleanContent.match(/([^\s"']+)/g),
     ];
 
     let url = '';
@@ -29,7 +31,11 @@ export const parseCurlCommand = async (content: string): Promise<ImportResult> =
       if (matches) {
         for (const match of matches) {
           const candidate = match.replace(/^['"]|['"]$/g, '');
-          if (candidate.startsWith('http://') || candidate.startsWith('https://') || candidate.startsWith('ftp://')) {
+          if (
+            candidate.startsWith('http://') ||
+            candidate.startsWith('https://') ||
+            candidate.startsWith('ftp://')
+          ) {
             url = candidate;
             break;
           }
@@ -84,7 +90,8 @@ export const parseCurlCommand = async (content: string): Promise<ImportResult> =
     }
 
     // Extract user agent
-    const userAgentRegex = /-A\s+['"]([^'"]*?)['"]|--user-agent\s+['"]([^'"]*?)['"]/;
+    const userAgentRegex =
+      /-A\s+['"]([^'"]*?)['"]|--user-agent\s+['"]([^'"]*?)['"]/;
     const userAgentMatch = userAgentRegex.exec(cleanContent);
     if (userAgentMatch) {
       headers['User-Agent'] = userAgentMatch[1] || userAgentMatch[2] || '';
@@ -98,19 +105,23 @@ export const parseCurlCommand = async (content: string): Promise<ImportResult> =
       followRedirects: /-L|--location/.test(cleanContent),
       compressed: /--compressed/.test(cleanContent),
       output: /-o\s+(\S+)/.test(cleanContent),
-      timeout: /--max-time\s+(\d+)/.test(cleanContent)
+      timeout: /--max-time\s+(\d+)/.test(cleanContent),
     };
 
     const transformedData = {
       type: 'curl' as const,
+      name: `${method} ${url}`,
+      description: `cURL command: ${method} ${url}`,
       method,
       url,
       headers,
-      body: body || (Object.keys(formData).length > 0 ? JSON.stringify(formData) : ''),
+      body:
+        body ||
+        (Object.keys(formData).length > 0 ? JSON.stringify(formData) : ''),
       formData: Object.keys(formData).length > 0 ? formData : undefined,
       cookies,
       options,
-      rawCommand: cleanContent
+      rawCommand: cleanContent,
     };
 
     return {
@@ -118,19 +129,27 @@ export const parseCurlCommand = async (content: string): Promise<ImportResult> =
       message: `Berhasil parse cURL command: ${method} ${url}`,
       data: transformedData,
       warnings: [
-        ...(Object.keys(formData).length > 0 ? ['FormData detected, converted to JSON body'] : []),
-        ...(options.insecure ? ['Menggunakan opsi -k/--insecure (skip SSL verification)'] : []),
-        ...(Object.keys(headers).length === 0 ? ['Tidak ada headers yang ditemukan'] : [])
-      ]
+        ...(Object.keys(formData).length > 0
+          ? ['FormData detected, converted to JSON body']
+          : []),
+        ...(options.insecure
+          ? ['Menggunakan opsi -k/--insecure (skip SSL verification)']
+          : []),
+        ...(Object.keys(headers).length === 0
+          ? ['Tidak ada headers yang ditemukan']
+          : []),
+      ],
     };
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const errorMessage =
+      error instanceof Error ? error.message : 'Unknown error';
     return {
       success: false,
-      message: `Gagal parse cURL command: ${error.message}`,
+      message: `Gagal parse cURL command: ${errorMessage}`,
       warnings: [
         'Pastikan command cURL valid dan mengandung URL',
-        'Support options: -X, -H, -d, -F, -A, --cookie, -v, -s, -k, -L'
-      ]
+        'Support options: -X, -H, -d, -F, -A, --cookie, -v, -s, -k, -L',
+      ],
     };
   }
 };

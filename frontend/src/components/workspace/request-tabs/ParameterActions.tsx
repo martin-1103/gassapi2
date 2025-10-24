@@ -1,4 +1,5 @@
 import { Plus, Copy, Edit3 } from 'lucide-react';
+
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 
@@ -17,7 +18,7 @@ export function ParameterActions({
   onBulkEdit,
   onCopyAll,
   onAddParam,
-  paramsCount
+  paramsCount,
 }: ParameterActionsProps) {
   return (
     <div className='flex items-center justify-between p-4 border-b'>

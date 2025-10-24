@@ -1,23 +1,31 @@
 import RequestHeadersTab from '@/components/workspace/request-tabs/headers-tab';
 import RequestTestsTab from '@/components/workspace/request-tabs/tests-tab';
+import type { RequestBody, AuthData } from '@/types/api';
+
+import { AuthenticationConfig } from './AuthenticationConfig';
 import { ParameterForm } from './ParameterForm';
 import { RequestBodyConfig } from './RequestBodyConfig';
-import { AuthenticationConfig } from './AuthenticationConfig';
 
 interface RequestTabsContainerProps {
   activeTab: string;
   onTabChange: (tab: string) => void;
   endpointUrl: string;
   queryParams: Array<{ key: string; value: string; enabled: boolean }>;
-  onQueryParamsChange: (params: Array<{ key: string; value: string; enabled: boolean }>) => void;
+  onQueryParamsChange: (
+    params: Array<{ key: string; value: string; enabled: boolean }>,
+  ) => void;
   headersList: Array<{ key: string; value: string; enabled: boolean }>;
-  onHeadersChange: (headers: Array<{ key: string; value: string; enabled: boolean }>) => void;
-  bodyData: any;
-  onBodyDataChange: (data: any) => void;
+  onHeadersChange: (
+    headers: Array<{ key: string; value: string; enabled: boolean }>,
+  ) => void;
+  bodyData: RequestBody;
+  onBodyDataChange: (data: RequestBody) => void;
   testScripts: Array<{ name: string; script: string; enabled: boolean }>;
-  onTestScriptsChange: (scripts: Array<{ name: string; script: string; enabled: boolean }>) => void;
-  authData: any;
-  onAuthDataChange: (data: any) => void;
+  onTestScriptsChange: (
+    scripts: Array<{ name: string; script: string; enabled: boolean }>,
+  ) => void;
+  authData: AuthData;
+  onAuthDataChange: (data: AuthData) => void;
 }
 
 export function RequestTabsContainer({
@@ -110,7 +118,10 @@ export function RequestTabsContainer({
           )}
 
           {activeTab === 'body' && (
-            <RequestBodyConfig bodyData={bodyData} onChange={onBodyDataChange} />
+            <RequestBodyConfig
+              bodyData={bodyData}
+              onChange={onBodyDataChange}
+            />
           )}
 
           {activeTab === 'tests' && (
@@ -121,7 +132,10 @@ export function RequestTabsContainer({
           )}
 
           {activeTab === 'auth' && (
-            <AuthenticationConfig authData={authData} onChange={onAuthDataChange} />
+            <AuthenticationConfig
+              authData={authData}
+              onChange={onAuthDataChange}
+            />
           )}
         </div>
       </div>

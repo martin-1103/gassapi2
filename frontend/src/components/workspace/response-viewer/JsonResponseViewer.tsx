@@ -1,13 +1,16 @@
 import { ChevronDown, ChevronRight, Code, FileText } from 'lucide-react';
-import { useState } from 'react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { highlightSearch, filterArray, filterObjectKeys } from '@/lib/response/response-search';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useResponseViewState } from '@/hooks/use-response-view-state';
+import {
+  highlightSearch,
+  filterArray,
+  filterObjectKeys,
+} from '@/lib/response/response-search';
 
 interface JsonResponseViewerProps {
-  data: any;
-  formatMode: 'pretty' | 'raw';
+  data: unknown;
   formattedData: string;
   searchQuery: string;
   lineNumbers: boolean;
@@ -17,7 +20,6 @@ interface JsonResponseViewerProps {
 
 export const JsonResponseViewer = ({
   data,
-  formatMode,
   formattedData,
   searchQuery,
   lineNumbers,
@@ -27,18 +29,19 @@ export const JsonResponseViewer = ({
   const { expandedPaths, togglePath } = useResponseViewState();
 
   const renderTreeView = (
-    data: any,
+    data: unknown,
     path: string = 'root',
     level: number = 0,
     searchTerm: string = '',
   ) => {
     if (data === null) return <span className='text-purple-600'>null</span>;
-    if (data === undefined) return <span className='text-purple-600'>undefined</span>;
+    if (data === undefined)
+      return <span className='text-purple-600'>undefined</span>;
 
     if (typeof data === 'string') {
       return (
         <span className='text-green-600'>
-          "{searchTerm ? highlightSearch(data, searchTerm) : data}"
+          &quot;{searchTerm ? highlightSearch(data, searchTerm) : data}&quot;
         </span>
       );
     }
@@ -57,9 +60,18 @@ export const JsonResponseViewer = ({
 
       return (
         <div className={`${level > 0 ? 'ml-4' : ''}`}>
-          <span
-            className='cursor-pointer select-none hover:bg-muted/50 rounded p-1'
+          <button
+            type='button'
+            className='cursor-pointer select-none hover:bg-muted/50 rounded p-1 border-0 bg-transparent font-mono text-sm'
             onClick={() => togglePath(path)}
+            onKeyDown={e => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                togglePath(path);
+              }
+            }}
+            aria-expanded={isExpanded}
+            aria-label={`Toggle ${path} array with ${filteredData.length} items`}
           >
             {isExpanded ? (
               <ChevronDown className='inline w-3 h-3 mr-1' />
@@ -72,7 +84,7 @@ export const JsonResponseViewer = ({
                 ({data.length - filteredData.length} hidden)
               </span>
             )}
-          </span>
+          </button>
           {isExpanded && filteredData.length > 0 && (
             <div className='mt-1 border-l-2 border-gray-200 ml-2'>
               {filteredData.map((item, index) => (
@@ -95,18 +107,28 @@ export const JsonResponseViewer = ({
       );
     }
 
-    if (typeof data === 'object') {
+    if (typeof data === 'object' && data !== null && !Array.isArray(data)) {
+      const obj = data as Record<string, unknown>;
       const isExpanded = expandedPaths.has(path);
-      const keys = Object.keys(data);
+      const keys = Object.keys(obj);
       const filteredKeys = searchTerm
-        ? filterObjectKeys(data, searchTerm)
+        ? filterObjectKeys(obj, searchTerm)
         : keys;
 
       return (
         <div className={`${level > 0 ? 'ml-4' : ''}`}>
-          <span
-            className='cursor-pointer select-none hover:bg-muted/50 rounded p-1'
+          <button
+            type='button'
+            className='cursor-pointer select-none hover:bg-muted/50 rounded p-1 border-0 bg-transparent font-mono text-sm'
             onClick={() => togglePath(path)}
+            onKeyDown={e => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                togglePath(path);
+              }
+            }}
+            aria-expanded={isExpanded}
+            aria-label={`Toggle ${path} object with ${filteredKeys.length} properties`}
           >
             {isExpanded ? (
               <ChevronDown className='inline w-3 h-3 mr-1' />
@@ -121,19 +143,21 @@ export const JsonResponseViewer = ({
                 ({keys.length - filteredKeys.length} hidden)
               </span>
             )}
-          </span>
+          </button>
           {isExpanded && filteredKeys.length > 0 && (
             <div className='mt-1 border-l-2 border-gray-200 ml-2'>
               {filteredKeys.map(key => (
                 <div key={key} className='ml-4'>
                   <span className='text-blue-600 font-mono'>
-                    "{searchTerm &&
+                    &quot;
+                    {searchTerm &&
                     key.toLowerCase().includes(searchTerm.toLowerCase())
                       ? highlightSearch(key, searchTerm)
-                      : key}":
+                      : key}
+                    &quot;:
                   </span>
                   {renderTreeView(
-                    data[key],
+                    obj[key],
                     `${path}.${key}`,
                     level + 1,
                     searchTerm,

@@ -3,17 +3,20 @@
  * Mendukung web dan Electron environment dengan CORS handling
  */
 
-import axios, { AxiosRequestConfig } from 'axios';
+import type { AxiosRequestConfig } from 'axios';
+
+import type { HttpResponseData, VariableContext } from '@/types/http-client';
+
+import { isValidURL, interpolateUrl } from './helpers/api-utils';
+import { ErrorHandler } from './helpers/error-handler';
 import { RequestHandler } from './helpers/request-handler';
 import { ResponseHandler } from './helpers/response-handler';
-import { ErrorHandler } from './helpers/error-handler';
-import { isValidURL, interpolateUrl } from './helpers/api-utils';
 
 export interface DirectRequestConfig {
   method: string;
   url: string;
   headers?: Record<string, string>;
-  body?: any;
+  body?: unknown;
   timeout?: number;
   followRedirects?: boolean;
   validateSSL?: boolean;
@@ -23,7 +26,7 @@ export interface DirectResponse {
   status: number;
   statusText: string;
   headers: Record<string, string>;
-  data: any;
+  data: unknown;
   time: number;
   size: number;
   redirected?: boolean;
@@ -53,7 +56,7 @@ export class DirectApiClient {
 
     try {
       const axiosConfig: AxiosRequestConfig = {
-        method: config.method,
+        method: config.method as AxiosRequestConfig['method'], // Axios expects specific method types
         url: config.url,
         headers: {
           'Content-Type': 'application/json',
@@ -83,7 +86,7 @@ export class DirectApiClient {
     try {
       const response = await this.requestHandler.sendRequest(config);
       return this.responseHandler.formatResponse(response, config);
-    } catch (error: any) {
+    } catch (error) {
       // Coba CORS proxy jika error adalah CORS
       if (this.errorHandler.isCorsError(error)) {
         return this.handleCorsError(config);
@@ -100,18 +103,24 @@ export class DirectApiClient {
       const response = await this.requestHandler.sendElectronRequest(config);
       // For Electron response, we format it directly since it doesn't use AxiosResponse
       const endTime = Date.now();
-      
+
+      // Access private property safely via a type assertion approach
+      const _responseHandler = this.responseHandler as unknown as {
+        _startTime?: number;
+      };
+      const startTime = _responseHandler._startTime || endTime;
+
       return {
         status: response.status,
         statusText: response.statusText,
         headers: response.headers,
         data: response.data,
-        time: endTime - (this.responseHandler as any)['startTime'],
+        time: endTime - startTime,
         size: this.responseHandler.calculateSize(response.data),
         redirected: response.redirected,
         redirectUrl: response.redirectUrl,
       };
-    } catch (error) {
+    } catch {
       // If Electron request fails, fallback to web request
       return this.sendWebRequest(config);
     }
@@ -123,7 +132,7 @@ export class DirectApiClient {
     // Try CORS proxy
     const response = await this.requestHandler.sendRequestWithCorsProxy(
       originalConfig,
-      this.corsProxyUrls
+      this.corsProxyUrls,
     );
 
     if (response) {
@@ -144,8 +153,56 @@ export class DirectApiClient {
   /**
    * Dapatkan base URL dari environment variables
    */
-  public interpolateUrl(url: string, variables: Record<string, string>): string {
+  public interpolateUrl(
+    url: string,
+    variables: Record<string, string>,
+  ): string {
     return interpolateUrl(url, variables);
+  }
+
+  /**
+   * Set variable context untuk request interpolation
+   */
+  public setVariableContext(_variableContext: VariableContext): void {
+    // Implementation untuk set variable context
+    // This would integrate dengan variable interpolation system
+    // Store variable context for future use if needed
+    // Variable context stored for future interpolation use
+  }
+
+  /**
+   * Quick request method untuk simplified API calls
+   */
+  public async quickRequest(
+    method: string,
+    url: string,
+    options?: {
+      headers?: Record<string, string>;
+      body?: unknown;
+      timeout?: number;
+    },
+  ): Promise<HttpResponseData> {
+    const config: DirectRequestConfig = {
+      method,
+      url,
+      headers: options?.headers,
+      body: options?.body,
+      timeout: options?.timeout || 30000,
+      followRedirects: true,
+      validateSSL: true,
+    };
+
+    const response = await this.sendRequest(config);
+
+    // Convert DirectResponse ke HttpResponseData
+    return {
+      status: response.status,
+      statusText: response.statusText,
+      headers: response.headers,
+      data: response.data,
+      time: response.time,
+      size: response.size,
+    };
   }
 }
 

@@ -28,9 +28,9 @@ export const STANDARD_HEADERS = [
   'x-content-type-options',
   'strict-transport-security',
   'content-security-policy',
-];
+] as const;
 
-export const categorizeHeader = (key: string) => {
+export const categorizeHeader = (key: string): string => {
   const keyLower = key.toLowerCase();
   if (keyLower.startsWith('content-')) return 'Content';
   if (keyLower.startsWith('cache-')) return 'Cache';
@@ -44,7 +44,7 @@ export const categorizeHeader = (key: string) => {
   return 'General';
 };
 
-export const getHeaderCategoryColor = (category: string) => {
+export const getHeaderCategoryColor = (category: string): string => {
   switch (category) {
     case 'Content':
       return 'bg-blue-50 text-blue-800 border-blue-200';
@@ -66,21 +66,24 @@ export const getHeaderCategoryColor = (category: string) => {
 export const filterHeaders = (
   headers: Record<string, string>,
   searchQuery: string,
-  showOnlyStandard: boolean
-) => {
+  showOnlyStandard: boolean,
+): Array<[string, string]> => {
   let filtered = Object.entries(headers);
 
   if (showOnlyStandard) {
     filtered = filtered.filter(([key]) =>
-      STANDARD_HEADERS.includes(key.toLowerCase()),
+      STANDARD_HEADERS.includes(
+        key.toLowerCase() as (typeof STANDARD_HEADERS)[number],
+      ),
     );
   }
 
   if (searchQuery) {
+    const searchLower = searchQuery.toLowerCase();
     filtered = filtered.filter(
       ([key, value]) =>
-        key.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        value.toLowerCase().includes(searchQuery.toLowerCase()),
+        key.toLowerCase().includes(searchLower) ||
+        value.toLowerCase().includes(searchLower),
     );
   }
 
@@ -88,8 +91,8 @@ export const filterHeaders = (
 };
 
 export const groupHeadersByCategory = (
-  filteredHeaders: Array<[string, string]>
-) => {
+  filteredHeaders: Array<[string, string]>,
+): Record<string, Array<[string, string]>> => {
   return filteredHeaders.reduce(
     (acc, [key, value]) => {
       const category = categorizeHeader(key);

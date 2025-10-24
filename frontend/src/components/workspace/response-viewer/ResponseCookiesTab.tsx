@@ -1,11 +1,12 @@
-import { CookieTable } from './CookieTable'
-import { CookieFilterPanel } from './CookieFilterPanel'
-import { CookieSecurityInfo } from './CookieSecurityInfo'
-import { CookieEmptyState } from './CookieEmptyState'
-import { useCookieManagementState } from '@/hooks/useCookieManagementState'
+import { useCookieManagementState } from '@/hooks/useCookieManagementState';
+
+import { CookieEmptyState } from './CookieEmptyState';
+import { CookieFilterPanel } from './CookieFilterPanel';
+import { CookieSecurityInfo } from './CookieSecurityInfo';
+import { CookieTable } from './CookieTable';
 
 interface ResponseCookiesTabProps {
-  cookies: Record<string, any>
+  cookies: Record<string, string | Record<string, string>>;
 }
 
 export function ResponseCookiesTab({ cookies }: ResponseCookiesTabProps) {
@@ -25,10 +26,10 @@ export function ResponseCookiesTab({ cookies }: ResponseCookiesTabProps) {
     exportCookies,
     importCookies,
     copyCookiesAsCurl,
-  } = useCookieManagementState({ cookies })
+  } = useCookieManagementState({ cookies });
 
   return (
-    <div className="h-full flex flex-col">
+    <div className='h-full flex flex-col'>
       {/* Filter and Actions Panel */}
       <CookieFilterPanel
         totalCount={cookiesList.length}
@@ -43,7 +44,7 @@ export function ResponseCookiesTab({ cookies }: ResponseCookiesTabProps) {
       />
 
       {/* Cookies List */}
-      <div className="flex-1 overflow-auto px-4 pb-4">
+      <div className='flex-1 overflow-auto px-4 pb-4'>
         {cookiesList.length === 0 ? (
           <CookieEmptyState />
         ) : (
@@ -66,5 +67,5 @@ export function ResponseCookiesTab({ cookies }: ResponseCookiesTabProps) {
         filteredCount={filteredCookies.length}
       />
     </div>
-  )
+  );
 }

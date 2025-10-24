@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { X } from 'lucide-react';
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { toast } from 'sonner';
 
 import { endpointsApi } from '@/lib/api/endpoints';
@@ -8,7 +8,12 @@ import { endpointsApi } from '@/lib/api/endpoints';
 interface CreateEndpointModalProps {
   collectionId: string;
   onClose: () => void;
-  onSuccess?: (endpoint: any) => void;
+  onSuccess?: (endpoint: {
+    id: string;
+    name: string;
+    method: string;
+    url: string;
+  }) => void;
 }
 
 export default function CreateEndpointModal({
@@ -31,7 +36,7 @@ export default function CreateEndpointModal({
       if (onSuccess) onSuccess(response.data.data);
       onClose();
     },
-    onError: (error: any) => {
+    onError: (error: { response?: { data?: { message?: string } } }) => {
       toast.error(error.response?.data?.message || 'Gagal membuat endpoint');
     },
   });
@@ -60,28 +65,45 @@ export default function CreateEndpointModal({
 
         <form onSubmit={handleSubmit} className='p-6 space-y-4'>
           <div>
-            <label className='block text-sm font-medium text-gray-700 mb-1'>
+            <label
+              htmlFor='endpoint-name'
+              className='block text-sm font-medium text-gray-700 mb-1'
+            >
               Nama Endpoint *
             </label>
             <input
+              id='endpoint-name'
               type='text'
               value={formData.name}
               onChange={e => setFormData({ ...formData, name: e.target.value })}
               className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500'
               placeholder='Contoh: Get Users'
-              autoFocus
               required
             />
           </div>
 
           <div>
-            <label className='block text-sm font-medium text-gray-700 mb-1'>
+            <label
+              htmlFor='endpoint-method'
+              className='block text-sm font-medium text-gray-700 mb-1'
+            >
               HTTP Method *
             </label>
             <select
+              id='endpoint-method'
               value={formData.method}
               onChange={e =>
-                setFormData({ ...formData, method: e.target.value as any })
+                setFormData({
+                  ...formData,
+                  method: e.target.value as
+                    | 'GET'
+                    | 'POST'
+                    | 'PUT'
+                    | 'DELETE'
+                    | 'PATCH'
+                    | 'HEAD'
+                    | 'OPTIONS',
+                })
               }
               className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500'
             >
@@ -96,10 +118,14 @@ export default function CreateEndpointModal({
           </div>
 
           <div>
-            <label className='block text-sm font-medium text-gray-700 mb-1'>
+            <label
+              htmlFor='endpoint-url'
+              className='block text-sm font-medium text-gray-700 mb-1'
+            >
               URL *
             </label>
             <input
+              id='endpoint-url'
               type='text'
               value={formData.url}
               onChange={e => setFormData({ ...formData, url: e.target.value })}

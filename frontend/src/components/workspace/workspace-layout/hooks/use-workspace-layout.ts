@@ -1,9 +1,12 @@
-import { useState } from 'react'
-import { directApiClient } from '@/lib/api/direct-client'
-import { requestHistory } from '@/lib/history'
-import { QueryParam } from '../../request-tabs/params-tab'
-import { RequestHeader } from '../../request-tabs/headers-tab'
-import { BodyData } from '../../request-tabs/body-tab'
+import { useState } from 'react';
+
+import { directApiClient } from '@/lib/api/direct-client';
+import { requestHistory } from '@/lib/history';
+import { logger } from '@/lib/logger';
+
+import { BodyData } from '../../request-tabs/body-tab';
+import { RequestHeader } from '../../request-tabs/headers-tab';
+import { QueryParam } from '../../request-tabs/params-tab';
 
 // Mock data untuk development
 const mockCollections = [
@@ -14,8 +17,8 @@ const mockCollections = [
     endpoints: [
       { id: 'ep1', name: 'Get Users', method: 'GET', url: '/api/users' },
       { id: 'ep2', name: 'Create User', method: 'POST', url: '/api/users' },
-      { id: 'ep3', name: 'Update User', method: 'PUT', url: '/api/users/:id' }
-    ]
+      { id: 'ep3', name: 'Update User', method: 'PUT', url: '/api/users/:id' },
+    ],
   },
   {
     id: 'col2',
@@ -23,152 +26,205 @@ const mockCollections = [
     description: 'Login and authentication endpoints',
     endpoints: [
       { id: 'ep4', name: 'Login', method: 'POST', url: '/api/auth/login' },
-      { id: 'ep5', name: 'Logout', method: 'POST', url: '/api/auth/logout' }
-    ]
-  }
-]
+      { id: 'ep5', name: 'Logout', method: 'POST', url: '/api/auth/logout' },
+    ],
+  },
+];
 
 const mockEnvironments = [
-  { id: 'dev', name: 'Development', base_url: 'http://localhost:3000', is_default: true },
-  { id: 'staging', name: 'Staging', base_url: 'https://staging-api.example.com', is_default: false },
-  { id: 'prod', name: 'Production', base_url: 'https://api.example.com', is_default: false }
-]
+  {
+    id: 'dev',
+    name: 'Development',
+    base_url: 'http://localhost:3000',
+    is_default: true,
+  },
+  {
+    id: 'staging',
+    name: 'Staging',
+    base_url: 'https://staging-api.example.com',
+    is_default: false,
+  },
+  {
+    id: 'prod',
+    name: 'Production',
+    base_url: 'https://api.example.com',
+    is_default: false,
+  },
+];
+
+interface Environment {
+  id: string;
+  name: string;
+  base_url: string;
+  is_default?: boolean;
+}
+
+interface Collection {
+  id: string;
+  name: string;
+  description: string;
+  endpoints: Array<{
+    id: string;
+    name: string;
+    method: string;
+    url: string;
+  }>;
+}
+
+interface ResponseData {
+  status: number;
+  statusText: string;
+  time: number;
+  size: number;
+  data: unknown;
+  headers: Record<string, unknown>;
+  error?: {
+    message: string;
+  };
+}
 
 export interface WorkspaceLayoutState {
   // UI State
-  sidebarCollapsed: boolean
-  searchTerm: string
-  expandedCollections: Set<string>
-  selectedEndpoint: string | null
+  sidebarCollapsed: boolean;
+  searchTerm: string;
+  expandedCollections: Set<string>;
+  selectedEndpoint: string | null;
 
   // Request State
-  method: string
-  url: string
-  selectedEnvironment: any
-  params: QueryParam[]
-  headers: RequestHeader[]
-  bodyData: BodyData
-  isSending: boolean
-  response: any
+  method: string;
+  url: string;
+  selectedEnvironment: Environment;
+  params: QueryParam[];
+  headers: RequestHeader[];
+  bodyData: BodyData;
+  isSending: boolean;
+  response: ResponseData | null;
 
   // Data
-  collections: any[]
-  environments: any[]
+  collections: Collection[];
+  environments: Environment[];
 }
 
 export interface WorkspaceLayoutActions {
   // UI Actions
-  setSidebarCollapsed: (collapsed: boolean) => void
-  setSearchTerm: (term: string) => void
-  toggleCollection: (collectionId: string) => void
-  setSelectedEndpoint: (endpointId: string | null) => void
+  setSidebarCollapsed: (collapsed: boolean) => void;
+  setSearchTerm: (term: string) => void;
+  toggleCollection: (collectionId: string) => void;
+  setSelectedEndpoint: (endpointId: string | null) => void;
 
   // Request Actions
-  setMethod: (method: string) => void
-  setUrl: (url: string) => void
-  setSelectedEnvironment: (env: any) => void
-  setParams: (params: QueryParam[]) => void
-  setHeaders: (headers: RequestHeader[]) => void
-  setBodyData: (bodyData: BodyData) => void
-  sendRequest: () => Promise<void>
+  setMethod: (method: string) => void;
+  setUrl: (url: string) => void;
+  setSelectedEnvironment: (env: Environment) => void;
+  setParams: (params: QueryParam[]) => void;
+  setHeaders: (headers: RequestHeader[]) => void;
+  setBodyData: (bodyData: BodyData) => void;
+  sendRequest: () => Promise<void>;
 
   // Computed
-  filteredCollections: any[]
+  filteredCollections: Collection[];
 }
 
-export function useWorkspaceLayout(): WorkspaceLayoutState & WorkspaceLayoutActions {
+export function useWorkspaceLayout(): WorkspaceLayoutState &
+  WorkspaceLayoutActions {
   // UI State
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
-  const [searchTerm, setSearchTerm] = useState('')
-  const [expandedCollections, setExpandedCollections] = useState<Set<string>>(new Set(['col1', 'col2']))
-  const [selectedEndpoint, setSelectedEndpoint] = useState<string | null>(null)
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [expandedCollections, setExpandedCollections] = useState<Set<string>>(
+    new Set(['col1', 'col2']),
+  );
+  const [selectedEndpoint, setSelectedEndpoint] = useState<string | null>(null);
 
   // Request State
-  const [method, setMethod] = useState('GET')
-  const [url, setUrl] = useState('')
-  const [selectedEnvironment, setSelectedEnvironment] = useState(mockEnvironments[0])
+  const [method, setMethod] = useState('GET');
+  const [url, setUrl] = useState('');
+  const [selectedEnvironment, setSelectedEnvironment] = useState(
+    mockEnvironments[0],
+  );
   const [params, setParams] = useState<QueryParam[]>([
     { id: '1', key: 'page', value: '1', enabled: true },
-    { id: '2', key: 'limit', value: '10', enabled: true }
-  ])
+    { id: '2', key: 'limit', value: '10', enabled: true },
+  ]);
   const [headers, setHeaders] = useState<RequestHeader[]>([
     { id: '1', key: 'Content-Type', value: 'application/json', enabled: true },
-    { id: '2', key: 'Accept', value: 'application/json', enabled: true }
-  ])
+    { id: '2', key: 'Accept', value: 'application/json', enabled: true },
+  ]);
   const [bodyData, setBodyData] = useState<BodyData>({
     type: 'raw',
     rawType: 'json',
     formData: [],
     rawContent: '{\n  "key": "value"\n}',
     graphqlQuery: '',
-    graphqlVariables: ''
-  })
-  const [isSending, setIsSending] = useState(false)
-  const [response, setResponse] = useState<any>(null)
+    graphqlVariables: '',
+  });
+  const [isSending, setIsSending] = useState(false);
+  const [response, setResponse] = useState<ResponseData | null>(null);
 
   const toggleCollection = (collectionId: string) => {
-    const newExpanded = new Set(expandedCollections)
+    const newExpanded = new Set(expandedCollections);
     if (newExpanded.has(collectionId)) {
-      newExpanded.delete(collectionId)
+      newExpanded.delete(collectionId);
     } else {
-      newExpanded.add(collectionId)
+      newExpanded.add(collectionId);
     }
-    setExpandedCollections(newExpanded)
-  }
+    setExpandedCollections(newExpanded);
+  };
 
   const filteredCollections = mockCollections.filter(collection =>
-    collection.name.toLowerCase().includes(searchTerm.toLowerCase())
-  )
+    collection.name.toLowerCase().includes(searchTerm.toLowerCase()),
+  );
 
   const sendRequest = async () => {
-    if (!url.trim()) return
+    if (!url.trim()) return;
 
-    setIsSending(true)
+    setIsSending(true);
 
     try {
       // Build request configuration
       const enabledHeaders = headers
         .filter(h => h.enabled && h.key)
-        .reduce((acc, h) => ({ ...acc, [h.key]: h.value }), {})
+        .reduce((acc, h) => ({ ...acc, [h.key]: h.value }), {});
 
       const enabledParams = params
         .filter(p => p.enabled && p.key && p.value)
-        .reduce((acc, p) => ({ ...acc, [p.key]: p.value }), {})
+        .reduce((acc, p) => ({ ...acc, [p.key]: p.value }), {});
 
       // Build URL with params
-      let finalUrl = url
+      let finalUrl = url;
       if (Object.keys(enabledParams).length > 0) {
-        const searchParams = new URLSearchParams(enabledParams)
-        finalUrl += (url.includes('?') ? '&' : '?') + searchParams.toString()
+        const searchParams = new URLSearchParams(enabledParams);
+        finalUrl += (url.includes('?') ? '&' : '?') + searchParams.toString();
       }
 
       // Get body based on type
-      let requestBody: any = undefined
+      let requestBody: unknown = undefined;
       if (['POST', 'PUT', 'PATCH'].includes(method.toUpperCase())) {
         switch (bodyData.type) {
           case 'raw':
             if (bodyData.rawType === 'json' && bodyData.rawContent.trim()) {
               try {
-                requestBody = JSON.parse(bodyData.rawContent)
+                requestBody = JSON.parse(bodyData.rawContent);
               } catch {
-                requestBody = bodyData.rawContent
+                requestBody = bodyData.rawContent;
               }
             } else {
-              requestBody = bodyData.rawContent
+              requestBody = bodyData.rawContent;
             }
-            break
+            break;
           case 'form-data':
             // Handle form data
-            break
+            break;
           case 'x-www-form-urlencoded':
             // Handle URL encoded
-            break
+            break;
           case 'graphql':
             requestBody = {
               query: bodyData.graphqlQuery,
-              variables: bodyData.graphqlVariables ? JSON.parse(bodyData.graphqlVariables) : {}
-            }
-            break
+              variables: bodyData.graphqlVariables
+                ? JSON.parse(bodyData.graphqlVariables)
+                : {},
+            };
+            break;
         }
       }
 
@@ -178,10 +234,10 @@ export function useWorkspaceLayout(): WorkspaceLayoutState & WorkspaceLayoutActi
         url: finalUrl,
         headers: enabledHeaders,
         body: requestBody,
-        timeout: 30000
-      })
+        timeout: 30000,
+      });
 
-      setResponse(response)
+      setResponse(response);
 
       // Save to history
       await requestHistory.addToHistory({
@@ -191,22 +247,28 @@ export function useWorkspaceLayout(): WorkspaceLayoutState & WorkspaceLayoutActi
         body: requestBody,
         response,
         duration: response.time,
-        status: response.status >= 200 && response.status < 300 ? 'success' : 'error'
-      })
-
+        status:
+          response.status >= 200 && response.status < 300 ? 'success' : 'error',
+      });
     } catch (error) {
-      console.error('Request failed:', error)
+      logger.error(
+        'Request failed',
+        error instanceof Error ? error : new Error(String(error)),
+        'use-workspace-layout',
+      );
       setResponse({
         status: 0,
         statusText: 'Request Failed',
         time: 0,
         size: 0,
-        error: { message: error instanceof Error ? error.message : 'Unknown error' }
-      })
+        error: {
+          message: error instanceof Error ? error.message : 'Unknown error',
+        },
+      });
     } finally {
-      setIsSending(false)
+      setIsSending(false);
     }
-  }
+  };
 
   return {
     // State
@@ -239,6 +301,6 @@ export function useWorkspaceLayout(): WorkspaceLayoutState & WorkspaceLayoutActi
     sendRequest,
 
     // Computed
-    filteredCollections
-  }
+    filteredCollections,
+  };
 }

@@ -3,6 +3,8 @@
  * Handle storage operations (CRUD, persistence, etc.)
  */
 
+import { logger } from '@/lib/logger';
+
 import { RequestHistoryItem } from './types';
 
 export class HistoryStorage {
@@ -44,7 +46,11 @@ export class HistoryStorage {
           b.timestamp - a.timestamp,
       );
     } catch (error) {
-      console.error('Gagal mengambil history:', error);
+      logger.error(
+        'Gagal mengambil history',
+        error as Error,
+        'history-storage',
+      );
       return [];
     }
   }
@@ -56,7 +62,11 @@ export class HistoryStorage {
     try {
       localStorage.removeItem(this.storageKey);
     } catch (error) {
-      console.error('Gagal clear history storage:', error);
+      logger.error(
+        'Gagal clear history storage',
+        error as Error,
+        'history-storage',
+      );
     }
   }
 

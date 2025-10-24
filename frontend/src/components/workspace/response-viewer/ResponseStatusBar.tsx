@@ -23,9 +23,12 @@ export const ResponseStatusBar = ({
           )}
         </div>
         <div className='flex items-center gap-4'>
-          <span>Content-Type: {response.headers?.['content-type']?.split(';')[0] || 'unknown'}</span>
+          <span>
+            Content-Type:{' '}
+            {response.headers?.['content-type']?.split(';')[0] || 'unknown'}
+          </span>
           <span>Format: {formatMode}</span>
-          {searchQuery && <span>Searching: "{searchQuery}"</span>}
+          {searchQuery && <span>Searching: &quot;{searchQuery}&quot;</span>}
         </div>
       </div>
     </div>

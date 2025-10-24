@@ -1,15 +1,18 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Plus, FolderOpen, Trash2, Loader2 } from 'lucide-react';
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 
 import { projectsApi } from '@/lib/api/endpoints';
+import type { ApiErrorResponse, Project } from '@/types/api';
 
 export default function ProjectsPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [projectToDelete, setProjectToDelete] = useState<string | null>(null);
   const [newProject, setNewProject] = useState({ name: '', description: '' });
 
   // Fetch projects
@@ -31,8 +34,9 @@ export default function ProjectsPage() {
       setShowCreateModal(false);
       setNewProject({ name: '', description: '' });
     },
-    onError: (error: any) => {
-      toast.error(error.response?.data?.message || 'Gagal membuat project');
+    onError: (error: unknown) => {
+      const apiError = error as ApiErrorResponse;
+      toast.error(apiError.response?.data?.message || 'Gagal membuat project');
     },
   });
 
@@ -43,8 +47,11 @@ export default function ProjectsPage() {
       queryClient.invalidateQueries({ queryKey: ['projects'] });
       toast.success('Project berhasil dihapus!');
     },
-    onError: (error: any) => {
-      toast.error(error.response?.data?.message || 'Gagal menghapus project');
+    onError: (error: unknown) => {
+      const apiError = error as ApiErrorResponse;
+      toast.error(
+        apiError.response?.data?.message || 'Gagal menghapus project',
+      );
     },
   });
 
@@ -57,10 +64,28 @@ export default function ProjectsPage() {
     createMutation.mutate(newProject);
   };
 
+  const handleDeleteClick = (projectId: string) => {
+    setProjectToDelete(projectId);
+    setShowDeleteModal(true);
+  };
+
+  const handleDeleteConfirm = () => {
+    if (projectToDelete) {
+      deleteMutation.mutate(projectToDelete);
+      setShowDeleteModal(false);
+      setProjectToDelete(null);
+    }
+  };
+
+  const handleDeleteCancel = () => {
+    setShowDeleteModal(false);
+    setProjectToDelete(null);
+  };
+
   const projects = projectsResponse?.data || [];
 
   return (
-    <div className='p-6'>
+    <main className='p-6'>
       <div className='mb-8 flex items-center justify-between'>
         <div>
           <h1 className='text-3xl font-bold text-gray-900'>Projects</h1>
@@ -70,7 +95,8 @@ export default function ProjectsPage() {
         </div>
         <button
           onClick={() => setShowCreateModal(true)}
-          className='flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors'
+          aria-label='Buat project baru'
+          className='flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500'
         >
           <Plus className='w-4 h-4' />
           <span>Buat Project</span>
@@ -93,7 +119,7 @@ export default function ProjectsPage() {
         </div>
       ) : (
         <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'>
-          {projects.map(project => (
+          {projects.map((project: Project) => (
             <div
               key={project.id}
               className='bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-all'
@@ -117,17 +143,14 @@ export default function ProjectsPage() {
                 <div className='flex gap-2'>
                   <button
                     onClick={() => navigate(`/workspace/${project.id}`)}
-                    className='px-3 py-1 text-sm text-blue-600 hover:bg-blue-50 rounded transition-colors'
+                    className='px-3 py-1 text-sm text-blue-600 hover:bg-blue-50 rounded transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500'
                   >
                     Buka
                   </button>
                   <button
-                    onClick={() => {
-                      if (confirm('Yakin mau hapus project ini?')) {
-                        deleteMutation.mutate(project.id);
-                      }
-                    }}
-                    className='p-1 text-red-600 hover:bg-red-50 rounded transition-colors'
+                    onClick={() => handleDeleteClick(project.id)}
+                    aria-label={`Hapus project ${project.name}`}
+                    className='p-1 text-red-600 hover:bg-red-50 rounded transition-colors focus:outline-none focus:ring-2 focus:ring-red-500'
                   >
                     <Trash2 className='w-4 h-4' />
                   </button>
@@ -138,20 +161,74 @@ export default function ProjectsPage() {
         </div>
       )}
 
+      {/* Delete Confirmation Modal */}
+      {showDeleteModal && (
+        <div
+          className='fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50'
+          role='dialog'
+          aria-modal='true'
+          aria-labelledby='delete-modal-title'
+          aria-describedby='delete-modal-description'
+        >
+          <div className='bg-white rounded-lg shadow-xl w-full max-w-md p-6'>
+            <h2
+              id='delete-modal-title'
+              className='text-xl font-bold text-gray-900 mb-2'
+            >
+              Hapus Project
+            </h2>
+            <p id='delete-modal-description' className='text-gray-600 mb-6'>
+              Apakah kamu yakin mau menghapus project ini? Tindakan ini tidak
+              bisa dibatalkan.
+            </p>
+
+            <div className='flex gap-3'>
+              <button
+                type='button'
+                onClick={handleDeleteCancel}
+                className='flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors focus:outline-none focus:ring-2 focus:ring-gray-500'
+              >
+                Batal
+              </button>
+              <button
+                type='button'
+                onClick={handleDeleteConfirm}
+                disabled={deleteMutation.isPending}
+                className='flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-red-500'
+              >
+                {deleteMutation.isPending ? 'Menghapus...' : 'Hapus'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Create Project Modal */}
       {showCreateModal && (
-        <div className='fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50'>
+        <div
+          className='fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50'
+          role='dialog'
+          aria-modal='true'
+          aria-labelledby='create-modal-title'
+        >
           <div className='bg-white rounded-lg shadow-xl w-full max-w-md p-6'>
-            <h2 className='text-xl font-bold text-gray-900 mb-4'>
+            <h2
+              id='create-modal-title'
+              className='text-xl font-bold text-gray-900 mb-4'
+            >
               Buat Project Baru
             </h2>
 
             <form onSubmit={handleCreate} className='space-y-4'>
               <div>
-                <label className='block text-sm font-medium text-gray-700 mb-1'>
+                <label
+                  htmlFor='project-name'
+                  className='block text-sm font-medium text-gray-700 mb-1'
+                >
                   Nama Project *
                 </label>
                 <input
+                  id='project-name'
                   type='text'
                   value={newProject.name}
                   onChange={e =>
@@ -164,10 +241,14 @@ export default function ProjectsPage() {
               </div>
 
               <div>
-                <label className='block text-sm font-medium text-gray-700 mb-1'>
+                <label
+                  htmlFor='project-description'
+                  className='block text-sm font-medium text-gray-700 mb-1'
+                >
                   Deskripsi
                 </label>
                 <textarea
+                  id='project-description'
                   value={newProject.description}
                   onChange={e =>
                     setNewProject({
@@ -188,14 +269,14 @@ export default function ProjectsPage() {
                     setShowCreateModal(false);
                     setNewProject({ name: '', description: '' });
                   }}
-                  className='flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors'
+                  className='flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors focus:outline-none focus:ring-2 focus:ring-gray-500'
                 >
                   Batal
                 </button>
                 <button
                   type='submit'
                   disabled={createMutation.isPending}
-                  className='flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50'
+                  className='flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-blue-500'
                 >
                   {createMutation.isPending ? 'Membuat...' : 'Buat'}
                 </button>
@@ -204,6 +285,6 @@ export default function ProjectsPage() {
           </div>
         </div>
       )}
-    </div>
+    </main>
   );
 }

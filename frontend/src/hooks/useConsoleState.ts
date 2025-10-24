@@ -1,9 +1,14 @@
 import { useState, useCallback } from 'react';
+
 import { useToast } from '@/hooks/use-toast';
-import { ConsoleEntry } from '@/types/console';
-import { ConsoleStats } from '@/lib/console/console-utils';
 import { filterConsoleEntries } from '@/lib/console/console-filters';
-import { formatConsoleEntryToText, exportConsoleLogs, calculateConsoleStats } from '@/lib/console/console-utils';
+import { ConsoleStats } from '@/lib/console/console-utils';
+import {
+  formatConsoleEntryToText,
+  exportConsoleLogs,
+  calculateConsoleStats,
+} from '@/lib/console/console-utils';
+import { ConsoleEntry } from '@/types/console';
 
 export interface UseConsoleStateProps {
   consoleEntries: ConsoleEntry[];
@@ -25,7 +30,9 @@ export interface UseConsoleStateReturn {
   testEntry: (entry: ConsoleEntry) => void;
 }
 
-export function useConsoleState({ consoleEntries }: UseConsoleStateProps): UseConsoleStateReturn {
+export function useConsoleState({
+  consoleEntries,
+}: UseConsoleStateProps): UseConsoleStateReturn {
   const [activeTab, setActiveTab] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const { toast } = useToast();
@@ -34,17 +41,24 @@ export function useConsoleState({ consoleEntries }: UseConsoleStateProps): UseCo
   const stats = calculateConsoleStats(consoleEntries);
 
   // Filter entries based on active tab and search query
-  const filteredEntries = filterConsoleEntries(consoleEntries, activeTab, searchQuery);
+  const filteredEntries = filterConsoleEntries(
+    consoleEntries,
+    activeTab,
+    searchQuery,
+  );
 
   // Copy console entry to clipboard
-  const copyConsoleEntry = useCallback((entry: ConsoleEntry) => {
-    const text = formatConsoleEntryToText(entry);
-    navigator.clipboard.writeText(text);
-    toast({
-      title: 'Copied',
-      description: 'Console output copied to clipboard',
-    });
-  }, [toast]);
+  const copyConsoleEntry = useCallback(
+    (entry: ConsoleEntry) => {
+      const text = formatConsoleEntryToText(entry);
+      navigator.clipboard.writeText(text);
+      toast({
+        title: 'Copied',
+        description: 'Console output copied to clipboard',
+      });
+    },
+    [toast],
+  );
 
   // Export console logs
   const exportLogs = useCallback(() => {
@@ -54,7 +68,7 @@ export function useConsoleState({ consoleEntries }: UseConsoleStateProps): UseCo
         title: 'Console Logs Exported',
         description: `Exported ${consoleEntries.length} console entries`,
       });
-    } catch (error) {
+    } catch {
       toast({
         title: 'Export Failed',
         description: 'Failed to export console logs',
@@ -72,12 +86,16 @@ export function useConsoleState({ consoleEntries }: UseConsoleStateProps): UseCo
   }, [toast]);
 
   // Test entry (placeholder untuk testing functionality)
-  const testEntry = useCallback((entry: ConsoleEntry) => {
-    toast({
-      title: 'Run Again',
-      description: 'This feature would run the same request with logging enabled',
-    });
-  }, [toast]);
+  const testEntry = useCallback(
+    (_entry: ConsoleEntry) => {
+      toast({
+        title: 'Run Again',
+        description:
+          'This feature would run the same request with logging enabled',
+      });
+    },
+    [toast],
+  );
 
   return {
     // State

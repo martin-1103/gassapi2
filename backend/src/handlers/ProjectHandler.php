@@ -4,35 +4,27 @@ namespace App\Handlers;
 use App\Helpers\ResponseHelper;
 use App\Helpers\ValidationHelper;
 use App\Helpers\MessageHelper;
-use App\Helpers\JwtHelper;
-use App\Services\AuthService;
+use App\Helpers\AuthHelper;
 use App\Repositories\ProjectRepository;
 use App\Repositories\EnvironmentRepository;
+use App\Repositories\CollectionRepository;
 
 class ProjectHandler {
     private $projects;
     private $envs;
-    private $authService;
+    private $collections;
 
     public function __construct() {
         $this->projects = new ProjectRepository();
         $this->envs = new EnvironmentRepository();
-        $this->authService = new AuthService();
+        $this->collections = new CollectionRepository();
     }
 
     /**
      * POST /projects - Create project
      */
     public function create() {
-        $token = JwtHelper::getTokenFromRequest();
-        if (!$token) {
-            ResponseHelper::error(MessageHelper::ERROR_AUTH_REQUIRED, 401);
-        }
-
-        $user = $this->authService->validateAccessToken($token);
-        if (!$user) {
-            ResponseHelper::error(MessageHelper::ERROR_AUTH_REQUIRED, 401);
-        }
+        $user = AuthHelper::requireAuth();
         $userId = $user['id'];
 
         $input = ValidationHelper::getJsonInput();
@@ -67,15 +59,7 @@ class ProjectHandler {
      * GET /projects - List projects for current user
      */
     public function getAll() {
-        $token = JwtHelper::getTokenFromRequest();
-        if (!$token) {
-            ResponseHelper::error(MessageHelper::ERROR_AUTH_REQUIRED, 401);
-        }
-
-        $user = $this->authService->validateAccessToken($token);
-        if (!$user) {
-            ResponseHelper::error(MessageHelper::ERROR_AUTH_REQUIRED, 401);
-        }
+        $user = AuthHelper::requireAuth();
         $userId = $user['id'];
         $list = $this->projects->listForUser($userId, 100, 0);
         ResponseHelper::success($list, 'Projects fetched');
@@ -86,19 +70,75 @@ class ProjectHandler {
      */
     public function getById($id) {
         if (!$id) { ResponseHelper::error(MessageHelper::ERROR_ID_REQUIRED, 400); }
-        $token = JwtHelper::getTokenFromRequest();
-        if (!$token) { ResponseHelper::error(MessageHelper::ERROR_AUTH_REQUIRED, 401); }
 
-        $user = $this->authService->validateAccessToken($token);
-        if (!$user) { ResponseHelper::error(MessageHelper::ERROR_AUTH_REQUIRED, 401); }
-        $userId = $user['id'];
+        $user = AuthHelper::requireProjectAccess($id);
 
-        $project = $this->projects->findForUser($id, $userId);
+        $project = $this->projects->findById($id);
         if (!$project) { ResponseHelper::error(MessageHelper::ERROR_NOT_FOUND, 404); }
 
         // add member count
         $project['member_count'] = $this->projects->countMembers($id);
         ResponseHelper::success($project, 'Project detail');
+    }
+
+    /**
+     * GET /project/{id}/context - Get project context with environments and collections
+     * Supports both JWT and MCP tokens
+     */
+    public function getContext($id) {
+        if (!$id) { ResponseHelper::error(MessageHelper::ERROR_ID_REQUIRED, 400); }
+
+        $user = AuthHelper::requireProjectAccess($id);
+
+        // Get project details
+        $project = $this->projects->findById($id);
+        if (!$project) { ResponseHelper::error(MessageHelper::ERROR_NOT_FOUND, 404); }
+
+        // Get environments
+        $environments = $this->envs->listByProject($id);
+        $environments = array_map(function($env) {
+            return [
+                'id' => $env['id'],
+                'name' => $env['name'],
+                'description' => $env['description'],
+                'is_default' => (bool)$env['is_default'],
+                'variables' => json_decode($env['variables'] ?: '{}', true),
+                'created_at' => $env['created_at'],
+                'updated_at' => $env['updated_at']
+            ];
+        }, $environments);
+
+        // Get collections
+        $collections = $this->collections->listByProject($id);
+        $collections = array_map(function($collection) {
+            return [
+                'id' => $collection['id'],
+                'name' => $collection['name'],
+                'description' => $collection['description'],
+                'endpoint_count' => $collection['endpoint_count'] ?? 0,
+                'created_at' => $collection['created_at'],
+                'updated_at' => $collection['updated_at']
+            ];
+        }, $collections);
+
+        $context = [
+            'project' => [
+                'id' => $project['id'],
+                'name' => $project['name'],
+                'description' => $project['description'],
+                'created_at' => $project['created_at'],
+                'updated_at' => $project['updated_at']
+            ],
+            'environments' => $environments,
+            'collections' => $collections,
+            'user' => [
+                'id' => $user['id'],
+                'token_type' => $user['token_type'],
+                'authenticated' => true
+            ]
+        ];
+
+        ResponseHelper::success($context, 'Project context fetched successfully');
     }
 
     /**

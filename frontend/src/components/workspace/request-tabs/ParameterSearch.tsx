@@ -1,4 +1,5 @@
 import { Search } from 'lucide-react';
+
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
@@ -15,7 +16,7 @@ export function ParameterSearch({
   searchTerm,
   onSearchChange,
   onToggleAll,
-  paramsCount
+  paramsCount: _paramsCount,
 }: ParameterSearchProps) {
   return (
     <div className='mx-4 mb-4'>

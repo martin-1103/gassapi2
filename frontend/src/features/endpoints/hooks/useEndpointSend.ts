@@ -1,20 +1,34 @@
-import { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
+import { useState } from 'react';
 import { toast } from 'sonner';
 
-import { interpolateUrl, buildUrlWithParams, buildHeaders, addAuthHeaders, buildRequestBody, formatResponse } from '@/lib/utils/endpoint-builder-utils';
-import { validateEndpoint } from '@/lib/validations/endpoint-validation';
 import { endpointsApi } from '@/lib/api/endpoints';
-import type { Endpoint, Environment, EndpointResponse } from '@/types/api';
+import {
+  interpolateUrl,
+  buildUrlWithParams,
+  buildHeaders,
+  addAuthHeaders,
+  buildRequestBody,
+  formatResponse,
+} from '@/lib/utils/endpoint-builder-utils';
+import { validateEndpoint } from '@/lib/validations/endpoint-validation';
+import type {
+  Endpoint,
+  Environment,
+  EndpointResponse,
+  AuthData,
+  RequestBody,
+} from '@/types/api';
+import type { ApiError } from '@/types/error-types';
 
 interface UseEndpointSendProps {
   endpoint: Endpoint;
   environment: Environment | null;
   queryParams: Array<{ key: string; value: string; enabled: boolean }>;
   headersList: Array<{ key: string; value: string; enabled: boolean }>;
-  bodyData: any;
-  authData: any;
+  bodyData: RequestBody;
+  authData: AuthData;
 }
 
 export function useEndpointSend({
@@ -39,7 +53,7 @@ export function useEndpointSend({
       });
       toast.success('Endpoint berhasil disimpan!');
     },
-    onError: (error: any) => {
+    onError: (error: ApiError) => {
       toast.error(error.response?.data?.message || 'Gagal menyimpan endpoint');
     },
   });
@@ -60,7 +74,18 @@ export function useEndpointSend({
 
     try {
       // Build URL with query parameters
-      let url = interpolateUrl(endpoint.url, environment);
+      const envVars =
+        environment?.variables?.reduce(
+          (acc, variable) => {
+            if (variable.enabled) {
+              acc[variable.key] = variable.value;
+            }
+            return acc;
+          },
+          {} as Record<string, string>,
+        ) || {};
+
+      let url = interpolateUrl(endpoint.url, envVars);
       url = buildUrlWithParams(url, queryParams);
 
       // Build headers
@@ -84,23 +109,24 @@ export function useEndpointSend({
 
       toast.success(`Request berhasil - ${axiosResponse.status}`);
       return formattedResponse;
-    } catch (error: any) {
+    } catch (error: unknown) {
       const endTime = Date.now();
+      const axiosError = error as AxiosError;
 
-      if (error.response) {
+      if (axiosError.response) {
         const errorResponse = {
-          status: error.response.status,
-          statusText: error.response.statusText,
-          headers: error.response.headers,
-          data: error.response.data,
+          status: axiosError.response.status,
+          statusText: axiosError.response.statusText,
+          headers: axiosError.response.headers,
+          data: axiosError.response.data,
           time: endTime - startTime,
-          size: JSON.stringify(error.response.data || {}).length,
+          size: JSON.stringify(axiosError.response.data || {}).length,
         };
         setResponse(errorResponse);
         return errorResponse;
       } else {
-        toast.error(error.message || 'Request gagal');
-        throw error;
+        toast.error(axiosError.message || 'Request gagal');
+        throw axiosError;
       }
     } finally {
       setIsSending(false);

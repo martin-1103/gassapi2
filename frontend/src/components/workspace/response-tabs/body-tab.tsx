@@ -1,31 +1,25 @@
-import {
-  Search,
-  Maximize2,
-  Minimize2,
-  Download,
-  Copy,
-} from 'lucide-react';
+import { Search, Maximize2, Minimize2, Download, Copy } from 'lucide-react';
 import * as React from 'react';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { cn } from '@/lib/utils/index';
-import { useResponseViewState } from '@/hooks/use-response-view-state';
-import { useResponseBodyState } from '@/hooks/useResponseBodyState';
-
-// Import viewer components
+import { BinaryResponseViewer } from '@/components/workspace/response-viewer/BinaryResponseViewer';
+import { HtmlResponseViewer } from '@/components/workspace/response-viewer/HtmlResponseViewer';
 import { JsonResponseViewer } from '@/components/workspace/response-viewer/JsonResponseViewer';
 import { TextViewer } from '@/components/workspace/response-viewer/TextViewer';
 import { XmlResponseViewer } from '@/components/workspace/response-viewer/XmlResponseViewer';
-import { HtmlResponseViewer } from '@/components/workspace/response-viewer/HtmlResponseViewer';
-import { BinaryResponseViewer } from '@/components/workspace/response-viewer/BinaryResponseViewer';
+import { useResponseViewState } from '@/hooks/use-response-view-state';
+import { useResponseBodyState } from '@/hooks/useResponseBodyState';
+import { cn } from '@/lib/utils/index';
+
+// Import viewer components
 
 interface ResponseData {
   status: number;
   statusText: string;
   headers: Record<string, string>;
-  data: any;
+  data: unknown;
   time: number;
   size: number;
 }
@@ -33,7 +27,6 @@ interface ResponseData {
 interface ResponseBodyTabProps {
   response: ResponseData;
   formatMode: 'pretty' | 'raw';
-  onFormatModeChange: (mode: 'pretty' | 'raw') => void;
   searchQuery: string;
   onSearchChange: (query: string) => void;
 }
@@ -41,12 +34,12 @@ interface ResponseBodyTabProps {
 export function ResponseBodyTab({
   response,
   formatMode,
-  onFormatModeChange,
   searchQuery,
   onSearchChange,
 }: ResponseBodyTabProps) {
   const [isFullscreen, setIsFullscreen] = React.useState(false);
-  const { lineNumbers, setLineNumbers, wrapLines, setWrapLines } = useResponseViewState();
+  const { lineNumbers, setLineNumbers, wrapLines, setWrapLines } =
+    useResponseViewState();
 
   // Extract all business logic to custom hook
   const {
@@ -150,9 +143,7 @@ export function ResponseBodyTab({
       </div>
 
       {/* Content */}
-      <div className='flex-1 overflow-hidden'>
-        {renderContentViewer()}
-      </div>
+      <div className='flex-1 overflow-hidden'>{renderContentViewer()}</div>
 
       {/* Status Bar */}
       <div className='flex items-center justify-between p-3 border-t bg-muted/50 text-xs text-muted-foreground'>

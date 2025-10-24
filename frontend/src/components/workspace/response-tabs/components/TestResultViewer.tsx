@@ -1,15 +1,12 @@
-import {
-  CheckCircle,
-  XCircle,
-  Clock,
-} from 'lucide-react';
+import { Clock } from 'lucide-react';
 import * as React from 'react';
 
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 
-import { AssertionList } from './AssertionList';
 import type { TestResult } from '../types';
+
+import { AssertionList } from './AssertionList';
 
 interface TestResultViewerProps {
   result: TestResult;

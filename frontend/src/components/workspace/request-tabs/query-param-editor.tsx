@@ -1,19 +1,20 @@
-import { Trash2, ChevronUp, ChevronDown, MoreHorizontal } from 'lucide-react';
-import { QueryParam } from '@/components/workspace/request-tabs/params-tab';
+import { ChevronUp, ChevronDown, MoreHorizontal } from 'lucide-react';
+
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Input } from '@/components/ui/input';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { Input } from '@/components/ui/input';
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { QueryParam } from '@/components/workspace/request-tabs/params-tab';
 
 interface QueryParamEditorProps {
   param: QueryParam;
@@ -38,55 +39,47 @@ export function QueryParamEditor({
 }: QueryParamEditorProps) {
   return (
     <tr>
-      <td className="py-2 px-4 align-middle">
+      <td className='py-2 px-4 align-middle'>
         <Checkbox
           checked={param.enabled}
-          onCheckedChange={checked =>
-            onUpdate({ enabled: !!checked })
-          }
+          onCheckedChange={checked => onUpdate({ enabled: !!checked })}
         />
       </td>
-      <td className="py-2 px-4 align-middle">
+      <td className='py-2 px-4 align-middle'>
         <Input
-          placeholder="Parameter name"
+          placeholder='Parameter name'
           value={param.key}
-          onChange={e =>
-            onUpdate({ key: e.target.value })
-          }
-          className="font-mono text-sm"
+          onChange={e => onUpdate({ key: e.target.value })}
+          className='font-mono text-sm'
         />
       </td>
-      <td className="py-2 px-4 align-middle">
+      <td className='py-2 px-4 align-middle'>
         <Input
-          placeholder="Parameter value"
+          placeholder='Parameter value'
           value={param.value}
-          onChange={e =>
-            onUpdate({ value: e.target.value })
-          }
-          className="font-mono text-sm"
+          onChange={e => onUpdate({ value: e.target.value })}
+          className='font-mono text-sm'
         />
       </td>
-      <td className="py-2 px-4 align-middle">
+      <td className='py-2 px-4 align-middle'>
         <Input
-          placeholder="Description (optional)"
+          placeholder='Description (optional)'
           value={param.description || ''}
-          onChange={e =>
-            onUpdate({ description: e.target.value })
-          }
-          className="text-sm"
+          onChange={e => onUpdate({ description: e.target.value })}
+          className='text-sm'
         />
       </td>
-      <td className="py-2 px-4 align-middle">
-        <div className="flex items-center gap-1">
+      <td className='py-2 px-4 align-middle'>
+        <div className='flex items-center gap-1'>
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
-                size="sm"
-                variant="ghost"
+                size='sm'
+                variant='ghost'
                 onClick={() => onMove('up')}
                 disabled={index === 0}
               >
-                <ChevronUp className="w-4 h-4" />
+                <ChevronUp className='w-4 h-4' />
               </Button>
             </TooltipTrigger>
             <TooltipContent>Move up</TooltipContent>
@@ -95,12 +88,12 @@ export function QueryParamEditor({
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
-                size="sm"
-                variant="ghost"
+                size='sm'
+                variant='ghost'
                 onClick={() => onMove('down')}
                 disabled={index === total - 1}
               >
-                <ChevronDown className="w-4 h-4" />
+                <ChevronDown className='w-4 h-4' />
               </Button>
             </TooltipTrigger>
             <TooltipContent>Move down</TooltipContent>
@@ -108,21 +101,16 @@ export function QueryParamEditor({
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button size="sm" variant="ghost">
-                <MoreHorizontal className="w-4 h-4" />
+              <Button size='sm' variant='ghost'>
+                <MoreHorizontal className='w-4 h-4' />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent>
               <DropdownMenuItem onClick={onDuplicate}>
                 Duplicate
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={onEncode}>
-                URL Encode
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={onDelete}
-                className="text-destructive"
-              >
+              <DropdownMenuItem onClick={onEncode}>URL Encode</DropdownMenuItem>
+              <DropdownMenuItem onClick={onDelete} className='text-destructive'>
                 Delete
               </DropdownMenuItem>
             </DropdownMenuContent>

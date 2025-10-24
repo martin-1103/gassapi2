@@ -1,12 +1,11 @@
-import { Terminal } from 'lucide-react';
-
-import ConsoleStats from './ConsoleStats';
-import ConsoleActions from './ConsoleActions';
-import ConsoleFilter from './ConsoleFilter';
-import ConsoleLogViewer from './ConsoleLogViewer';
-import ConsoleFooter from './ConsoleFooter';
 import { useConsoleState } from '@/hooks/useConsoleState';
 import { ConsoleEntry } from '@/types/console';
+
+import ConsoleActions from './ConsoleActions';
+import ConsoleFilter from './ConsoleFilter';
+import ConsoleFooter from './ConsoleFooter';
+import ConsoleLogViewer from './ConsoleLogViewer';
+import ConsoleStats from './ConsoleStats';
 
 interface ResponseConsoleTabProps {
   console: ConsoleEntry[];
@@ -32,10 +31,7 @@ export default function ResponseConsoleTab({
     <div className='h-full flex flex-col'>
       {/* Header */}
       <div className='flex items-center justify-between p-4 border-b'>
-        <ConsoleStats
-          stats={stats}
-          totalEntries={consoleEntries.length}
-        />
+        <ConsoleStats stats={stats} totalEntries={consoleEntries.length} />
         <ConsoleActions
           consoleEntries={consoleEntries}
           stats={stats}

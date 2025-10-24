@@ -1,4 +1,4 @@
-import { TestResult, TestContext } from './types';
+import { TestResult, TestContext, JsonValue } from './types';
 
 /**
  * Utility functions for assertion implementations
@@ -10,11 +10,18 @@ import { TestResult, TestContext } from './types';
 export function addAssertion(
   context: TestContext,
   assertionName: string,
-  data: { passed?: boolean; status?: any; expected?: any; actual?: any },
-  customMessage?: string
+  data: {
+    passed?: boolean;
+    status?: JsonValue;
+    expected?: JsonValue;
+    actual?: JsonValue;
+  },
+  customMessage?: string,
 ): TestResult {
-  const passed = data.passed !== undefined ? data.passed : data.status === data.expected;
-  const message = customMessage || (passed ? 'Assertion passed' : 'Assertion failed');
+  const passed =
+    data.passed !== undefined ? data.passed : data.status === data.expected;
+  const message =
+    customMessage || (passed ? 'Assertion passed' : 'Assertion failed');
 
   const result: TestResult = {
     name: assertionName,
@@ -22,7 +29,7 @@ export function addAssertion(
     message,
     duration: 0,
     actual: data.actual !== undefined ? data.actual : data.status,
-    expected: data.expected || data.status
+    expected: data.expected || data.status,
   };
 
   // Save result to context
@@ -39,9 +46,16 @@ export function addAssertion(
 /**
  * Gets a nested property value from an object using dot notation
  */
-export function getValue(obj: any, path: string): any {
+export function getValue(
+  obj: Record<string, JsonValue> | JsonValue,
+  path: string,
+): JsonValue {
   return path.split('.').reduce((current, key) => {
-    if (current === null || current === undefined || current[key] === undefined) {
+    if (
+      current === null ||
+      current === undefined ||
+      current[key] === undefined
+    ) {
       return undefined;
     }
     return current[key];
@@ -51,12 +65,17 @@ export function getValue(obj: any, path: string): any {
 /**
  * Gets the length of a value (string, array, or other)
  */
-export function getLength(value: any): number {
+export function getLength(value: JsonValue): number {
   if (typeof value === 'string') {
     return value.length;
   } else if (Array.isArray(value)) {
     return value.length;
-  } else if (value && typeof value === 'object' && value.length !== undefined) {
+  } else if (
+    value &&
+    typeof value === 'object' &&
+    'length' in value &&
+    typeof value.length === 'number'
+  ) {
     return value.length;
   }
   return 0;

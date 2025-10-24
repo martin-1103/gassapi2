@@ -1,9 +1,10 @@
-import React from 'react';
 import { Plus } from 'lucide-react';
+import React from 'react';
+
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
-import { 
+import { Input } from '@/components/ui/input';
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -19,11 +20,12 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { BodyData } from '@/hooks/use-request-body-state';
+import { FormFieldUpdate } from '@/lib/testing/types';
 
 interface FormDataEditorProps {
   bodyData: BodyData;
   addFormField: () => void;
-  updateFormField: (id: string, updates: any) => void;
+  updateFormField: (id: string, updates: FormFieldUpdate) => void;
   deleteFormField: (id: string) => void;
   handleFileUpload: (id: string, file: File) => void;
 }
@@ -50,7 +52,7 @@ export const FormDataEditor: React.FC<FormDataEditorProps> = ({
           <Plus className='w-8 h-8 mb-2 opacity-50' />
           <p>No form fields added</p>
           <p className='text-sm'>
-            Click "Add Field" to create form data
+            Click &quot;Add Field&quot; to create form data
           </p>
         </div>
       ) : (

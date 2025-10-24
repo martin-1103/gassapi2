@@ -1,9 +1,11 @@
+import { Upload, Link, FileText } from 'lucide-react';
+import React from 'react';
 import { useRef } from 'react';
+
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Upload, Link, FileText } from 'lucide-react';
 
 interface ImportConfigFormProps {
   importMethod: 'file' | 'url';
@@ -26,52 +28,55 @@ export const ImportConfigForm: React.FC<ImportConfigFormProps> = ({
   onFileUpload,
   onUrlImport,
   isImporting,
-  acceptedFormats
+  acceptedFormats,
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   return (
-    <Tabs value={importMethod} onValueChange={(value) => setImportMethod(value as 'file' | 'url')}>
-      <TabsList className="grid w-full grid-cols-2">
-        <TabsTrigger value="file" className="flex items-center gap-2">
-          <FileText className="w-4 h-4" />
+    <Tabs
+      value={importMethod}
+      onValueChange={value => setImportMethod(value as 'file' | 'url')}
+    >
+      <TabsList className='grid w-full grid-cols-2'>
+        <TabsTrigger value='file' className='flex items-center gap-2'>
+          <FileText className='w-4 h-4' />
           Upload File
         </TabsTrigger>
-        <TabsTrigger value="url" className="flex items-center gap-2">
-          <Link className="w-4 h-4" />
+        <TabsTrigger value='url' className='flex items-center gap-2'>
+          <Link className='w-4 h-4' />
           Import from URL
         </TabsTrigger>
       </TabsList>
 
-      <div className="mt-4">
-        <TabsContent value="file">
-          <div className="space-y-4">
+      <div className='mt-4'>
+        <TabsContent value='file'>
+          <div className='space-y-4'>
             <div>
-              <Label htmlFor="file-upload">Choose File</Label>
+              <Label htmlFor='file-upload'>Choose File</Label>
               <input
                 ref={fileInputRef}
-                id="file-upload"
-                type="file"
+                id='file-upload'
+                type='file'
                 accept={
-                  importType === 'postman' 
-                    ? '.json' 
-                    : importType === 'openapi' 
-                      ? '.json,.yaml,.yml' 
+                  importType === 'postman'
+                    ? '.json'
+                    : importType === 'openapi'
+                      ? '.json,.yaml,.yml'
                       : '.txt,.curl'
                 }
                 onChange={onFileUpload}
-                className="hidden"
+                className='hidden'
               />
               <Button
                 onClick={() => fileInputRef.current?.click()}
-                className="w-full h-16 border-2 border-dashed border-muted-foreground/25 hover:border-primary/50"
-                variant="outline"
+                className='w-full h-16 border-2 border-dashed border-muted-foreground/25 hover:border-primary/50'
+                variant='outline'
                 disabled={isImporting}
               >
-                <div className="flex flex-col items-center">
-                  <Upload className="w-6 h-6 mb-2" />
+                <div className='flex flex-col items-center'>
+                  <Upload className='w-6 h-6 mb-2' />
                   <span>Click to upload or drag and drop</span>
-                  <span className="text-xs text-muted-foreground">
+                  <span className='text-xs text-muted-foreground'>
                     {acceptedFormats}
                   </span>
                 </div>
@@ -80,20 +85,20 @@ export const ImportConfigForm: React.FC<ImportConfigFormProps> = ({
           </div>
         </TabsContent>
 
-        <TabsContent value="url">
-          <div className="space-y-4">
+        <TabsContent value='url'>
+          <div className='space-y-4'>
             <div>
-              <Label htmlFor="import-url">Import URL</Label>
+              <Label htmlFor='import-url'>Import URL</Label>
               <Input
-                id="import-url"
-                placeholder="https://api.example.com/openapi.json"
+                id='import-url'
+                placeholder='https://api.example.com/openapi.json'
                 value={importUrl}
-                onChange={(e) => setImportUrl(e.target.value)}
+                onChange={e => setImportUrl(e.target.value)}
                 disabled={isImporting}
               />
             </div>
-            <Button 
-              onClick={onUrlImport} 
+            <Button
+              onClick={onUrlImport}
               disabled={isImporting || !importUrl.trim()}
             >
               Import from URL

@@ -1,20 +1,13 @@
 import * as React from 'react';
 
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-
-// Custom hook
 import { useResponseHeadersState } from '@/hooks/useResponseHeadersState';
+import { STANDARD_HEADERS } from '@/lib/headers/header-analysis';
 
-// Extracted components
-import { HeaderFilter, HeaderFilterControls } from './components/HeaderFilter';
 import { HeaderActions } from './components/HeaderActions';
 import { HeaderDisplay } from './components/HeaderDisplay';
+import { HeaderFilter, HeaderFilterControls } from './components/HeaderFilter';
 import { HeaderStats } from './components/HeaderStats';
-
-// Utilities
-import { STANDARD_HEADERS } from '@/lib/headers/header-analysis';
 
 interface ResponseHeadersTabProps {
   headers: Record<string, string>;
@@ -25,7 +18,6 @@ export function ResponseHeadersTab({ headers }: ResponseHeadersTabProps) {
   const {
     searchQuery,
     showOnlyStandard,
-    filteredHeaders,
     groupedHeaders,
     totalHeaders,
     showingHeaders,

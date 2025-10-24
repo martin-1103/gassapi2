@@ -4,11 +4,7 @@ import { useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 
 import WorkspaceLayout from '@/components/workspace/workspace-layout';
-import {
-  projectsApi,
-  collectionsApi,
-  environmentsApi,
-} from '@/lib/api/endpoints';
+import { projectsApi, collectionsApi } from '@/lib/api/endpoints';
 import { useProjectStore } from '@/stores/projectStore';
 
 export default function WorkspacePage() {
@@ -27,27 +23,18 @@ export default function WorkspacePage() {
   });
 
   // Fetch collections
-  const { data: collectionsResponse, isLoading: isLoadingCollections } =
-    useQuery({
-      queryKey: ['collections', projectId],
-      queryFn: async () => {
-        if (!projectId) throw new Error('Project ID is required');
-        const response = await collectionsApi.list(projectId);
-        return response.data;
-      },
-      enabled: !!projectId,
-    });
-
-  // Fetch environments
-  const { data: environmentsResponse } = useQuery({
-    queryKey: ['environments', projectId],
+  const { isLoading: isLoadingCollections } = useQuery({
+    queryKey: ['collections', projectId],
     queryFn: async () => {
       if (!projectId) throw new Error('Project ID is required');
-      const response = await environmentsApi.list(projectId);
+      const response = await collectionsApi.list(projectId);
       return response.data;
     },
     enabled: !!projectId,
   });
+
+  // Note: Environments query removed as it's unused currently
+  // Can be re-added when environment features are implemented
 
   // Set current project in store
   useEffect(() => {
@@ -65,8 +52,6 @@ export default function WorkspacePage() {
   }
 
   const project = projectResponse?.data;
-  const collections = collectionsResponse?.data || [];
-  const environments = environmentsResponse?.data || [];
 
   if (!project) {
     return (
@@ -76,11 +61,5 @@ export default function WorkspacePage() {
     );
   }
 
-  return (
-    <WorkspaceLayout
-      project={project}
-      collections={collections}
-      environments={environments}
-    />
-  );
+  return <WorkspaceLayout />;
 }

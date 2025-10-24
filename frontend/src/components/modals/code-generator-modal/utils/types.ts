@@ -1,13 +1,13 @@
 export interface RequestData {
-  method: string
-  url: string
-  headers: Record<string, string>
-  body?: any
+  method: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH' | 'HEAD' | 'OPTIONS';
+  url: string;
+  headers: Record<string, string>;
+  body?: unknown;
 }
 
 export interface CodeSnippet {
-  language: string
-  code: string
-  description: string
-  framework?: string
+  language: string;
+  code: string;
+  description: string;
+  framework?: string;
 }

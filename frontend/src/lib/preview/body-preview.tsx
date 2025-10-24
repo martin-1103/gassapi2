@@ -1,4 +1,5 @@
 import React from 'react';
+
 import { BodyData, getBodyPreview } from '@/lib/utils/body-utils';
 
 interface BodyPreviewProps {

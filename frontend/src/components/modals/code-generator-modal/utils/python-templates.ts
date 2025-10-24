@@ -1,5 +1,5 @@
-import { CodeSnippet, RequestData } from './types'
-import { formatHeaders } from './code-gen-utils'
+import { formatHeaders } from './code-gen-utils';
+import type { CodeSnippet, RequestData } from './types';
 
 export function generatePythonRequests(requestData: RequestData): CodeSnippet {
   return {
@@ -14,8 +14,8 @@ response = requests.${requestData.method.toLowerCase()}(
 
 print(response.json())`,
     description: 'Python (Requests library)',
-    framework: 'Python'
-  }
+    framework: 'Python',
+  };
 }
 
 export function generatePythonHttpx(requestData: RequestData): CodeSnippet {
@@ -31,6 +31,6 @@ response = httpx.${requestData.method.toLowerCase()}(
 
 print(response.json())`,
     description: 'Python (httpx library)',
-    framework: 'Python'
-  }
+    framework: 'Python',
+  };
 }

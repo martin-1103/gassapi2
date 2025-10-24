@@ -1,15 +1,9 @@
 import { Plus, Play, CheckCircle, XCircle } from 'lucide-react';
+
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { TestResult } from '@/hooks/useTestConfigurationState';
 
-interface TestHeaderProps {
-  testScripts: any[];
-  testResults: TestResult[];
-  isRunning: boolean;
-  onRunTests: () => void;
-  onAddTestScript: () => void;
-}
+import type { TestHeaderProps } from './test-header/types';
 
 export function TestHeader({
   testScripts,
@@ -57,3 +51,6 @@ export function TestHeader({
     </div>
   );
 }
+
+// Export types secara terpisah
+export type { TestHeaderProps } from './test-header/types';

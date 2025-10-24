@@ -44,13 +44,18 @@ export function updateParamById(
   id: string,
   updates: Partial<QueryParam>,
 ): QueryParam[] {
-  return params.map(param => (param.id === id ? { ...param, ...updates } : param));
+  return params.map(param =>
+    param.id === id ? { ...param, ...updates } : param,
+  );
 }
 
 /**
  * Removes a parameter with the given id
  */
-export function removeParamById(params: QueryParam[], id: string): QueryParam[] {
+export function removeParamById(
+  params: QueryParam[],
+  id: string,
+): QueryParam[] {
   return params.filter(param => param.id !== id);
 }
 

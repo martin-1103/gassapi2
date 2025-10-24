@@ -1,12 +1,14 @@
 import { useEffect } from 'react';
+
 import type { EndpointResponse } from '@/types/api';
+
 import { ResponseConfig } from './ResponseConfig';
 
 interface ResponseDisplayProps {
   response: EndpointResponse;
   testScripts: Array<{ name: string; script: string; enabled: boolean }>;
-  activeResponseTab: string;
-  setActiveResponseTab: (tab: string) => void;
+  activeResponseTab: 'body' | 'headers' | 'tests';
+  setActiveResponseTab: (tab: 'body' | 'headers' | 'tests') => void;
   formatMode: 'pretty' | 'raw';
   setFormatMode: (mode: 'pretty' | 'raw') => void;
   searchQuery: string;

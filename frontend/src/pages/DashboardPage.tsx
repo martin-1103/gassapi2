@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 
 import { projectsApi } from '@/lib/api/endpoints';
 import { useAuthStore } from '@/stores/authStore';
+import type { Project } from '@/types/api';
 
 export default function DashboardPage() {
   const navigate = useNavigate();
@@ -20,7 +21,7 @@ export default function DashboardPage() {
   const projects = projectsResponse?.data || [];
 
   return (
-    <div className='p-6'>
+    <main className='p-6'>
       <div className='mb-8'>
         <h1 className='text-3xl font-bold text-gray-900'>
           Halo, {user?.name || 'User'}! 👋
@@ -60,11 +61,20 @@ export default function DashboardPage() {
           </div>
         ) : (
           <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'>
-            {projects.map(project => (
+            {projects.map((project: Project) => (
               <div
                 key={project.id}
                 onClick={() => navigate(`/workspace/${project.id}`)}
-                className='p-4 border border-gray-200 rounded-lg hover:border-blue-500 hover:shadow-md cursor-pointer transition-all'
+                onKeyDown={e => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    navigate(`/workspace/${project.id}`);
+                  }
+                }}
+                role='button'
+                tabIndex={0}
+                aria-label={`Buka project ${project.name}`}
+                className='p-4 border border-gray-200 rounded-lg hover:border-blue-500 hover:shadow-md cursor-pointer transition-all focus:outline-none focus:ring-2 focus:ring-blue-500'
               >
                 <div className='flex items-start gap-3'>
                   <FolderOpen className='w-5 h-5 text-blue-600 flex-shrink-0 mt-1' />
@@ -85,6 +95,6 @@ export default function DashboardPage() {
           </div>
         )}
       </div>
-    </div>
+    </main>
   );
 }

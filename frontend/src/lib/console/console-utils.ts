@@ -12,7 +12,9 @@ export interface ConsoleStats {
 /**
  * Menghitung statistik berdasarkan level console entries
  */
-export const calculateConsoleStats = (consoleEntries: ConsoleEntry[]): ConsoleStats => {
+export const calculateConsoleStats = (
+  consoleEntries: ConsoleEntry[],
+): ConsoleStats => {
   return {
     total: consoleEntries.length,
     info: consoleEntries.filter(e => e.level === 'info').length,
@@ -52,7 +54,10 @@ export const formatConsoleEntryToText = (entry: ConsoleEntry): string => {
 /**
  * Export console logs ke JSON file
  */
-export const exportConsoleLogs = (consoleEntries: ConsoleEntry[], stats: ConsoleStats): void => {
+export const exportConsoleLogs = (
+  consoleEntries: ConsoleEntry[],
+  stats: ConsoleStats,
+): void => {
   const logsData = {
     logs: consoleEntries,
     exportedAt: new Date().toISOString(),
@@ -75,13 +80,18 @@ export const exportConsoleLogs = (consoleEntries: ConsoleEntry[], stats: Console
 /**
  * Group console entries by level
  */
-export const groupConsoleEntriesByLevel = (entries: ConsoleEntry[]): Record<string, ConsoleEntry[]> => {
-  return entries.reduce((acc, entry) => {
-    const level = entry.level;
-    if (!acc[level]) acc[level] = [];
-    acc[level].push(entry);
-    return acc;
-  }, {} as Record<string, ConsoleEntry[]>);
+export const groupConsoleEntriesByLevel = (
+  entries: ConsoleEntry[],
+): Record<string, ConsoleEntry[]> => {
+  return entries.reduce(
+    (acc, entry) => {
+      const level = entry.level;
+      if (!acc[level]) acc[level] = [];
+      acc[level].push(entry);
+      return acc;
+    },
+    {} as Record<string, ConsoleEntry[]>,
+  );
 };
 
 /**

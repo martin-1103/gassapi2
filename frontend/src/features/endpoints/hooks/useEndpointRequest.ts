@@ -1,12 +1,15 @@
 import { useState } from 'react';
-import type { Endpoint } from '@/types/api';
+
+import type { Endpoint, Environment, AuthData, RequestBody } from '@/types/api';
 
 interface UseEndpointRequestProps {
   initialEndpoint: Endpoint;
-  environment: any;
+  environment: Environment | null;
 }
 
-export function useEndpointRequest({ initialEndpoint, environment }: UseEndpointRequestProps) {
+export function useEndpointRequest({
+  initialEndpoint,
+}: UseEndpointRequestProps) {
   // State untuk endpoint utama
   const [endpoint, setEndpoint] = useState<Endpoint>(initialEndpoint);
 
@@ -19,14 +22,23 @@ export function useEndpointRequest({ initialEndpoint, environment }: UseEndpoint
   const [searchQuery, setSearchQuery] = useState('');
 
   // State untuk request data
-  const [queryParams, setQueryParams] = useState<Array<{ key: string; value: string; enabled: boolean }>>([]);
-  const [headersList, setHeadersList] = useState<Array<{ key: string; value: string; enabled: boolean }>>([]);
-  const [bodyData, setBodyData] = useState<any>('');
-  const [testScripts, setTestScripts] = useState<Array<{ name: string; script: string; enabled: boolean }>>([]);
-  const [authData, setAuthData] = useState<any>({});
+  const [queryParams, setQueryParams] = useState<
+    Array<{ key: string; value: string; enabled: boolean }>
+  >([]);
+  const [headersList, setHeadersList] = useState<
+    Array<{ key: string; value: string; enabled: boolean }>
+  >([]);
+  const [bodyData, setBodyData] = useState<RequestBody>('');
+  const [testScripts, setTestScripts] = useState<
+    Array<{ name: string; script: string; enabled: boolean }>
+  >([]);
+  const [authData, setAuthData] = useState<AuthData>({ type: 'noauth' });
 
   // Update endpoint data
-  const handleEndpointChange = (field: 'name' | 'method' | 'url', value: string) => {
+  const handleEndpointChange = (
+    field: 'name' | 'method' | 'url',
+    value: string,
+  ) => {
     setEndpoint({ ...endpoint, [field]: value });
   };
 

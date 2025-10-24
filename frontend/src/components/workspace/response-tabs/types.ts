@@ -8,7 +8,7 @@ export interface TestResult {
   status: 'pass' | 'fail' | 'skip' | 'error';
   message?: string;
   duration: number;
-  error?: any;
+  error?: Error;
   assertionResults?: AssertionResult[];
 }
 
@@ -16,15 +16,15 @@ export interface AssertionResult {
   assertion: string;
   status: 'pass' | 'fail';
   message: string;
-  actual?: any;
-  expected?: any;
+  actual?: unknown;
+  expected?: unknown;
 }
 
 export interface ConsoleEntry {
   level: 'log' | 'info' | 'warn' | 'error' | 'debug';
   message: string;
   timestamp: number;
-  data?: any;
+  data?: unknown;
 }
 
 export interface PerformanceData {

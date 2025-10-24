@@ -38,7 +38,7 @@ export function TestListView({
           Tambahkan test script pada request untuk melihat hasil di sini
         </p>
         <div className='mt-4 text-xs text-muted-foreground'>
-          <p>Tips: Gunakan tab "Tests" pada request editor untuk</p>
+          <p>Tips: Gunakan tab &quot;Tests&quot; pada request editor untuk</p>
           <p>menambahkan assertion dan validation rules</p>
         </div>
       </div>

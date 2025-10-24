@@ -54,7 +54,7 @@ export interface FormDataField {
 export interface HttpRequestBody {
   type: BodyType;
   raw?: string;
-  json?: any;
+  json?: Record<string, unknown> | unknown[] | string | number | boolean | null;
   formData?: FormDataField[];
   urlEncoded?: Array<{ key: string; value: string; enabled: boolean }>;
   binary?: File;
@@ -77,7 +77,7 @@ export interface HttpResponseData {
   status: number;
   statusText: string;
   headers: Record<string, string>;
-  data: any;
+  data: unknown;
   time: number; // dalam milliseconds
   size: number; // dalam bytes
   cookies?: Array<{
@@ -95,7 +95,7 @@ export interface HttpError {
   response?: {
     status?: number;
     statusText?: string;
-    data?: any;
+    data?: unknown;
   };
 }
 

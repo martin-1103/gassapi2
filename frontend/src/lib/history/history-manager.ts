@@ -3,10 +3,17 @@
  * Main class yang encapsulate semua history functionality
  */
 
-import { RequestHistoryItem, HistoryFilter, HistoryStatistics, HistoryUpdateAction } from './types';
-import { HistoryStorage } from './history-storage';
+import { logger } from '@/lib/logger';
+
 import { HistorySearch } from './history-search';
+import { HistoryStorage } from './history-storage';
 import { HistoryUtils } from './history-utils';
+import {
+  RequestHistoryItem,
+  HistoryFilter,
+  HistoryStatistics,
+  HistoryUpdateAction,
+} from './types';
 
 export class HistoryManager {
   private storage: HistoryStorage;
@@ -53,7 +60,11 @@ export class HistoryManager {
       await this.storage.saveHistory(history);
       this.dispatchUpdate({ action: 'added', item: newItem });
     } catch (error) {
-      console.error('Gagal menambah request ke history:', error);
+      logger.error(
+        'Gagal menambah request ke history',
+        error as Error,
+        'history-manager',
+      );
     }
   }
 
@@ -65,7 +76,11 @@ export class HistoryManager {
       const history = await this.storage.loadHistory();
       return limit ? history.slice(0, limit) : history;
     } catch (error) {
-      console.error('Gagal mengambil history:', error);
+      logger.error(
+        'Gagal mengambil history',
+        error as Error,
+        'history-manager',
+      );
       return [];
     }
   }
@@ -78,7 +93,7 @@ export class HistoryManager {
       const history = await this.getHistory();
       return HistorySearch.filterHistory(history, filter);
     } catch (error) {
-      console.error('Gagal filter history:', error);
+      logger.error('Gagal filter history', error as Error, 'history-manager');
       return [];
     }
   }
@@ -98,7 +113,11 @@ export class HistoryManager {
       const history = await this.getHistory();
       return HistorySearch.findItemById(history, id);
     } catch (error) {
-      console.error('Gagal mengambil history item:', error);
+      logger.error(
+        'Gagal mengambil history item',
+        error as Error,
+        'history-manager',
+      );
       return null;
     }
   }
@@ -122,7 +141,11 @@ export class HistoryManager {
 
       return true;
     } catch (error) {
-      console.error('Gagal update history item:', error);
+      logger.error(
+        'Gagal update history item',
+        error as Error,
+        'history-manager',
+      );
       return false;
     }
   }
@@ -142,7 +165,11 @@ export class HistoryManager {
 
       return true;
     } catch (error) {
-      console.error('Gagal delete history item:', error);
+      logger.error(
+        'Gagal delete history item',
+        error as Error,
+        'history-manager',
+      );
       return false;
     }
   }
@@ -155,7 +182,7 @@ export class HistoryManager {
       await this.storage.clearStorage();
       this.dispatchUpdate({ action: 'cleared' });
     } catch (error) {
-      console.error('Gagal clear history:', error);
+      logger.error('Gagal clear history', error as Error, 'history-manager');
     }
   }
 
@@ -169,7 +196,11 @@ export class HistoryManager {
       await this.storage.saveHistory(filtered);
       this.dispatchUpdate({ action: 'cleared-project', projectId });
     } catch (error) {
-      console.error('Gagal clear project history:', error);
+      logger.error(
+        'Gagal clear project history',
+        error as Error,
+        'history-manager',
+      );
     }
   }
 
@@ -181,7 +212,7 @@ export class HistoryManager {
       const history = await this.getHistory();
       return HistorySearch.getStatistics(history);
     } catch (error) {
-      console.error('Gagal get statistics:', error);
+      logger.error('Gagal get statistics', error as Error, 'history-manager');
       return {
         total: 0,
         success: 0,
@@ -200,7 +231,7 @@ export class HistoryManager {
       const history = await this.getHistory();
       return HistoryUtils.exportHistory(history);
     } catch (error) {
-      console.error('Gagal export history:', error);
+      logger.error('Gagal export history', error as Error, 'history-manager');
       throw error;
     }
   }
@@ -226,7 +257,7 @@ export class HistoryManager {
       this.dispatchUpdate({ action: 'imported', count: newItems.length });
       return newItems.length;
     } catch (error) {
-      console.error('Gagal import history:', error);
+      logger.error('Gagal import history', error as Error, 'history-manager');
       throw error;
     }
   }
@@ -235,8 +266,6 @@ export class HistoryManager {
    * Dispatch update event untuk UI
    */
   private dispatchUpdate(detail: HistoryUpdateAction): void {
-    window.dispatchEvent(
-      new CustomEvent('requestHistoryUpdated', { detail }),
-    );
+    window.dispatchEvent(new CustomEvent('requestHistoryUpdated', { detail }));
   }
 }

@@ -1,5 +1,6 @@
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
+import { InitializeRequestSchema, ListToolsRequestSchema, CallToolRequestSchema } from '@modelcontextprotocol/sdk/types.js';
 import { authTools, AUTH_TOOLS } from '../tools/auth.js';
 import { environmentTools, ENVIRONMENT_TOOLS } from '../tools/environment.js';
 import { collectionTools, COLLECTION_TOOLS } from '../tools/collection.js';
@@ -14,7 +15,7 @@ import { logger } from '../utils/Logger.js';
  * Server ini nanganin komunikasi antara MCP client dan backend GASSAPI
  * Pake proper logging instead of console.log biar lebih rapih
  */
-export class McpServer {
+export class GassapiMcpServer {
     constructor() {
         this.tools = new Map();
         this.config = null;
@@ -23,7 +24,9 @@ export class McpServer {
             version: '1.0.0'
         }, {
             capabilities: {
-                tools: {}
+                tools: {
+                    listChanged: true
+                }
             }
         });
         this.registerAllTools();
@@ -65,8 +68,10 @@ export class McpServer {
      */
     async start() {
         try {
-            // Setup request handlers - simplified version
-            // Note: MCP server implementation needs proper handler setup
+            // Register MCP request handlers with proper schemas
+            this.server.setRequestHandler(InitializeRequestSchema, this.handleInitialize.bind(this));
+            this.server.setRequestHandler(ListToolsRequestSchema, this.handleListTools.bind(this));
+            this.server.setRequestHandler(CallToolRequestSchema, this.handleToolCall.bind(this));
             // Create stdio transport
             const transport = new StdioServerTransport();
             logger.info('GASSAPI MCP Server mulai jalan nih...', { module: 'McpServer' });

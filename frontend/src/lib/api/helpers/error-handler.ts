@@ -1,5 +1,16 @@
 import { DirectResponse } from '../direct-client';
 
+interface ApiError extends Error {
+  code?: string;
+  response?: {
+    status?: number;
+    statusText?: string;
+    headers?: Record<string, string>;
+    data?: unknown;
+  };
+  message?: string;
+}
+
 /**
  * Handles different types of errors that can occur during API requests
  */
@@ -16,7 +27,7 @@ export class ErrorHandler {
   /**
    * Handles general errors during requests
    */
-  handleGeneralError(error: any): DirectResponse {
+  handleGeneralError(error: unknown): DirectResponse {
     const endTime = Date.now();
 
     return {
@@ -27,7 +38,7 @@ export class ErrorHandler {
       time: endTime - this.startTime,
       size: 0,
       error: {
-        message: error.message || 'Unknown error occurred',
+        message: (error as ApiError).message || 'Unknown error occurred',
         type: this.getErrorType(error),
         corsError: this.isCorsError(error),
       },
@@ -37,19 +48,20 @@ export class ErrorHandler {
   /**
    * Handles errors specifically from web/Axios requests
    */
-  handleWebError(error: any): DirectResponse {
+  handleWebError(error: unknown): DirectResponse {
     const endTime = Date.now();
 
+    const apiError = error as ApiError;
     return {
-      status: error.response?.status || 0,
+      status: apiError.response?.status || 0,
       statusText:
-        error.response?.statusText || error.message || 'Request failed',
-      headers: error.response?.headers || {},
-      data: error.response?.data || null,
+        apiError.response?.statusText || apiError.message || 'Request failed',
+      headers: apiError.response?.headers || {},
+      data: apiError.response?.data || null,
       time: endTime - this.startTime,
-      size: this.calculateSize(error.response?.data),
+      size: this.calculateSize(apiError.response?.data),
       error: {
-        message: error.message || 'Network error',
+        message: apiError.message || 'Network error',
         type: this.getErrorType(error),
       },
     };
@@ -58,32 +70,34 @@ export class ErrorHandler {
   /**
    * Determines the type of error that occurred
    */
-  getErrorType(error: any): string {
-    if (error.code === 'ECONNREFUSED') return 'CONNECTION_REFUSED';
-    if (error.code === 'ENOTFOUND') return 'DNS_ERROR';
-    if (error.code === 'ETIMEDOUT') return 'TIMEOUT';
-    if (error.code === 'ECONNRESET') return 'CONNECTION_RESET';
+  getErrorType(error: unknown): string {
+    const apiError = error as ApiError;
+    if (apiError.code === 'ECONNREFUSED') return 'CONNECTION_REFUSED';
+    if (apiError.code === 'ENOTFOUND') return 'DNS_ERROR';
+    if (apiError.code === 'ETIMEDOUT') return 'TIMEOUT';
+    if (apiError.code === 'ECONNRESET') return 'CONNECTION_RESET';
     if (this.isCorsError(error)) return 'CORS_ERROR';
-    if (error.response) return 'HTTP_ERROR';
+    if (apiError.response) return 'HTTP_ERROR';
     return 'NETWORK_ERROR';
   }
 
   /**
    * Checks if the error is related to CORS policy
    */
-  isCorsError(error: any): boolean {
+  isCorsError(error: unknown): boolean {
+    const apiError = error as ApiError;
     return (
-      error.message?.includes('CORS') ||
-      error.message?.includes('Cross-Origin') ||
-      error.message?.includes('Access-Control') ||
-      error.response?.status === 0
+      apiError.message?.includes('CORS') ||
+      apiError.message?.includes('Cross-Origin') ||
+      apiError.message?.includes('Access-Control') ||
+      apiError.response?.status === 0
     );
   }
 
   /**
    * Calculates the size of data in bytes
    */
-  private calculateSize(data: any): number {
+  private calculateSize(data: unknown): number {
     if (!data) return 0;
 
     try {

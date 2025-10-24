@@ -1,3 +1,4 @@
+import React from 'react';
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -36,14 +37,17 @@ export default function RegisterPage() {
       await register({ name, email, password });
       toast.success('Registrasi berhasil!');
       navigate('/dashboard');
-    } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Registrasi gagal');
+    } catch (error: unknown) {
+      const errorMessage =
+        (error as { response?: { data?: { message?: string } } })?.response
+          ?.data?.message || 'Registrasi gagal';
+      toast.error(errorMessage);
     }
   };
 
   return (
     <div className='min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100'>
-      <div className='bg-white p-8 rounded-lg shadow-lg w-full max-w-md'>
+      <main className='bg-white p-8 rounded-lg shadow-lg w-full max-w-md'>
         <div className='text-center mb-8'>
           <h1 className='text-3xl font-bold text-gray-900'>GASS API</h1>
           <p className='text-gray-600 mt-2'>Buat akun baru</p>
@@ -144,7 +148,7 @@ export default function RegisterPage() {
             Masuk di sini
           </Link>
         </p>
-      </div>
+      </main>
     </div>
   );
 }

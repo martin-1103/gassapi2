@@ -2,8 +2,6 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { highlightSearch } from '@/lib/response/response-search';
 
 interface HtmlResponseViewerProps {
-  data: any;
-  formatMode: 'pretty' | 'raw';
   formattedData: string;
   searchQuery: string;
   lineNumbers: boolean;
@@ -12,8 +10,6 @@ interface HtmlResponseViewerProps {
 }
 
 export const HtmlResponseViewer = ({
-  data,
-  formatMode,
   formattedData,
   searchQuery,
   lineNumbers,

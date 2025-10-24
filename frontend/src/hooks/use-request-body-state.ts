@@ -27,33 +27,66 @@ interface UseRequestBodyStateProps {
   onChange: (bodyData: BodyData) => void;
 }
 
-export function useRequestBodyState({ initialBodyData, onChange }: UseRequestBodyStateProps) {
+export function useRequestBodyState({
+  initialBodyData,
+  onChange,
+}: UseRequestBodyStateProps) {
   const [bodyData, setBodyData] = useState<BodyData>(initialBodyData);
 
-  const updateBodyType = useCallback((type: BodyData['type']) => {
-    setBodyData(prev => ({ ...prev, type }));
-    onChange({ ...bodyData, type });
-  }, [bodyData, onChange]);
+  const updateBodyType = useCallback(
+    (type: BodyData['type']) => {
+      setBodyData(prev => {
+        const newData = { ...prev, type };
+        onChange(newData);
+        return newData;
+      });
+    },
+    [onChange],
+  );
 
-  const updateRawType = useCallback((rawType: BodyData['rawType']) => {
-    setBodyData(prev => ({ ...prev, rawType }));
-    onChange({ ...bodyData, rawType });
-  }, [bodyData, onChange]);
+  const updateRawType = useCallback(
+    (rawType: BodyData['rawType']) => {
+      setBodyData(prev => {
+        const newData = { ...prev, rawType };
+        onChange(newData);
+        return newData;
+      });
+    },
+    [onChange],
+  );
 
-  const updateRawContent = useCallback((content: string) => {
-    setBodyData(prev => ({ ...prev, rawContent: content }));
-    onChange({ ...bodyData, rawContent: content });
-  }, [bodyData, onChange]);
+  const updateRawContent = useCallback(
+    (content: string) => {
+      setBodyData(prev => {
+        const newData = { ...prev, rawContent: content };
+        onChange(newData);
+        return newData;
+      });
+    },
+    [onChange],
+  );
 
-  const updateGraphQLQuery = useCallback((query: string) => {
-    setBodyData(prev => ({ ...prev, graphqlQuery: query }));
-    onChange({ ...bodyData, graphqlQuery: query });
-  }, [bodyData, onChange]);
+  const updateGraphQLQuery = useCallback(
+    (query: string) => {
+      setBodyData(prev => {
+        const newData = { ...prev, graphqlQuery: query };
+        onChange(newData);
+        return newData;
+      });
+    },
+    [onChange],
+  );
 
-  const updateGraphQLVariables = useCallback((variables: string) => {
-    setBodyData(prev => ({ ...prev, graphqlVariables: variables }));
-    onChange({ ...bodyData, graphqlVariables: variables });
-  }, [bodyData, onChange]);
+  const updateGraphQLVariables = useCallback(
+    (variables: string) => {
+      setBodyData(prev => {
+        const newData = { ...prev, graphqlVariables: variables };
+        onChange(newData);
+        return newData;
+      });
+    },
+    [onChange],
+  );
 
   const addFormField = useCallback(() => {
     const newField = {
@@ -63,39 +96,49 @@ export function useRequestBodyState({ initialBodyData, onChange }: UseRequestBod
       type: 'text' as const,
       enabled: true,
     };
-    setBodyData(prev => ({ ...prev, formData: [...prev.formData, newField] }));
-    onChange({ ...bodyData, formData: [...bodyData.formData, newField] });
-  }, [bodyData, onChange]);
-
-  const updateFormField = useCallback((id: string, updates: any) => {
-    setBodyData(prev => ({
-      ...prev,
-      formData: prev.formData.map(field =>
-        field.id === id ? { ...field, ...updates } : field,
-      ),
-    }));
-    onChange({
-      ...bodyData,
-      formData: bodyData.formData.map(field =>
-        field.id === id ? { ...field, ...updates } : field,
-      ),
+    setBodyData(prev => {
+      const newData = { ...prev, formData: [...prev.formData, newField] };
+      onChange(newData);
+      return newData;
     });
-  }, [bodyData, onChange]);
+  }, [onChange]);
 
-  const deleteFormField = useCallback((id: string) => {
-    setBodyData(prev => ({
-      ...prev,
-      formData: prev.formData.filter(field => field.id !== id),
-    }));
-    onChange({
-      ...bodyData,
-      formData: bodyData.formData.filter(field => field.id !== id),
-    });
-  }, [bodyData, onChange]);
+  const updateFormField = useCallback(
+    (id: string, updates: Partial<FormData[0]>) => {
+      setBodyData(prev => {
+        const newData = {
+          ...prev,
+          formData: prev.formData.map(field =>
+            field.id === id ? { ...field, ...updates } : field,
+          ),
+        };
+        onChange(newData);
+        return newData;
+      });
+    },
+    [onChange],
+  );
 
-  const handleFileUpload = useCallback((id: string, file: File) => {
-    updateFormField(id, { value: file.name });
-  }, [updateFormField]);
+  const deleteFormField = useCallback(
+    (id: string) => {
+      setBodyData(prev => {
+        const newData = {
+          ...prev,
+          formData: prev.formData.filter(field => field.id !== id),
+        };
+        onChange(newData);
+        return newData;
+      });
+    },
+    [onChange],
+  );
+
+  const handleFileUpload = useCallback(
+    (id: string, file: File) => {
+      updateFormField(id, { value: file.name });
+    },
+    [updateFormField],
+  );
 
   return {
     bodyData,

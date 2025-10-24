@@ -3,7 +3,7 @@ import type { HttpResponseData } from '@/types/http-client';
 /**
  * Pretty print JSON dengan indentation
  */
-export function prettyPrintJson(data: any): string {
+export function prettyPrintJson(data: unknown): string {
   try {
     if (typeof data === 'string') {
       data = JSON.parse(data);

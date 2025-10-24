@@ -1,5 +1,5 @@
-import { CodeSnippet, RequestData } from './types'
-import { escapeJsonString, formatHeadersForCode } from './code-gen-utils'
+import { escapeJsonString, formatHeadersForCode } from './code-gen-utils';
+import type { CodeSnippet, RequestData } from './types';
 
 export function generateGo(requestData: RequestData): CodeSnippet {
   return {
@@ -16,14 +16,14 @@ import (
 
 func main() {
     url := "${requestData.url}"
-    jsonBody := []byte(${requestData.body ? `"${escapeJsonString(requestData.body)}"` : ""})
+    jsonBody := []byte(${requestData.body ? `"${escapeJsonString(requestData.body)}"` : ''})
 
     req, err := http.NewRequest("${requestData.method.toUpperCase()}", url, bytes.NewBuffer(jsonBody))
     if err != nil {
         panic(err)
     }
 
-    ${formatHeadersForCode(requestData.headers, "    ")}
+    ${formatHeadersForCode(requestData.headers, '    ')}
 
     client := &http.Client{}
     resp, err := client.Do(req)
@@ -36,6 +36,6 @@ func main() {
     fmt.Println(string(body))
 }`,
     description: 'Go (net/http)',
-    framework: 'Go'
-  }
+    framework: 'Go',
+  };
 }

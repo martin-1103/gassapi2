@@ -1,5 +1,5 @@
-import { CodeSnippet, RequestData } from './types'
-import { formatHeaders } from './code-gen-utils'
+import { formatHeaders } from './code-gen-utils';
+import type { CodeSnippet, RequestData } from './types';
 
 export function generateJavaScriptFetch(requestData: RequestData): CodeSnippet {
   return {
@@ -13,8 +13,8 @@ export function generateJavaScriptFetch(requestData: RequestData): CodeSnippet {
 const data = await response.json();
 console.log(data);`,
     description: 'JavaScript (Node.js with fetch API)',
-    framework: 'Node.js'
-  }
+    framework: 'Node.js',
+  };
 }
 
 export function generateJavaScriptAxios(requestData: RequestData): CodeSnippet {
@@ -31,6 +31,6 @@ const response = await axios({
 
 console.log(response.data);`,
     description: 'JavaScript (Axios)',
-    framework: 'Node.js'
-  }
+    framework: 'Node.js',
+  };
 }

@@ -4,13 +4,13 @@
  */
 
 import { CheckCircle, Clock, Database, Filter } from 'lucide-react';
+import React from 'react';
 
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 
 import { TestResult } from './types/test-types';
-import { getStatusColor } from './utils/test-helpers';
 import {
   categorizeTests,
   calculateCategorySuccessRate,
@@ -52,7 +52,7 @@ export function TestCategories({ testResults }: TestCategoriesProps) {
     description,
   }: {
     title: string;
-    icon: any;
+    icon: React.ComponentType<{ className?: string }>;
     tests: TestResult[];
     description: string;
   }) => {

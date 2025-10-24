@@ -1,14 +1,18 @@
 import * as React from 'react';
 
-import { useTestConfigurationState } from '@/hooks/useTestConfigurationState';
+import {
+  useTestConfigurationState,
+  TestScript,
+} from '@/hooks/useTestConfigurationState';
+
 import { TestEmptyState } from './test-empty-state';
 import { TestHeader } from './test-header';
 import { TestScriptEditor } from './test-script-editor';
 import { TestScriptList } from './test-script-list';
 
 interface RequestTestsTabProps {
-  testScripts: any[];
-  onChange: (testScripts: any[]) => void;
+  testScripts: TestScript[];
+  onChange: (testScripts: TestScript[]) => void;
 }
 
 export function RequestTestsTab({

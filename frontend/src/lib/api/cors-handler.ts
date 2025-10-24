@@ -124,18 +124,23 @@ export class CorsHandler {
   /**
    * Check apakah error ini CORS error
    */
-  isCorsError(error: any): boolean {
+  isCorsError(error: unknown): boolean {
     if (!error) return false;
 
-    const message = error.message?.toLowerCase() || '';
-    const name = error.name?.toLowerCase() || '';
+    const apiError = error as {
+      message?: string;
+      name?: string;
+      response?: unknown;
+    };
+    const message = apiError.message?.toLowerCase() || '';
+    const name = apiError.name?.toLowerCase() || '';
 
     return (
       message.includes('cors') ||
       message.includes('cross-origin') ||
       name === 'corserror' ||
       // Network error yang kemungkinan CORS
-      (message.includes('network') && !error.response)
+      (message.includes('network') && !apiError.response)
     );
   }
 

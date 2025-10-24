@@ -12,7 +12,7 @@ import { COMMON_HEADERS } from '@/lib/utils/header-utils';
 interface HeaderTemplatesProps {
   showCommonHeaders: boolean;
   onHideCommonHeaders: () => void;
-  onAddCommonHeader: (header: typeof COMMON_HEADERS[0]) => void;
+  onAddCommonHeader: (header: (typeof COMMON_HEADERS)[0]) => void;
 }
 
 export function HeaderTemplates({

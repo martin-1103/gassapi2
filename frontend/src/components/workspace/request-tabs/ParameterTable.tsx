@@ -1,10 +1,5 @@
-import {
-  ChevronUp,
-  ChevronDown,
-  MoreHorizontal,
-  Trash2,
-} from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
+import { ChevronUp, ChevronDown, MoreHorizontal, Trash2 } from 'lucide-react';
+
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
@@ -47,13 +42,13 @@ interface ParameterTableProps {
 
 // Component untuk menampilkan parameter dalam bentuk table
 export function ParameterTable({
-  params,
+  params: _params,
   filteredParams,
   searchTerm,
   onUpdate,
   onDelete,
   onMove,
-  onDuplicate
+  onDuplicate,
 }: ParameterTableProps) {
   return (
     <div className='flex-1 overflow-hidden px-4 pb-4'>
@@ -112,7 +107,7 @@ function ParameterRow({
   onUpdate,
   onDelete,
   onMove,
-  onDuplicate
+  onDuplicate,
 }: ParameterRowProps) {
   return (
     <TableRow>
@@ -128,9 +123,7 @@ function ParameterRow({
         <Input
           placeholder='Parameter name'
           value={param.key}
-          onChange={e =>
-            onUpdate(param.id, { key: e.target.value })
-          }
+          onChange={e => onUpdate(param.id, { key: e.target.value })}
           className='font-mono text-sm'
           disabled={!param.enabled}
         />
@@ -139,9 +132,7 @@ function ParameterRow({
         <Input
           placeholder='Parameter value'
           value={param.value}
-          onChange={e =>
-            onUpdate(param.id, { value: e.target.value })
-          }
+          onChange={e => onUpdate(param.id, { value: e.target.value })}
           className='font-mono text-sm'
           disabled={!param.enabled}
         />
@@ -150,9 +141,7 @@ function ParameterRow({
         <Input
           placeholder='Description (optional)'
           value={param.description || ''}
-          onChange={e =>
-            onUpdate(param.id, { description: e.target.value })
-          }
+          onChange={e => onUpdate(param.id, { description: e.target.value })}
           className='text-sm'
           disabled={!param.enabled}
         />
@@ -182,9 +171,7 @@ function ParameterRow({
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent>
-              <DropdownMenuItem
-                onClick={() => onDuplicate(param)}
-              >
+              <DropdownMenuItem onClick={() => onDuplicate(param)}>
                 Duplicate
               </DropdownMenuItem>
               <DropdownMenuSeparator />

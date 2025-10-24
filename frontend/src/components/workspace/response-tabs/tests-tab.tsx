@@ -1,19 +1,14 @@
-import {
-  List,
-  Eye,
-  AlertCircle,
-} from 'lucide-react';
+import { List, Eye, AlertCircle } from 'lucide-react';
 import * as React from 'react';
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useTestResultsState } from '@/hooks/useTestResultsState';
 
 import { ConsoleViewer } from './components/ConsoleViewer';
 import { TestDetailsView } from './components/TestDetailsView';
 import { TestExecutionControls } from './components/TestExecutionControls';
 import { TestListView } from './components/TestListView';
 import { TestSummaryPanel } from './components/TestSummaryPanel';
-import { useTestResultsState } from '@/hooks/useTestResultsState';
-
 import type { ConsoleEntry, TestResult } from './types';
 
 interface ResponseTestsTabProps {
@@ -34,7 +29,6 @@ export function ResponseTestsTab({
     passedTests,
     failedTests,
     skippedTests,
-    errorTests,
     totalTests,
     averageDuration,
     performanceData,

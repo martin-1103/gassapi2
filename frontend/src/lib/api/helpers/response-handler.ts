@@ -1,11 +1,13 @@
-import { DirectResponse, DirectRequestConfig } from '../direct-client';
+import type { AxiosRequestConfig, AxiosResponse } from 'axios';
+
+import { DirectResponse } from '../direct-client';
 
 /**
  * Handles processing and formatting of HTTP responses
  */
 export class ResponseHandler {
   private startTime: number = 0;
-  
+
   /**
    * Sets the start time for measuring request duration
    */
@@ -16,9 +18,12 @@ export class ResponseHandler {
   /**
    * Formats an Axios response into a DirectResponse
    */
-  formatResponse(axiosResponse: any, config: DirectRequestConfig): DirectResponse {
+  formatResponse(
+    axiosResponse: AxiosResponse,
+    config: AxiosRequestConfig,
+  ): DirectResponse {
     const endTime = Date.now();
-    
+
     const response: DirectResponse = {
       status: axiosResponse.status,
       statusText: axiosResponse.statusText,
@@ -29,9 +34,15 @@ export class ResponseHandler {
     };
 
     // Add redirection information if available
-    if (axiosResponse.request?.res?.responseUrl) {
-      response.redirected = axiosResponse.request.res.responseUrl !== config.url;
-      response.redirectUrl = axiosResponse.request.res.responseUrl;
+    if (
+      axiosResponse.request &&
+      typeof axiosResponse.request === 'object' &&
+      'res' in axiosResponse.request &&
+      axiosResponse.request.res?.responseUrl
+    ) {
+      const requestResponseUrl = axiosResponse.request.res.responseUrl;
+      response.redirected = requestResponseUrl !== config.url;
+      response.redirectUrl = requestResponseUrl;
     }
 
     return response;
@@ -50,7 +61,8 @@ export class ResponseHandler {
       time: endTime - this.startTime,
       size: 0,
       error: {
-        message: 'Tidak bisa membuat request ke URL ini dari browser karena CORS policy.',
+        message:
+          'Tidak bisa membuat request ke URL ini dari browser karena CORS policy.',
         type: 'CORS_ERROR',
         corsError: true,
         solutions: [
@@ -66,7 +78,7 @@ export class ResponseHandler {
   /**
    * Calculates the size of data in bytes
    */
-  calculateSize(data: any): number {
+  calculateSize(data: unknown): number {
     if (!data) return 0;
 
     try {

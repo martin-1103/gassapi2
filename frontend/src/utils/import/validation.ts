@@ -1,10 +1,12 @@
-import { ImportResult, ImportValidationResult } from './types';
+import type { ImportValidationResult } from './types';
 
-export const validatePostmanCollection = (content: string): ImportValidationResult => {
+export const validatePostmanCollection = (
+  content: string,
+): ImportValidationResult => {
   const result: ImportValidationResult = {
     isValid: true,
     errors: [],
-    warnings: []
+    warnings: [],
   };
 
   try {
@@ -25,17 +27,23 @@ export const validatePostmanCollection = (content: string): ImportValidationResu
 
     if (typeof parsed.item !== 'undefined' && !Array.isArray(parsed.item)) {
       result.isValid = false;
-      result.errors.push('Field "item" di Postman collection harus berupa array');
+      result.errors.push(
+        'Field "item" di Postman collection harus berupa array',
+      );
       return result;
     }
 
     // Validasi tambahan
     if (parsed.auth) {
-      result.warnings.push('Authentication settings di Postman collection mungkin tidak diimport');
+      result.warnings.push(
+        'Authentication settings di Postman collection mungkin tidak diimport',
+      );
     }
 
     if (parsed.variable && parsed.variable.length > 0) {
-      result.warnings.push(`Ditemukan ${parsed.variable.length} environment variables yang tidak diimport`);
+      result.warnings.push(
+        `Ditemukan ${parsed.variable.length} environment variables yang tidak diimport`,
+      );
     }
 
     // Check for empty collections
@@ -44,18 +52,22 @@ export const validatePostmanCollection = (content: string): ImportValidationResu
     }
 
     return result;
-  } catch (error: any) {
+  } catch (error: unknown) {
     result.isValid = false;
-    result.errors.push(`Format JSON tidak valid: ${error.message}`);
+    const errorMessage =
+      error instanceof Error ? error.message : 'Unknown error';
+    result.errors.push(`Format JSON tidak valid: ${errorMessage}`);
     return result;
   }
 };
 
-export const validateOpenAPISpec = (content: string): ImportValidationResult => {
+export const validateOpenAPISpec = (
+  content: string,
+): ImportValidationResult => {
   const result: ImportValidationResult = {
     isValid: true,
     errors: [],
-    warnings: []
+    warnings: [],
   };
 
   try {
@@ -65,8 +77,14 @@ export const validateOpenAPISpec = (content: string): ImportValidationResult => 
       parsed = JSON.parse(content);
     } catch (jsonError) {
       // Jika JSON gagal, coba basic YAML validation
-      if (content.includes('openapi:') || content.includes('swagger:') || content.includes('info:')) {
-        result.warnings.push('Format YAML terdeteksi - parsing mungkin terbatas');
+      if (
+        content.includes('openapi:') ||
+        content.includes('swagger:') ||
+        content.includes('info:')
+      ) {
+        result.warnings.push(
+          'Format YAML terdeteksi - parsing mungkin terbatas',
+        );
         parsed = { openapi: '3.0.0' }; // Mock untuk basic validation
       } else {
         throw jsonError;
@@ -76,7 +94,9 @@ export const validateOpenAPISpec = (content: string): ImportValidationResult => 
     // Cek validitas OpenAPI/Swagger
     if (!parsed.openapi && !parsed.swagger) {
       result.isValid = false;
-      result.errors.push('Missing required "openapi" atau "swagger" field di OpenAPI specification');
+      result.errors.push(
+        'Missing required "openapi" atau "swagger" field di OpenAPI specification',
+      );
       return result;
     }
 
@@ -84,18 +104,24 @@ export const validateOpenAPISpec = (content: string): ImportValidationResult => 
     if (parsed.openapi) {
       const version = parsed.openapi;
       if (!version.startsWith('3.')) {
-        result.warnings.push(`OpenAPI versi ${version} mungkin tidak fully supported. Direkomendasikan: 3.x.x`);
+        result.warnings.push(
+          `OpenAPI versi ${version} mungkin tidak fully supported. Direkomendasikan: 3.x.x`,
+        );
       }
     } else if (parsed.swagger) {
       const version = parsed.swagger;
       if (!version.startsWith('2.')) {
-        result.warnings.push(`Swagger versi ${version} mungkin tidak fully supported. Direkomendasikan: 2.0`);
+        result.warnings.push(
+          `Swagger versi ${version} mungkin tidak fully supported. Direkomendasikan: 2.0`,
+        );
       }
     }
 
     // Cek paths
     if (!parsed.paths || Object.keys(parsed.paths).length === 0) {
-      result.warnings.push('OpenAPI specification tidak memiliki paths yang didefinisikan');
+      result.warnings.push(
+        'OpenAPI specification tidak memiliki paths yang didefinisikan',
+      );
     }
 
     // Cek info section
@@ -111,38 +137,46 @@ export const validateOpenAPISpec = (content: string): ImportValidationResult => 
     }
 
     return result;
-  } catch (error: any) {
+  } catch (error: unknown) {
     result.isValid = false;
-    result.errors.push(`Format tidak valid: ${error.message}`);
+    const errorMessage =
+      error instanceof Error ? error.message : 'Unknown error';
+    result.errors.push(`Format tidak valid: ${errorMessage}`);
     return result;
   }
 };
 
-export const validateCurlCommand = (content: string): ImportValidationResult => {
+export const validateCurlCommand = (
+  content: string,
+): ImportValidationResult => {
   const result: ImportValidationResult = {
     isValid: true,
     errors: [],
-    warnings: []
+    warnings: [],
   };
 
   // Basic validation untuk cURL command
   if (!content.toLowerCase().includes('curl')) {
     result.isValid = false;
-    result.errors.push('Content tidak terlihat seperti cURL command. Harus dimulai dengan "curl"');
+    result.errors.push(
+      'Content tidak terlihat seperti cURL command. Harus dimulai dengan "curl"',
+    );
     return result;
   }
 
   // Cek method
   const methodMatch = content.match(/-X\s+([A-Z]+)/i);
   if (!methodMatch) {
-    result.warnings.push('Tidak ada HTTP method yang dispesifikasikan (gunakan -X GET, -X POST, etc.)');
+    result.warnings.push(
+      'Tidak ada HTTP method yang dispesifikasikan (gunakan -X GET, -X POST, etc.)',
+    );
   }
 
   // Cek URL
   const urlMatches = [
     content.match(/'([^']+?)'/g),
     content.match(/"([^"]+?)"/g),
-    content.match(/([^\s"']+)/g)
+    content.match(/([^\s"']+)/g),
   ];
 
   let hasValidUrl = false;
@@ -150,7 +184,11 @@ export const validateCurlCommand = (content: string): ImportValidationResult => 
     if (matches) {
       for (const match of matches) {
         const candidate = match.replace(/^['"]|['"]$/g, '');
-        if (candidate.startsWith('http://') || candidate.startsWith('https://') || candidate.startsWith('ftp://')) {
+        if (
+          candidate.startsWith('http://') ||
+          candidate.startsWith('https://') ||
+          candidate.startsWith('ftp://')
+        ) {
           hasValidUrl = true;
           break;
         }
@@ -167,7 +205,9 @@ export const validateCurlCommand = (content: string): ImportValidationResult => 
 
   // Cek untuk common issues
   if (content.includes('-k') || content.includes('--insecure')) {
-    result.warnings.push('Menggunakan opsi -k/--insecure (skip SSL verification)');
+    result.warnings.push(
+      'Menggunakan opsi -k/--insecure (skip SSL verification)',
+    );
   }
 
   if (!content.includes('-H') && !content.includes('--header')) {
@@ -175,10 +215,15 @@ export const validateCurlCommand = (content: string): ImportValidationResult => 
   }
 
   if (content.includes('-d') || content.includes('--data')) {
-    if (!methodMatch || ['POST', 'PUT', 'PATCH'].includes(methodMatch[1].toUpperCase())) {
+    if (
+      !methodMatch ||
+      ['POST', 'PUT', 'PATCH'].includes(methodMatch[1].toUpperCase())
+    ) {
       // Good - has data with appropriate method
     } else {
-      result.warnings.push('Mengirim data tanpa method yang sesuai (POST/PUT/PATCH)');
+      result.warnings.push(
+        'Mengirim data tanpa method yang sesuai (POST/PUT/PATCH)',
+      );
     }
   }
 
@@ -187,22 +232,23 @@ export const validateCurlCommand = (content: string): ImportValidationResult => 
 
 export const validateImportContent = (
   content: string,
-  importType: 'postman' | 'openapi' | 'curl'
+  importType: 'postman' | 'openapi' | 'curl',
 ): ImportValidationResult => {
   // Basic content validation
   if (!content || content.trim().length === 0) {
     return {
       isValid: false,
       errors: ['Content kosong - tidak ada yang diimport'],
-      warnings: []
+      warnings: [],
     };
   }
 
-  if (content.length > 10 * 1024 * 1024) { // 10MB limit
+  if (content.length > 10 * 1024 * 1024) {
+    // 10MB limit
     return {
       isValid: false,
       errors: ['File terlalu besar - maksimal 10MB'],
-      warnings: []
+      warnings: [],
     };
   }
 
@@ -217,7 +263,7 @@ export const validateImportContent = (
       return {
         isValid: false,
         errors: ['Tipe import tidak didukung'],
-        warnings: []
+        warnings: [],
       };
   }
 };

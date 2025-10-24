@@ -1,8 +1,9 @@
-import { ApiResponse } from '@/types/api';
+import { Clock, Zap, Database } from 'lucide-react';
+
+import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { Badge } from '@/components/ui/badge';
-import { Clock, Zap, Database, Globe } from 'lucide-react';
+import { ApiResponse } from '@/types/api';
 
 interface TimelineTabProps {
   response: ApiResponse | null;
@@ -11,7 +12,7 @@ interface TimelineTabProps {
 export const TimelineTab = ({ response }: TimelineTabProps) => {
   if (!response) {
     return (
-      <div className="h-full flex items-center justify-center text-muted-foreground">
+      <div className='h-full flex items-center justify-center text-muted-foreground'>
         No response timeline to display
       </div>
     );
@@ -31,43 +32,43 @@ export const TimelineTab = ({ response }: TimelineTabProps) => {
   const timeDifference = totalResponseTime - totalTime; // Account for any other overhead
 
   return (
-    <Card className="p-4 h-full overflow-auto">
-      <div className="space-y-6">
+    <Card className='p-4 h-full overflow-auto'>
+      <div className='space-y-6'>
         <div>
-          <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-            <Clock className="w-5 h-5" />
+          <h3 className='text-lg font-semibold mb-4 flex items-center gap-2'>
+            <Clock className='w-5 h-5' />
             Response Timeline
           </h3>
-          
-          <div className="space-y-4">
-            <div className="flex justify-between text-sm">
+
+          <div className='space-y-4'>
+            <div className='flex justify-between text-sm'>
               <span>Total Response Time</span>
-              <span className="font-medium">{response.time}ms</span>
+              <span className='font-medium'>{response.time}ms</span>
             </div>
-            
-            <div className="space-y-2">
+
+            <div className='space-y-2'>
               {timelineData.map((phase, index) => (
-                <div key={index} className="space-y-1">
-                  <div className="flex justify-between text-sm">
+                <div key={index} className='space-y-1'>
+                  <div className='flex justify-between text-sm'>
                     <span>{phase.name}</span>
                     <span>{phase.time}ms</span>
                   </div>
-                  <Progress 
-                    value={(phase.time / totalResponseTime) * 100} 
-                    className="h-2"
+                  <Progress
+                    value={(phase.time / totalResponseTime) * 100}
+                    className='h-2'
                   />
                 </div>
               ))}
-              
+
               {timeDifference > 0 && (
-                <div className="space-y-1">
-                  <div className="flex justify-between text-sm">
+                <div className='space-y-1'>
+                  <div className='flex justify-between text-sm'>
                     <span>Other</span>
                     <span>{timeDifference}ms</span>
                   </div>
-                  <Progress 
-                    value={(timeDifference / totalResponseTime) * 100} 
-                    className="h-2"
+                  <Progress
+                    value={(timeDifference / totalResponseTime) * 100}
+                    className='h-2'
                   />
                 </div>
               )}
@@ -75,34 +76,37 @@ export const TimelineTab = ({ response }: TimelineTabProps) => {
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
-          <div className="bg-muted/50 p-3 rounded-lg">
-            <div className="flex items-center gap-2 mb-2">
-              <Zap className="w-4 h-4" />
-              <span className="text-sm font-medium">Performance</span>
+        <div className='grid grid-cols-2 gap-4'>
+          <div className='bg-muted/50 p-3 rounded-lg'>
+            <div className='flex items-center gap-2 mb-2'>
+              <Zap className='w-4 h-4' />
+              <span className='text-sm font-medium'>Performance</span>
             </div>
-            <div className="text-2xl font-semibold">{response.time}ms</div>
-            <div className="text-xs text-muted-foreground">Total response time</div>
+            <div className='text-2xl font-semibold'>{response.time}ms</div>
+            <div className='text-xs text-muted-foreground'>
+              Total response time
+            </div>
           </div>
-          
-          <div className="bg-muted/50 p-3 rounded-lg">
-            <div className="flex items-center gap-2 mb-2">
-              <Database className="w-4 h-4" />
-              <span className="text-sm font-medium">Size</span>
+
+          <div className='bg-muted/50 p-3 rounded-lg'>
+            <div className='flex items-center gap-2 mb-2'>
+              <Database className='w-4 h-4' />
+              <span className='text-sm font-medium'>Size</span>
             </div>
-            <div className="text-2xl font-semibold">{response.size} bytes</div>
-            <div className="text-xs text-muted-foreground">Transfer size</div>
+            <div className='text-2xl font-semibold'>{response.size} bytes</div>
+            <div className='text-xs text-muted-foreground'>Transfer size</div>
           </div>
         </div>
 
         <div>
-          <h3 className="text-lg font-semibold mb-3">Status Information</h3>
-          <div className="flex items-center gap-3">
-            <Badge variant="outline" className="text-lg px-3 py-1">
+          <h3 className='text-lg font-semibold mb-3'>Status Information</h3>
+          <div className='flex items-center gap-3'>
+            <Badge variant='outline' className='text-lg px-3 py-1'>
               {response.status} {response.statusText}
             </Badge>
-            <div className="text-sm text-muted-foreground">
-              {response.headers?.['content-type']?.split(';')[0] || 'unknown content type'}
+            <div className='text-sm text-muted-foreground'>
+              {response.headers?.['content-type']?.split(';')[0] ||
+                'unknown content type'}
             </div>
           </div>
         </div>

@@ -1,5 +1,5 @@
-import { CodeSnippet, RequestData } from './types'
-import { escapeJsonString, formatHeadersForCode } from './code-gen-utils'
+import { escapeJsonString, formatHeadersForCode } from './code-gen-utils';
+import type { CodeSnippet, RequestData } from './types';
 
 export function generateJavaOkHttp(requestData: RequestData): CodeSnippet {
   return {
@@ -11,14 +11,14 @@ import java.nio.charset.StandardCharsets;
 public class ApiClient {
     public static void main(String[] args) throws Exception {
         String url = "${requestData.url}";
-        String jsonBody = ${requestData.body ? `"${escapeJsonString(requestData.body)}"` : ""};
+        String jsonBody = ${requestData.body ? `"${escapeJsonString(requestData.body)}"` : ''};
 
         HttpClient client = HttpClient.newHttpClient();
         HttpRequest request = HttpRequest.newBuilder()
             .uri(URI.create(url))
             .method(HttpMethod.${requestData.method.toUpperCase()})
             .header("Content-Type", "application/json")
-            ${formatHeadersForCode(requestData.headers, "            ")}
+            ${formatHeadersForCode(requestData.headers, '            ')}
             ${requestData.body ? `.POST(HttpRequest.BodyPublishers.ofString(jsonBody, StandardCharsets.UTF_8))` : ''}
             .build();
 
@@ -27,8 +27,8 @@ public class ApiClient {
     }
 }`,
     description: 'Java (OkHttp)',
-    framework: 'Java'
-  }
+    framework: 'Java',
+  };
 }
 
 export function generateJavaUnirest(requestData: RequestData): CodeSnippet {
@@ -44,14 +44,14 @@ public class ApiClient {
 
     public static void main(String[] args) throws Exception {
         String url = "${requestData.url}";
-        String jsonBody = ${requestData.body ? `"${escapeJsonString(requestData.body)}"` : ""};
+        String jsonBody = ${requestData.body ? `"${escapeJsonString(requestData.body)}"` : ''};
 
         HttpClient client = HttpClient.newHttpClient();
         HttpRequest request = HttpRequest.newBuilder()
             .uri(URI.create(url))
             .method(HttpMethod.${requestData.method.toUpperCase()})
             .header("Content-Type", "application/json")
-            ${formatHeadersForCode(requestData.headers, "            ")}
+            ${formatHeadersForCode(requestData.headers, '            ')}
             .${requestData.body ? `POST(HttpRequest.BodyPublishers.ofString(jsonBody, StandardCharsets.UTF_8))` : ''}
             .build();
 
@@ -63,6 +63,6 @@ public class ApiClient {
     }
 }`,
     description: 'Java (Unirest with Jackson)',
-    framework: 'Java'
-  }
+    framework: 'Java',
+  };
 }

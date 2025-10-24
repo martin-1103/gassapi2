@@ -1,14 +1,10 @@
-import { Plus } from 'lucide-react';
 import { useEffect } from 'react';
+
+import { Button } from '@/components/ui/button';
+import { TooltipProvider } from '@/components/ui/tooltip';
 import { useUrlParamsState } from '@/lib/hooks/useUrlParamsState';
 import { encodeParamValue } from '@/lib/utils/param-building-utils';
-import { Button } from '@/components/ui/button';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
+
 import { ParamBuilderForm } from './param-builder-form';
 
 export interface QueryParam {
@@ -63,7 +59,7 @@ export function RequestParamsTab({ params, onChange }: RequestParamsTabProps) {
 
   return (
     <TooltipProvider>
-      <div className="h-full flex flex-col">
+      <div className='h-full flex flex-col'>
         <ParamBuilderForm
           params={internalParams}
           enabledCount={enabledCount}
@@ -77,35 +73,37 @@ export function RequestParamsTab({ params, onChange }: RequestParamsTabProps) {
         />
 
         {/* Footer */}
-        <div className="p-4 border-t bg-muted/50">
-          <div className="flex items-center justify-between">
-            <div className="text-sm text-muted-foreground">
+        <div className='p-4 border-t bg-muted/50'>
+          <div className='flex items-center justify-between'>
+            <div className='text-sm text-muted-foreground'>
               Generated URL:&nbsp;
-              <code className="ml-2 px-2 py-1 bg-background rounded text-xs">
+              <code className='ml-2 px-2 py-1 bg-background rounded text-xs'>
                 {generateQueryString()
                   ? `?${generateQueryString()}`
                   : 'No parameters'}
               </code>
             </div>
-            <div className="flex items-center gap-2">
-              <Button 
-                size="sm" 
-                variant="outline"
+            <div className='flex items-center gap-2'>
+              <Button
+                size='sm'
+                variant='outline'
                 onClick={() => {
                   const encodedParams = internalParams.map(param => ({
                     ...param,
-                    value: encodeParamValue(param.value)
+                    value: encodeParamValue(param.value),
                   }));
                   setParams(encodedParams);
                 }}
               >
                 URL Encode All
               </Button>
-              <Button 
-                size="sm" 
-                variant="outline"
+              <Button
+                size='sm'
+                variant='outline'
                 onClick={() => {
-                  const enabledParams = internalParams.filter(param => param.enabled);
+                  const enabledParams = internalParams.filter(
+                    param => param.enabled,
+                  );
                   setParams(enabledParams);
                 }}
               >

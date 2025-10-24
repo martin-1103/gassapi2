@@ -6,7 +6,7 @@ import { McpTool, McpServerStatus } from '../types/mcp.types.js';
  * Server ini nanganin komunikasi antara MCP client dan backend GASSAPI
  * Pake proper logging instead of console.log biar lebih rapih
  */
-export declare class McpServer {
+export declare class GassapiMcpServer {
     private server;
     private tools;
     private config;

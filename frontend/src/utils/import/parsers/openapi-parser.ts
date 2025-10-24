@@ -1,28 +1,42 @@
-import { ImportResult } from '../types';
+import type {
+  PathItem,
+  Operation,
+  Parameter,
+  RequestBody,
+  Components,
+  YamlNode,
+} from '../../../types/openapi-types';
+import type { ImportResult } from '../types';
 
 /**
  * Parser untuk OpenAPI 3.0 dan Swagger 2.0 specifications
  * Mendukung format JSON dan YAML
  */
-export const parseOpenAPISpec = async (content: string): Promise<ImportResult> => {
+export const parseOpenAPISpec = async (
+  content: string,
+): Promise<ImportResult> => {
   try {
     let parsed;
 
     // Coba parse JSON dulu
     try {
       parsed = JSON.parse(content);
-    } catch (jsonError) {
+    } catch {
       // Jika JSON gagal, coba parse YAML (basic implementation)
       parsed = parseBasicYaml(content);
     }
 
     // Validasi schema OpenAPI/Swagger
     if (!parsed.openapi && !parsed.swagger) {
-      throw new Error('Format OpenAPI/Swagger tidak valid - harus ada openapi atau swagger field');
+      throw new Error(
+        'Format OpenAPI/Swagger tidak valid - harus ada openapi atau swagger field',
+      );
     }
 
     if (!parsed.paths || typeof parsed.paths !== 'object') {
-      throw new Error('Format OpenAPI/Swagger tidak valid - harus ada paths object');
+      throw new Error(
+        'Format OpenAPI/Swagger tidak valid - harus ada paths object',
+      );
     }
 
     const paths = parsed.paths || {};
@@ -31,28 +45,54 @@ export const parseOpenAPISpec = async (content: string): Promise<ImportResult> =
     const components = parsed.components || {};
 
     // Ekstrak endpoints dari paths
-    const endpoints = Object.entries(paths).flatMap(([path, pathItem]: [string, any]) => {
-      if (!pathItem || typeof pathItem !== 'object') return [];
+    const endpoints = Object.entries(paths).flatMap(
+      ([path, pathItem]: [string, unknown]) => {
+        if (!pathItem || typeof pathItem !== 'object') return [];
+        const pathItemObj = pathItem as PathItem;
 
-      return Object.entries(pathItem)
-        .filter(([method]) => ['get', 'post', 'put', 'delete', 'patch', 'head', 'options'].includes(method.toLowerCase()))
-        .map(([method, operation]: [string, any]) => ({
-          id: `endpoint_${Date.now()}_${method}_${Math.random().toString(36).substr(2, 6)}`,
-          name: operation?.summary || operation?.operationId || `${method.toUpperCase()} ${path}`,
-          method: method.toUpperCase(),
-          url: path,
-          description: operation?.description || operation?.summary || '',
-          parameters: operation?.parameters || [],
-          headers: extractHeadersFromParameters(operation?.parameters || []),
-          body: extractRequestBody(operation?.requestBody, components),
-          responses: operation?.responses || {},
-          tags: operation?.tags || [],
-          deprecated: operation?.deprecated || false
-        }));
-    });
+        return Object.entries(pathItemObj)
+          .filter(([method]) =>
+            [
+              'get',
+              'post',
+              'put',
+              'delete',
+              'patch',
+              'head',
+              'options',
+            ].includes(method.toLowerCase()),
+          )
+          .map(([method, operation]: [string, unknown]) => {
+            const operationObj = operation as Operation;
+            return {
+              id: `endpoint_${Date.now()}_${method}_${Math.random()
+                .toString(36)
+                .substring(2, 8)}`,
+              name:
+                operationObj?.summary ||
+                operationObj?.operationId ||
+                `${method.toUpperCase()} ${path}`,
+              method: method.toUpperCase(),
+              url: path,
+              description:
+                operationObj?.description || operationObj?.summary || '',
+              parameters: operationObj?.parameters || [],
+              headers: extractHeadersFromParameters(
+                operationObj?.parameters || [],
+              ),
+              body: extractRequestBody(operationObj?.requestBody, components),
+              responses: operationObj?.responses || {},
+              tags: operationObj?.tags || [],
+              deprecated: operationObj?.deprecated || false,
+            };
+          });
+      },
+    );
 
     // Extract server info untuk base URL
-    const serverUrls = servers.map((server: any) => server.url).filter(Boolean);
+    const serverUrls = servers
+      .map((server: { url: string }) => server.url)
+      .filter(Boolean);
     const defaultServerUrl = serverUrls[0] || '';
 
     const transformedData = {
@@ -65,10 +105,10 @@ export const parseOpenAPISpec = async (content: string): Promise<ImportResult> =
       endpoints: endpoints.map((endpoint, index) => ({
         ...endpoint,
         fullUrl: `${defaultServerUrl}${endpoint.url}`.replace(/\/+/g, '/'),
-        order: index
+        order: index,
       })),
       components,
-      info
+      info,
     };
 
     return {
@@ -77,18 +117,26 @@ export const parseOpenAPISpec = async (content: string): Promise<ImportResult> =
       data: transformedData,
       importedCount: endpoints.length,
       warnings: [
-        ...(serverUrls.length === 0 ? ['Tidak ada server URL yang ditemukan'] : []),
-        ...(Object.keys(components).length > 0 ? [`Ditemukan ${Object.keys(components).length} components yang diparsing`] : [])
-      ]
+        ...(serverUrls.length === 0
+          ? ['Tidak ada server URL yang ditemukan']
+          : []),
+        ...(Object.keys(components).length > 0
+          ? [
+              `Ditemukan ${Object.keys(components).length} components yang diparsing`,
+            ]
+          : []),
+      ],
     };
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const errorMessage =
+      error instanceof Error ? error.message : 'Unknown error';
     return {
       success: false,
-      message: `Gagal parse OpenAPI spec: ${error.message}`,
+      message: `Gagal parse OpenAPI spec: ${errorMessage}`,
       warnings: [
         'Pastikan file adalah OpenAPI 3.0 atau Swagger 2.0 yang valid',
-        'Support format JSON dan YAML dasar'
-      ]
+        'Support format JSON dan YAML dasar',
+      ],
     };
   }
 };
@@ -97,17 +145,15 @@ export const parseOpenAPISpec = async (content: string): Promise<ImportResult> =
  * Basic YAML parser - sederhana, tidak handle semua edge cases
  * Untuk production sebaiknya gunakan library seperti js-yaml
  */
-function parseBasicYaml(content: string): any {
+function parseBasicYaml(content: string): YamlNode {
   const lines = content.split('\n');
-  const result: any = {};
-  const stack: any[] = [result];
-  let currentIndent = 0;
+  const result: YamlNode = {};
+  const stack: YamlNode[] = [result];
 
   for (const line of lines) {
     const trimmed = line.trim();
     if (!trimmed || trimmed.startsWith('#')) continue;
 
-    const indent = line.search(/\S/);
     const cleanLine = line.trim();
 
     if (cleanLine.includes(':')) {
@@ -119,11 +165,17 @@ function parseBasicYaml(content: string): any {
         try {
           stack[stack.length - 1][key.trim()] = JSON.parse(value);
         } catch {
-          stack[stack.length - 1][key.trim()] = value.replace(/^["']|["']$/g, '');
+          stack[stack.length - 1][key.trim()] = value.replace(
+            /^["']|["']$/g,
+            '',
+          );
         }
       } else {
         stack[stack.length - 1][key.trim()] = {};
-        stack.push(stack[stack.length - 1][key.trim()]);
+        const newValue = stack[stack.length - 1][key.trim()];
+        if (typeof newValue === 'object' && newValue !== null) {
+          stack.push(newValue as YamlNode);
+        }
       }
     }
   }
@@ -131,16 +183,22 @@ function parseBasicYaml(content: string): any {
   return result;
 }
 
-function extractHeadersFromParameters(parameters: any[]): Record<string, string> {
+function extractHeadersFromParameters(
+  parameters: Parameter[],
+): Record<string, string> {
   return parameters
-    .filter((param: any) => param.in === 'header' && param.name)
-    .reduce((acc: Record<string, string>, param: any) => {
-      acc[param.name] = param.schema?.example || param.example || '';
+    .filter((param: Parameter) => param.in === 'header' && param.name)
+    .reduce((acc: Record<string, string>, param: Parameter) => {
+      acc[param.name] =
+        (param.schema?.example as string) || (param.example as string) || '';
       return acc;
     }, {});
 }
 
-function extractRequestBody(requestBody: any, components: any): string {
+function extractRequestBody(
+  requestBody: RequestBody | undefined,
+  _components: Components,
+): string {
   if (!requestBody) return '';
 
   const content = requestBody.content;

@@ -1,5 +1,6 @@
 import type { HttpResponseData } from '@/types/http-client';
-import { prettyPrintJson, formatResponseBody } from './content-type-utils';
+
+import { formatResponseBody } from './content-type-utils';
 
 /**
  * Format response time untuk display

@@ -1,4 +1,7 @@
-import type { PerformanceData, TestResult } from '@/components/workspace/response-tabs/types';
+import type {
+  PerformanceData,
+  TestResult,
+} from '@/components/workspace/response-tabs/types';
 
 /**
  * Library untuk processing test results
@@ -34,7 +37,9 @@ export function calculateTestStats(testResults: TestResult[]) {
 /**
  * Mendapatkan data performa dari test results
  */
-export function getPerformanceData(testResults: TestResult[]): PerformanceData | null {
+export function getPerformanceData(
+  testResults: TestResult[],
+): PerformanceData | null {
   if (testResults.length === 0) return null;
 
   const durations = testResults.map(t => t.duration);
@@ -57,7 +62,7 @@ export function getPerformanceData(testResults: TestResult[]): PerformanceData |
  */
 export function filterTestsByStatus(
   testResults: TestResult[],
-  status: TestResult['status']
+  status: TestResult['status'],
 ): TestResult[] {
   return testResults.filter(test => test.status === status);
 }
@@ -67,23 +72,29 @@ export function filterTestsByStatus(
  */
 export function sortTestsByDuration(
   testResults: TestResult[],
-  order: 'asc' | 'desc' = 'desc'
+  order: 'asc' | 'desc' = 'desc',
 ): TestResult[] {
   return [...testResults].sort((a, b) =>
-    order === 'desc' ? b.duration - a.duration : a.duration - b.duration
+    order === 'desc' ? b.duration - a.duration : a.duration - b.duration,
   );
 }
 
 /**
  * Mendapatkan test yang paling lambat
  */
-export function getSlowestTests(testResults: TestResult[], limit: number = 5): TestResult[] {
+export function getSlowestTests(
+  testResults: TestResult[],
+  limit: number = 5,
+): TestResult[] {
   return sortTestsByDuration(testResults, 'desc').slice(0, limit);
 }
 
 /**
  * Mendapatkan test yang paling cepat
  */
-export function getFastestTests(testResults: TestResult[], limit: number = 5): TestResult[] {
+export function getFastestTests(
+  testResults: TestResult[],
+  limit: number = 5,
+): TestResult[] {
   return sortTestsByDuration(testResults, 'asc').slice(0, limit);
 }

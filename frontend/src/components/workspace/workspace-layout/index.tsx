@@ -1,9 +1,10 @@
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { useWorkspaceLayout } from './hooks/use-workspace-layout'
-import { PanelManager } from './PanelManager'
-import { RequestPanel } from './RequestPanel'
-import { ResponsePanel } from './ResponsePanel'
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+
+import { useWorkspaceLayout } from './hooks/use-workspace-layout';
+import { PanelManager } from './PanelManager';
+import { RequestPanel } from './RequestPanel';
+import { ResponsePanel } from './ResponsePanel';
 
 // Component utama workspace layout - hanya berisi struktur dan layout visual
 export default function WorkspaceLayout() {
@@ -32,21 +33,23 @@ export default function WorkspaceLayout() {
     setParams,
     setHeaders,
     setBodyData,
-    sendRequest
-  } = useWorkspaceLayout()
+    sendRequest,
+  } = useWorkspaceLayout();
 
   return (
-    <div className="h-screen flex flex-col bg-background">
+    <div className='h-screen flex flex-col bg-background'>
       {/* Header */}
-      <div className="h-14 border-b flex items-center px-4 justify-between">
-        <div className="flex items-center gap-4">
-          <h1 className="text-lg font-semibold">GASS API</h1>
-          <Badge variant="outline">Development</Badge>
+      <div className='h-14 border-b flex items-center px-4 justify-between'>
+        <div className='flex items-center gap-4'>
+          <h1 className='text-lg font-semibold'>GASS API</h1>
+          <Badge variant='outline'>Development</Badge>
         </div>
 
-        <div className="flex items-center gap-2">
-          <Button size="sm" variant="outline">Import</Button>
-          <Button size="sm">Export</Button>
+        <div className='flex items-center gap-2'>
+          <Button size='sm' variant='outline'>
+            Import
+          </Button>
+          <Button size='sm'>Export</Button>
         </div>
       </div>
 
@@ -85,13 +88,14 @@ export default function WorkspaceLayout() {
             onSendRequest={sendRequest}
           />
         }
-        responsePanel={
-          <ResponsePanel response={response} />
-        }
+        responsePanel={<ResponsePanel response={response} />}
       />
     </div>
-  )
+  );
 }
 
 // Export types untuk external use
-export type { WorkspaceLayoutState, WorkspaceLayoutActions } from './hooks/use-workspace-layout'
+export type {
+  WorkspaceLayoutState,
+  WorkspaceLayoutActions,
+} from './hooks/use-workspace-layout';

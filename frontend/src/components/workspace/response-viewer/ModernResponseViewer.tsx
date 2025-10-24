@@ -3,21 +3,20 @@ import { useEffect } from 'react';
 
 import { Card } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useResponseViewState } from '@/hooks/use-response-view-state';
+import { ApiResponse } from '@/types/api';
 
 import { ResponseBodyTab } from './ResponseBodyTab';
 import { ResponseConsoleTab } from './ResponseConsoleTab';
 import { ResponseCookiesTab } from './ResponseCookiesTab';
 import { ResponseDocsTab } from './ResponseDocsTab';
-import { ResponseHeadersTab } from './ResponseHeadersTab';
-import { ResponseTestsTab } from './ResponseTestsTab';
-
 import { ResponseEmptyState } from './ResponseEmptyState';
+import { ResponseHeadersTab } from './ResponseHeadersTab';
 import { ResponseLoadingState } from './ResponseLoadingState';
 import { ResponseMetadata } from './ResponseMetadata';
 import { ResponseSearchControls } from './ResponseSearchControls';
 import { ResponseStatusBar } from './ResponseStatusBar';
-import { useResponseViewState } from '@/hooks/use-response-view-state';
-import { ApiResponse } from '@/types/api';
+import { ResponseTestsTab } from './ResponseTestsTab';
 
 interface ModernResponseViewerProps {
   response: ApiResponse | null;

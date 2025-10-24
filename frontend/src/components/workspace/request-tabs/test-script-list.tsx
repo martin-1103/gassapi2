@@ -1,4 +1,5 @@
-import { Trash2, CheckCircle, XCircle, AlertCircle, Play } from 'lucide-react';
+import { Trash2 } from 'lucide-react';
+
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { TestScript, TestResult } from '@/hooks/useTestConfigurationState';
@@ -33,13 +34,15 @@ export function TestScriptList({
           {testScripts.map(script => {
             const result = getTestResult(script.id);
             return (
-              <div
+              <button
                 key={script.id}
-                className={`p-3 rounded-lg cursor-pointer border transition-colors ${
+                type='button'
+                className={`w-full p-3 rounded-lg border transition-colors text-left ${
                   selectedScript?.id === script.id
                     ? 'bg-primary/10 border-primary'
                     : 'hover:bg-muted'
                 }`}
+                aria-pressed={selectedScript?.id === script.id}
                 onClick={() => onSelectScript(script)}
               >
                 <div className='flex items-start justify-between'>
@@ -83,7 +86,7 @@ export function TestScriptList({
                     <Trash2 className='w-3 h-3' />
                   </Button>
                 </div>
-              </div>
+              </button>
             );
           })}
         </div>

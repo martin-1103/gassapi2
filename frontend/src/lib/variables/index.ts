@@ -4,8 +4,7 @@
 
 export {
   VariableInterpolator,
-  interpolateString,
-  interpolateVariables,
+  variableInterpolator,
 } from './variable-interpolator';
 
 export type {

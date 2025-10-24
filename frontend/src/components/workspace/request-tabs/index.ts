@@ -9,4 +9,7 @@ export { ParameterTemplates, PARAM_TEMPLATES } from './ParameterTemplates';
 export { URLPreview } from './URLPreview';
 
 // Export hook
-export { useParameterManagement, type QueryParam } from '@/hooks/useParameterManagement';
+export {
+  useParameterManagement,
+  type QueryParam,
+} from '@/hooks/useParameterManagement';

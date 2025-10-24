@@ -1,18 +1,13 @@
-import { Copy, Download, Trash2 } from 'lucide-react';
+import { Download, Trash2 } from 'lucide-react';
+
 import { Button } from '@/components/ui/button';
-import { ConsoleEntry } from '@/types/console';
-import { ConsoleStats } from '@/lib/console/console-utils';
 
 interface ConsoleActionsProps {
-  consoleEntries: ConsoleEntry[];
-  stats: ConsoleStats;
   onExport: () => void;
   onClear: () => void;
 }
 
 export default function ConsoleActions({
-  consoleEntries,
-  stats,
   onExport,
   onClear,
 }: ConsoleActionsProps) {

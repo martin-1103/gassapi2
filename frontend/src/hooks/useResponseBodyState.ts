@@ -1,18 +1,18 @@
 import { useCallback, useMemo } from 'react';
+
 import { useToast } from '@/hooks/use-toast';
 import {
   getContentType,
   getLanguage,
   formatData as formatResponseData,
-  getSyntaxHighlighterClass,
-  isJsonData
+  isJsonData,
 } from '@/lib/response/formatting-utils';
 
 interface ResponseData {
   status: number;
   statusText: string;
   headers: Record<string, string>;
-  data: any;
+  data: unknown;
   time: number;
   size: number;
 }
@@ -20,7 +20,23 @@ interface ResponseData {
 interface UseResponseBodyStateProps {
   response: ResponseData;
   formatMode: 'pretty' | 'raw';
-  searchQuery: string;
+  searchQuery?: string; // Optional for future use
+}
+
+interface UseResponseBodyStateReturn {
+  // Computed values
+  contentType: string;
+  language: string;
+  formattedData: string;
+  jsonData: boolean;
+  viewerType: 'json' | 'xml' | 'html' | 'binary' | 'text';
+
+  // Helper functions
+  getSyntaxHighlighterClass: () => string;
+
+  // UI Actions
+  copyToClipboard: () => void;
+  downloadResponse: () => void;
 }
 
 /**
@@ -30,8 +46,8 @@ interface UseResponseBodyStateProps {
 export const useResponseBodyState = ({
   response,
   formatMode,
-  searchQuery,
-}: UseResponseBodyStateProps) => {
+  searchQuery: _searchQuery, // Prefix with underscore to indicate intentionally unused
+}: UseResponseBodyStateProps): UseResponseBodyStateReturn => {
   const { toast } = useToast();
 
   // Computed values
@@ -108,7 +124,10 @@ export const useResponseBodyState = ({
   // Format-specific viewer component selection
   const getViewerType = useCallback(() => {
     // JSON content
-    if (contentType === 'application/json' || contentType === 'application/ld+json') {
+    if (
+      contentType === 'application/json' ||
+      contentType === 'application/ld+json'
+    ) {
       return 'json';
     }
 
@@ -123,10 +142,12 @@ export const useResponseBodyState = ({
     }
 
     // Binary content
-    if (contentType === 'application/octet-stream' ||
-        contentType.startsWith('image/') ||
-        contentType.startsWith('video/') ||
-        contentType.startsWith('audio/')) {
+    if (
+      contentType === 'application/octet-stream' ||
+      contentType.startsWith('image/') ||
+      contentType.startsWith('video/') ||
+      contentType.startsWith('audio/')
+    ) {
       return 'binary';
     }
 

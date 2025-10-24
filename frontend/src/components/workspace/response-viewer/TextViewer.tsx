@@ -2,7 +2,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { highlightSearch } from '@/lib/response/response-search';
 
 interface TextViewerProps {
-  data: any;
+  data: unknown;
   formatMode: 'pretty' | 'raw';
   formattedData: string;
   searchQuery: string;
@@ -12,8 +12,8 @@ interface TextViewerProps {
 }
 
 export const TextViewer = ({
-  data,
-  formatMode,
+  _data,
+  _formatMode,
   formattedData,
   searchQuery,
   lineNumbers,

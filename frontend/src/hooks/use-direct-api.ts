@@ -6,7 +6,8 @@
 import { useState, useCallback } from 'react';
 
 import { directApiClient } from '@/lib/api/direct-client';
-import { requestHistory } from '@/lib/history';
+import { HistoryManager } from '@/lib/history/history-manager';
+import { logger } from '@/lib/logger';
 import type {
   HttpRequestConfig,
   HttpResponseData,
@@ -31,6 +32,7 @@ export function useDirectApi(
   const [isLoading, setIsLoading] = useState(false);
   const [response, setResponse] = useState<HttpResponseData | null>(null);
   const [error, setError] = useState<HttpError | null>(null);
+  const requestHistory = HistoryManager.getInstance();
 
   const sendRequest = useCallback(
     async (config: HttpRequestConfig) => {
@@ -46,32 +48,77 @@ export function useDirectApi(
           directApiClient.setVariableContext(variableContext);
         }
 
+        // Convert HttpRequestConfig ke DirectRequestConfig
+        const directConfig = {
+          method: config.method,
+          url: config.url,
+          headers: config.headers?.reduce(
+            (acc, header) => {
+              if (header.enabled) {
+                acc[header.key] = header.value;
+              }
+              return acc;
+            },
+            {} as Record<string, string>,
+          ),
+          body: config.body,
+          timeout: config.timeout,
+          followRedirects: config.followRedirects,
+          validateSSL: config.validateSSL,
+        };
+
         // Send request
-        const result = await directApiClient.sendRequest(config);
+        const result = await directApiClient.sendRequest(directConfig);
         const endTime = Date.now();
 
-        setResponse(result);
+        // Convert DirectResponse ke HttpResponseData
+        const httpResponseData: HttpResponseData = {
+          status: result.status,
+          statusText: result.statusText,
+          headers: result.headers,
+          data: result.data,
+          time: result.time,
+          size: result.size,
+        };
+        setResponse(httpResponseData);
 
         // Save to history
         try {
           await requestHistory.addToHistory({
             method: config.method,
             url: config.url,
-            headers: config.headers || {},
+            headers:
+              config.headers?.reduce(
+                (acc, header) => {
+                  if (header.enabled) {
+                    acc[header.key] = header.value;
+                  }
+                  return acc;
+                },
+                {} as Record<string, string>,
+              ) || {},
             body: config.body,
-            response: result,
-            status: result.status >= 200 && result.status < 300 ? 'success' : 'error',
+            response: httpResponseData,
+            status:
+              result.status >= 200 && result.status < 300 ? 'success' : 'error',
             duration: endTime - startTime,
             collectionId:
-              config.body?.type === 'json'
-                ? (config.body.json as any)?.collectionId
+              config.body?.type === 'json' &&
+              typeof config.body.json === 'object' &&
+              config.body.json !== null
+                ? ((config.body.json as Record<string, unknown>)
+                    ?.collectionId as string)
                 : undefined,
           });
         } catch (historyError) {
-          console.error('Failed to save request history:', historyError);
+          logger.error(
+            'Failed to save request history',
+            historyError as Error,
+            'use-direct-api',
+          );
         }
 
-        return result;
+        return httpResponseData;
       } catch (err) {
         const httpError = err as HttpError;
         const endTime = Date.now();
@@ -83,17 +130,33 @@ export function useDirectApi(
           await requestHistory.addToHistory({
             method: config.method,
             url: config.url,
-            headers: config.headers || {},
+            headers:
+              config.headers?.reduce(
+                (acc, header) => {
+                  if (header.enabled) {
+                    acc[header.key] = header.value;
+                  }
+                  return acc;
+                },
+                {} as Record<string, string>,
+              ) || {},
             body: config.body,
             status: 'error',
             duration: endTime - startTime,
             collectionId:
-              config.body?.type === 'json'
-                ? (config.body.json as any)?.collectionId
+              config.body?.type === 'json' &&
+              typeof config.body.json === 'object' &&
+              config.body.json !== null
+                ? ((config.body.json as Record<string, unknown>)
+                    ?.collectionId as string)
                 : undefined,
           });
         } catch (historyError) {
-          console.error('Failed to save request history:', historyError);
+          logger.error(
+            'Failed to save request history',
+            historyError as Error,
+            'use-direct-api',
+          );
         }
 
         return null;
@@ -101,7 +164,7 @@ export function useDirectApi(
         setIsLoading(false);
       }
     },
-    [variableContext],
+    [variableContext, requestHistory],
   );
 
   const clearResponse = useCallback(() => {
@@ -130,7 +193,7 @@ export function useQuickRequest() {
       url: string,
       options?: {
         headers?: Record<string, string>;
-        body?: any;
+        body?: unknown;
         timeout?: number;
       },
     ): Promise<HttpResponseData | null> => {
@@ -140,7 +203,7 @@ export function useQuickRequest() {
         const result = await directApiClient.quickRequest(method, url, options);
         return result;
       } catch (error) {
-        console.error('Quick request failed:', error);
+        logger.error('Quick request failed', error as Error, 'use-direct-api');
         return null;
       } finally {
         setIsLoading(false);

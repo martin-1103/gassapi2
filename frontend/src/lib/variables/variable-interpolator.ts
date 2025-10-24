@@ -3,19 +3,12 @@
  * Menangani variable substitution di URLs, headers, dan body
  */
 
-export interface EnvironmentVariable {
-  key: string;
-  value: string;
-  enabled: boolean;
-  description?: string;
-}
-
-export interface Environment {
-  id: string;
-  name: string;
-  variables: EnvironmentVariable[];
-  is_default?: boolean;
-}
+import type {
+  Environment,
+  RequestConfig,
+  InterpolatableValue,
+  InterpolatedObject,
+} from '@/types/variable-types';
 
 export class VariableInterpolator {
   /**
@@ -52,7 +45,10 @@ export class VariableInterpolator {
   /**
    * Interpolate body dengan environment variables
    */
-  interpolateBody(body: any, variables: Record<string, string>): any {
+  interpolateBody(
+    body: InterpolatableValue,
+    variables: Record<string, string>,
+  ): InterpolatableValue {
     if (typeof body === 'string') {
       try {
         const parsed = JSON.parse(body);
@@ -71,11 +67,14 @@ export class VariableInterpolator {
   /**
    * Interpolate object recursively
    */
-  private interpolateObject(obj: any, variables: Record<string, string>): any {
+  private interpolateObject(
+    obj: InterpolatableValue,
+    variables: Record<string, string>,
+  ): InterpolatableValue {
     if (Array.isArray(obj)) {
       return obj.map(item => this.interpolateObject(item, variables));
     } else if (typeof obj === 'object' && obj !== null) {
-      const result: any = {};
+      const result: InterpolatedObject = {};
       for (const [key, value] of Object.entries(obj)) {
         if (typeof value === 'string') {
           result[key] = this.interpolate(value, variables);
@@ -164,7 +163,10 @@ export class VariableInterpolator {
   /**
    * Process request configuration dengan environment variables
    */
-  processRequestConfig(config: any, environment: Environment): any {
+  processRequestConfig(
+    config: RequestConfig,
+    environment: Environment,
+  ): RequestConfig {
     const variables = this.getEnvironmentVariables(environment);
 
     return {
@@ -185,7 +187,19 @@ export class VariableInterpolator {
   ): string {
     switch (type) {
       case 'uuid':
-        return crypto.randomUUID();
+        // Check for crypto API availability (browser vs Node.js)
+        if (
+          typeof globalThis !== 'undefined' &&
+          globalThis.crypto?.randomUUID
+        ) {
+          return globalThis.crypto.randomUUID();
+        }
+        // Fallback UUID generation
+        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+          const r = (Math.random() * 16) | 0;
+          const v = c === 'x' ? r : (r & 0x3) | 0x8;
+          return v.toString(16);
+        });
       case 'timestamp':
         return Date.now().toString();
       case 'number':

@@ -5,7 +5,9 @@
 /**
  * Determines the content type from response headers
  */
-export const getContentType = (headers: Record<string, string> | undefined) => {
+export const getContentType = (
+  headers: Record<string, string> | undefined,
+): string => {
   if (!headers) return 'unknown';
   const contentType = headers['content-type'] || headers['Content-Type'];
   return contentType?.split(';')[0] || 'unknown';
@@ -14,7 +16,7 @@ export const getContentType = (headers: Record<string, string> | undefined) => {
 /**
  * Gets the language based on content type for syntax highlighting
  */
-export const getLanguage = (contentType: string) => {
+export const getLanguage = (contentType: string): string => {
   if (contentType.includes('json')) return 'json';
   if (contentType.includes('xml')) return 'xml';
   if (contentType.includes('html')) return 'html';
@@ -27,7 +29,10 @@ export const getLanguage = (contentType: string) => {
 /**
  * Formats data based on the selected format mode
  */
-export const formatData = (data: any, formatMode: 'pretty' | 'raw') => {
+export const formatData = (
+  data: unknown,
+  formatMode: 'pretty' | 'raw',
+): string => {
   if (formatMode === 'raw') {
     return typeof data === 'string' ? data : JSON.stringify(data);
   }
@@ -46,7 +51,10 @@ export const formatData = (data: any, formatMode: 'pretty' | 'raw') => {
 /**
  * Gets the appropriate syntax highlighter class based on language and theme
  */
-export const getSyntaxHighlighterClass = (language: string, theme: 'dark' | 'light') => {
+export const getSyntaxHighlighterClass = (
+  language: string,
+  theme: 'dark' | 'light',
+): string => {
   switch (language) {
     case 'json':
       return theme === 'dark' ? 'hljs-json' : 'hljs-json-light';
@@ -64,6 +72,6 @@ export const getSyntaxHighlighterClass = (language: string, theme: 'dark' | 'lig
 /**
  * Determines if data should be treated as JSON for tree view
  */
-export const isJsonData = (data: any, language: string) => {
-  return language === 'json' && typeof data === 'object';
+export const isJsonData = (data: unknown, language: string): boolean => {
+  return language === 'json' && typeof data === 'object' && data !== null;
 };

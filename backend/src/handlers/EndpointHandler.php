@@ -4,6 +4,7 @@ namespace App\Handlers;
 use App\Helpers\ResponseHelper;
 use App\Helpers\ValidationHelper;
 use App\Helpers\JwtHelper;
+use App\Helpers\AuthHelper;
 use App\Repositories\ProjectRepository;
 use App\Repositories\CollectionRepository;
 use App\Repositories\EndpointRepository;
@@ -26,7 +27,8 @@ class EndpointHandler {
         if (!$collectionId) { 
             ResponseHelper::error('Collection ID is required', 400); 
         }
-        $userId = $this->requireUserId();
+        $user = AuthHelper::requireAuth();
+        $userId = $user['id'];
         
         $collection = $this->collections->findById($collectionId);
         if (!$collection) { 
@@ -48,7 +50,8 @@ class EndpointHandler {
         if (!$collectionId) { 
             ResponseHelper::error('Collection ID is required', 400); 
         }
-        $userId = $this->requireUserId();
+        $user = AuthHelper::requireAuth();
+        $userId = $user['id'];
         
         $collection = $this->collections->findById($collectionId);
         if (!$collection) { 
@@ -99,7 +102,8 @@ class EndpointHandler {
         if (!$id) { 
             ResponseHelper::error('Endpoint ID is required', 400); 
         }
-        $userId = $this->requireUserId();
+        $user = AuthHelper::requireAuth();
+        $userId = $user['id'];
         
         $endpoint = $this->endpoints->findWithDetails($id);
         if (!$endpoint) { 
@@ -120,7 +124,8 @@ class EndpointHandler {
         if (!$id) { 
             ResponseHelper::error('Endpoint ID is required', 400); 
         }
-        $userId = $this->requireUserId();
+        $user = AuthHelper::requireAuth();
+        $userId = $user['id'];
         
         $endpoint = $this->endpoints->findWithDetails($id);
         if (!$endpoint) { 
@@ -172,7 +177,8 @@ class EndpointHandler {
         if (!$id) { 
             ResponseHelper::error('Endpoint ID is required', 400); 
         }
-        $userId = $this->requireUserId();
+        $user = AuthHelper::requireAuth();
+        $userId = $user['id'];
         
         $endpoint = $this->endpoints->findWithDetails($id);
         if (!$endpoint) { 
@@ -199,7 +205,8 @@ class EndpointHandler {
         if (!$projectId) { 
             ResponseHelper::error('Project ID is required', 400); 
         }
-        $userId = $this->requireUserId();
+        $user = AuthHelper::requireAuth();
+        $userId = $user['id'];
         
         if (!$this->projects->isMember($projectId, $userId)) {
             ResponseHelper::error('Forbidden', 403);
@@ -216,7 +223,8 @@ class EndpointHandler {
         if (!$projectId) { 
             ResponseHelper::error('Project ID is required', 400); 
         }
-        $userId = $this->requireUserId();
+        $user = AuthHelper::requireAuth();
+        $userId = $user['id'];
         
         if (!$this->projects->isMember($projectId, $userId)) {
             ResponseHelper::error('Forbidden', 403);
@@ -224,14 +232,5 @@ class EndpointHandler {
         
         $grouped = $this->endpoints->listGroupedByCollection($projectId);
         ResponseHelper::success($grouped, 'Grouped endpoints fetched');
-    }
-
-    private function requireUserId() {
-        $token = JwtHelper::getTokenFromRequest();
-        $payload = JwtHelper::validateAccessToken($token);
-        if (!$payload) { 
-            ResponseHelper::error('Unauthorized', 401); 
-        }
-        return $payload['sub'];
     }
 }

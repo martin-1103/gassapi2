@@ -1,6 +1,13 @@
 import React from 'react';
+
 import { CodeEditor } from '@/components/common/code-editor';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { BodyData } from '@/hooks/use-request-body-state';
 
 interface XmlBodyEditorProps {

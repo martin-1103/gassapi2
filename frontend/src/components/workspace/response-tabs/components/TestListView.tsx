@@ -2,9 +2,10 @@ import * as React from 'react';
 
 import { ScrollArea } from '@/components/ui/scroll-area';
 
-import { TestResultViewer } from './TestResultViewer';
 import type { TestResult } from '../types';
 import { getTestIcon, getStatusColor } from '../utils';
+
+import { TestResultViewer } from './TestResultViewer';
 
 interface TestListViewProps {
   testResults: TestResult[];

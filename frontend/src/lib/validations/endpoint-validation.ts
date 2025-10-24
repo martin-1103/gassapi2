@@ -1,35 +1,36 @@
-import type { Endpoint } from '@/types/api';
-
-// Validation utilities for endpoint data
-export interface ValidationError {
-  field: string;
-  message: string;
-}
-
-export interface EndpointValidationResult {
-  isValid: boolean;
-  errors: ValidationError[];
-}
+import type { Endpoint, AuthData } from '@/types/api';
+import type { RequestBody } from '@/types/api';
+import type {
+  ValidationError,
+  EndpointValidationResult,
+} from '@/types/error-types';
 
 /**
  * Validates endpoint data
  */
-export const validateEndpoint = (endpoint: Partial<Endpoint>): EndpointValidationResult => {
+export const validateEndpoint = (
+  endpoint: Partial<Endpoint>,
+): EndpointValidationResult => {
   const errors: ValidationError[] = [];
 
   // Validate name
   if (!endpoint.name || endpoint.name.trim() === '') {
     errors.push({
       field: 'name',
-      message: 'Name is required'
+      message: 'Name is required',
     });
   }
 
   // Validate method
-  if (!endpoint.method || !['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'HEAD', 'OPTIONS'].includes(endpoint.method.toUpperCase())) {
+  if (
+    !endpoint.method ||
+    !['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'HEAD', 'OPTIONS'].includes(
+      endpoint.method.toUpperCase(),
+    )
+  ) {
     errors.push({
       field: 'method',
-      message: 'Valid HTTP method is required'
+      message: 'Valid HTTP method is required',
     });
   }
 
@@ -37,18 +38,18 @@ export const validateEndpoint = (endpoint: Partial<Endpoint>): EndpointValidatio
   if (!endpoint.url || endpoint.url.trim() === '') {
     errors.push({
       field: 'url',
-      message: 'URL is required'
+      message: 'URL is required',
     });
   } else if (!isValidUrl(endpoint.url)) {
     errors.push({
       field: 'url',
-      message: 'Valid URL is required'
+      message: 'Valid URL is required',
     });
   }
 
   return {
     isValid: errors.length === 0,
-    errors
+    errors,
   };
 };
 
@@ -61,10 +62,14 @@ export const isValidUrl = (url: string): boolean => {
     if (url.startsWith('{{') && url.endsWith('}}')) {
       return true;
     }
-    
-    // Check for valid URL with or without protocol
-    const validUrlPattern = /^(https?:\/\/)?([\da-z.-]+)\.([a-z.]{2,6})([/\w .-]*)*\/?$/;
-    return validUrlPattern.test(url) || new URL(url.startsWith('http') ? url : `http://${url}`).hostname !== '';
+
+    // Check for valid URL with or without protocol (fixed to prevent ReDoS)
+    const validUrlPattern =
+      /^(https?:\/\/)?([a-z0-9]([a-z0-9-]*[a-z0-9])?\.)+[a-z]{2,}(\/[^\s]*)?$/i;
+    return (
+      validUrlPattern.test(url) ||
+      new URL(url.startsWith('http') ? url : `http://${url}`).hostname !== ''
+    );
   } catch {
     return false;
   }
@@ -73,85 +78,94 @@ export const isValidUrl = (url: string): boolean => {
 /**
  * Validates query parameters
  */
-export const validateQueryParams = (params: Array<{ key: string; value: string; enabled: boolean }>): EndpointValidationResult => {
+export const validateQueryParams = (
+  params: Array<{ key: string; value: string; enabled: boolean }>,
+): EndpointValidationResult => {
   const errors: ValidationError[] = [];
 
   params.forEach((param, index) => {
     if (param.enabled && param.key && param.value === undefined) {
       errors.push({
         field: `params[${index}].value`,
-        message: `Parameter value is required for key: ${param.key}`
+        message: `Parameter value is required for key: ${param.key}`,
       });
     }
   });
 
   return {
     isValid: errors.length === 0,
-    errors
+    errors,
   };
 };
 
 /**
  * Validates headers
  */
-export const validateHeaders = (headers: Array<{ key: string; value: string; enabled: boolean }>): EndpointValidationResult => {
+export const validateHeaders = (
+  headers: Array<{ key: string; value: string; enabled: boolean }>,
+): EndpointValidationResult => {
   const errors: ValidationError[] = [];
 
   headers.forEach((header, index) => {
     if (header.enabled && header.key && !header.value) {
       errors.push({
         field: `headers[${index}].value`,
-        message: `Header value is required for key: ${header.key}`
+        message: `Header value is required for key: ${header.key}`,
       });
     }
   });
 
   return {
     isValid: errors.length === 0,
-    errors
+    errors,
   };
 };
 
 /**
  * Validates request body based on content type
  */
-export const validateRequestBody = (body: any, contentType: string): EndpointValidationResult => {
+export const validateRequestBody = (
+  body: RequestBody,
+  contentType: string,
+): EndpointValidationResult => {
   const errors: ValidationError[] = [];
 
   if (!body) {
     return {
       isValid: true,
-      errors
+      errors,
     };
   }
 
   if (contentType.includes('application/json')) {
     try {
       JSON.parse(body);
-    } catch (e) {
+    } catch {
       errors.push({
         field: 'body',
-        message: 'Invalid JSON format'
+        message: 'Invalid JSON format',
       });
     }
   }
 
   return {
     isValid: errors.length === 0,
-    errors
+    errors,
   };
 };
 
 /**
  * Validates authentication data
  */
-export const validateAuth = (authData: any): EndpointValidationResult => {
+export const validateAuth = (
+  authData: AuthData | undefined,
+): EndpointValidationResult => {
   const errors: ValidationError[] = [];
 
   if (!authData || !authData.type) {
     return {
       isValid: true, // Auth is optional
-      errors
+      errors,
     };
   }
 
@@ -160,7 +174,7 @@ export const validateAuth = (authData: any): EndpointValidationResult => {
       if (!authData.bearer.token) {
         errors.push({
           field: 'auth.bearer.token',
-          message: 'Bearer token is required'
+          message: 'Bearer token is required',
         });
       }
       break;
@@ -168,7 +182,7 @@ export const validateAuth = (authData: any): EndpointValidationResult => {
       if (!authData.basic.username || !authData.basic.password) {
         errors.push({
           field: 'auth.basic',
-          message: 'Username and password are required for basic auth'
+          message: 'Username and password are required for basic auth',
         });
       }
       break;
@@ -176,7 +190,7 @@ export const validateAuth = (authData: any): EndpointValidationResult => {
       if (!authData.apikey.key || !authData.apikey.value) {
         errors.push({
           field: 'auth.apikey',
-          message: 'API key and value are required'
+          message: 'API key and value are required',
         });
       }
       break;
@@ -184,7 +198,7 @@ export const validateAuth = (authData: any): EndpointValidationResult => {
       if (!authData.oauth2.clientId || !authData.oauth2.clientSecret) {
         errors.push({
           field: 'auth.oauth2',
-          message: 'Client ID and Client Secret are required for OAuth2'
+          message: 'Client ID and Client Secret are required for OAuth2',
         });
       }
       break;
@@ -194,12 +208,12 @@ export const validateAuth = (authData: any): EndpointValidationResult => {
     default:
       errors.push({
         field: 'auth.type',
-        message: 'Invalid authentication type'
+        message: 'Invalid authentication type',
       });
   }
 
   return {
     isValid: errors.length === 0,
-    errors
+    errors,
   };
 };

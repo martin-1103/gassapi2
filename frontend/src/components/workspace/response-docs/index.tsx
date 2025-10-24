@@ -1,20 +1,29 @@
-import { useState } from 'react'
-import { useToast } from '@/hooks/use-toast'
-import { ResponseDocsTabProps } from './types'
-import { generateSchemaFromResponse } from './utils/schema-utils'
-import { generateMarkdownDocumentation, copyToClipboard, downloadDocumentation } from './utils/export-utils'
-import { DocumentationViewer } from './DocumentationViewer'
-import { SchemaGenerator } from './SchemaGenerator'
-import { ExportManager } from './ExportManager'
+import { useState } from 'react';
+
+import { useToast } from '@/hooks/use-toast';
+
+import { DocumentationViewer } from './DocumentationViewer';
+import { ExportManager } from './ExportManager';
+import { SchemaGenerator } from './SchemaGenerator';
+import { ResponseDocsTabProps } from './types';
+import {
+  generateMarkdownDocumentation,
+  copyToClipboard,
+  downloadDocumentation,
+} from './utils/export-utils';
+import { generateSchemaFromResponse } from './utils/schema-utils';
 
 /**
  * Komponen ResponseDocsTab yang telah direfaktor
  * Memisahkan responsibility menjadi beberapa komponen terfokus
  */
-export function ResponseDocsTab({ response, requestInfo }: ResponseDocsTabProps) {
-  const [showSchema, setShowSchema] = useState(false)
-  const [activeSection, setActiveSection] = useState('viewer')
-  const { toast } = useToast()
+export function ResponseDocsTab({
+  response,
+  requestInfo,
+}: ResponseDocsTabProps) {
+  const [showSchema, setShowSchema] = useState(false);
+  const [activeSection, setActiveSection] = useState('viewer');
+  const { toast } = useToast();
 
   // Generate endpoint documentation dari request dan response
   const generateEndpointDocumentation = () => {
@@ -29,43 +38,44 @@ export function ResponseDocsTab({ response, requestInfo }: ResponseDocsTabProps)
               'application/json': {
                 schema: {
                   type: 'object',
-                  properties: {}
-                }
-              }
-            }
-          }
-        }
-      }
+                  properties: {},
+                },
+              },
+            },
+          },
+        },
+      };
     }
 
-    const method = requestInfo.method.toUpperCase()
-    const url = new URL(requestInfo.url)
-    const contentType = requestInfo.headers['content-type'] ||
-                       response.headers['content-type'] ||
-                       'application/json'
+    const method = requestInfo.method.toUpperCase();
+    const url = new URL(requestInfo.url);
+    const contentType =
+      requestInfo.headers['content-type'] ||
+      response.headers['content-type'] ||
+      'application/json';
 
     const endpoint = {
       method: method,
       url: url.pathname + url.search,
       description: `Auto-generated documentation for ${method} ${url.pathname}`,
       parameters: [] as Array<{
-        name: string
-        in: 'query' | 'path' | 'header'
-        required: boolean
-        type: string
-        description?: string
+        name: string;
+        in: 'query' | 'path' | 'header';
+        required: boolean;
+        type: string;
+        description?: string;
       }>,
       responses: {
         [response.status.toString()]: {
           description: response.statusText || 'Response',
           content: {
             [contentType]: {
-              schema: generateSchemaFromResponse(response.data)
-            }
-          }
-        }
-      }
-    }
+              schema: generateSchemaFromResponse(response.data),
+            },
+          },
+        },
+      },
+    };
 
     // Extract query parameters
     url.searchParams.forEach((value, key) => {
@@ -74,19 +84,19 @@ export function ResponseDocsTab({ response, requestInfo }: ResponseDocsTabProps)
         in: 'query',
         required: false,
         type: typeof value === 'string' ? 'string' : typeof value,
-        description: `Query parameter: ${key}`
-      })
-    })
+        description: `Query parameter: ${key}`,
+      });
+    });
 
-    return endpoint
-  }
+    return endpoint;
+  };
 
-  const endpoint = generateEndpointDocumentation()
+  const endpoint = generateEndpointDocumentation();
 
   // Event handlers
   const handleCopySchema = async () => {
     // Delegate ke DocumentationViewer
-  }
+  };
 
   const handleCopyDocumentation = async () => {
     try {
@@ -94,39 +104,39 @@ export function ResponseDocsTab({ response, requestInfo }: ResponseDocsTabProps)
         endpoint,
         response,
         request: requestInfo,
-        generatedAt: new Date().toISOString()
-      }
-      const docsText = JSON.stringify(docs, null, 2)
-      await copyToClipboard(docsText)
+        generatedAt: new Date().toISOString(),
+      };
+      const docsText = JSON.stringify(docs, null, 2);
+      await copyToClipboard(docsText);
       toast({
         title: 'Documentation Disalin',
-        description: 'API documentation berhasil disalin ke clipboard'
-      })
-    } catch (err) {
+        description: 'API documentation berhasil disalin ke clipboard',
+      });
+    } catch {
       toast({
         title: 'Gagal Menyalin',
         description: 'Tidak dapat menyalin documentation',
-        variant: 'destructive'
-      })
+        variant: 'destructive',
+      });
     }
-  }
+  };
 
   const handleCopyMarkdown = async () => {
     try {
-      const markdown = generateMarkdownDocumentation(endpoint)
-      await copyToClipboard(markdown)
+      const markdown = generateMarkdownDocumentation(endpoint);
+      await copyToClipboard(markdown);
       toast({
         title: 'Markdown Disalin',
-        description: 'API documentation berhasil disalin sebagai Markdown'
-      })
-    } catch (err) {
+        description: 'API documentation berhasil disalin sebagai Markdown',
+      });
+    } catch {
       toast({
         title: 'Gagal Menyalin',
         description: 'Tidak dapat menyalin Markdown',
-        variant: 'destructive'
-      })
+        variant: 'destructive',
+      });
     }
-  }
+  };
 
   const handleDownload = () => {
     try {
@@ -134,31 +144,31 @@ export function ResponseDocsTab({ response, requestInfo }: ResponseDocsTabProps)
         endpoint,
         response,
         request: requestInfo,
-        generatedAt: new Date().toISOString()
-      }
-      downloadDocumentation(docs)
+        generatedAt: new Date().toISOString(),
+      };
+      downloadDocumentation(docs);
       toast({
         title: 'Documentation Diunduh',
-        description: 'API documentation berhasil diunduh'
-      })
-    } catch (err) {
+        description: 'API documentation berhasil diunduh',
+      });
+    } catch {
       toast({
         title: 'Gagal Mengunduh',
         description: 'Tidak dapat mengunduh documentation',
-        variant: 'destructive'
-      })
+        variant: 'destructive',
+      });
     }
-  }
+  };
 
   const handleToggleSchema = () => {
-    setShowSchema(!showSchema)
-  }
+    setShowSchema(!showSchema);
+  };
 
   return (
-    <div className="h-full">
+    <div className='h-full'>
       {/* Section Navigation */}
-      <div className="border-b p-4">
-        <div className="flex gap-2">
+      <div className='border-b p-4'>
+        <div className='flex gap-2'>
           <button
             onClick={() => setActiveSection('viewer')}
             className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
@@ -193,7 +203,7 @@ export function ResponseDocsTab({ response, requestInfo }: ResponseDocsTabProps)
       </div>
 
       {/* Section Content */}
-      <div className="h-[calc(100%-73px)]">
+      <div className='h-[calc(100%-73px)]'>
         {activeSection === 'viewer' && (
           <DocumentationViewer
             endpoint={endpoint}
@@ -208,8 +218,8 @@ export function ResponseDocsTab({ response, requestInfo }: ResponseDocsTabProps)
         )}
 
         {activeSection === 'schema' && (
-          <div className="h-full p-4">
-            <div className="h-full bg-card rounded-lg border">
+          <div className='h-full p-4'>
+            <div className='h-full bg-card rounded-lg border'>
               <SchemaGenerator
                 endpoint={endpoint}
                 showSchema={showSchema}
@@ -220,8 +230,8 @@ export function ResponseDocsTab({ response, requestInfo }: ResponseDocsTabProps)
         )}
 
         {activeSection === 'export' && (
-          <div className="h-full p-4">
-            <div className="h-full bg-card rounded-lg border">
+          <div className='h-full p-4'>
+            <div className='h-full bg-card rounded-lg border'>
               <ExportManager
                 endpoint={endpoint}
                 response={response}
@@ -235,5 +245,5 @@ export function ResponseDocsTab({ response, requestInfo }: ResponseDocsTabProps)
         )}
       </div>
     </div>
-  )
+  );
 }

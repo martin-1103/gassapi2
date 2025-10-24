@@ -1,5 +1,5 @@
-import { CodeSnippet, RequestData } from './types'
-import { formatHeaders } from './code-gen-utils'
+import { formatHeaders } from './code-gen-utils';
+import type { CodeSnippet, RequestData } from './types';
 
 export function generatePhpGuzzle(requestData: RequestData): CodeSnippet {
   return {
@@ -20,6 +20,6 @@ $response = $client->send($request, $options);
 echo $response->getBody();
 ?>`,
     description: 'PHP (Guzzle)',
-    framework: 'PHP'
-  }
+    framework: 'PHP',
+  };
 }

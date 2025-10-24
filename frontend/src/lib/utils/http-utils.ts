@@ -1,4 +1,9 @@
 import {
+  // Content type utilities
+  prettyPrintJson,
+  formatResponseBody,
+} from './content-type-utils';
+import {
   // Request utilities
   parseHeaders,
   headersToObject,
@@ -8,7 +13,6 @@ import {
   getMethodBadgeVariant,
   generateCurlCommand,
 } from './http-request-utils';
-
 import {
   // Response utilities
   formatResponseTime,
@@ -18,12 +22,6 @@ import {
   copyToClipboard,
   downloadResponse,
 } from './http-response-utils';
-
-import {
-  // Content type utilities
-  prettyPrintJson,
-  formatResponseBody,
-} from './content-type-utils';
 
 /**
  * Unified HTTP utilities class that provides access to all HTTP-related utilities
@@ -37,7 +35,7 @@ export class HttpUtils {
   static getMethodColor = getMethodColor;
   static getMethodBadgeVariant = getMethodBadgeVariant;
   static generateCurlCommand = generateCurlCommand;
-  
+
   // Response-related utilities
   static formatResponseTime = formatResponseTime;
   static formatResponseSize = formatResponseSize;
@@ -45,7 +43,7 @@ export class HttpUtils {
   static getStatusBadgeVariant = getStatusBadgeVariant;
   static copyToClipboard = copyToClipboard;
   static downloadResponse = downloadResponse;
-  
+
   // Content-type and formatting utilities
   static prettyPrintJson = prettyPrintJson;
   static formatResponseBody = formatResponseBody;

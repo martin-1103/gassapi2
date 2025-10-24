@@ -1,7 +1,4 @@
-import {
-  CheckCircle,
-  XCircle,
-} from 'lucide-react';
+import { CheckCircle, XCircle } from 'lucide-react';
 import * as React from 'react';
 
 import type { AssertionResult } from '../types';
@@ -17,9 +14,7 @@ interface AssertionListProps {
 export function AssertionList({ assertions }: AssertionListProps) {
   return (
     <div className='mt-3 pt-3 border-t'>
-      <div className='text-sm font-medium mb-2'>
-        Assertions:
-      </div>
+      <div className='text-sm font-medium mb-2'>Assertions:</div>
       <div className='space-y-1'>
         {assertions.map((assertion, index) => (
           <div

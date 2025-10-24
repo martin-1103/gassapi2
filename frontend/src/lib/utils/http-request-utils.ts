@@ -1,4 +1,4 @@
-import type { HttpResponseData, HttpHeader } from '@/types/http-client';
+import type { HttpHeader } from '@/types/http-client';
 
 /**
  * Parse headers dari berbagai format
@@ -134,7 +134,7 @@ export function generateCurlCommand(config: {
   method: string;
   url: string;
   headers?: HttpHeader[];
-  body?: any;
+  body?: string | object | unknown;
 }): string {
   let curl = `curl -X ${config.method} '${config.url}'`;
 

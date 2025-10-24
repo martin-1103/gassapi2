@@ -1,3 +1,5 @@
+import { useState, useCallback } from 'react';
+
 import { useToast } from '@/hooks/use-toast';
 
 // Interface untuk query parameter
@@ -16,9 +18,46 @@ interface UseParameterManagementProps {
   url: string;
 }
 
+// Return interface untuk hook
+interface UseParameterManagementReturn {
+  // CRUD operations
+  addParam: () => void;
+  updateParam: (id: string, updates: Partial<QueryParam>) => void;
+  deleteParam: (id: string) => void;
+  duplicateParam: (param: QueryParam) => void;
+  moveParam: (id: string, direction: 'up' | 'down') => void;
+
+  // Bulk operations
+  toggleAll: (enabled: boolean) => void;
+  addTemplate: (template: {
+    key: string;
+    value: string;
+    description?: string;
+  }) => void;
+  copyAllParams: () => void;
+  importFromUrl: () => void;
+  bulkEdit: () => void;
+
+  // Utilities
+  generateQueryString: () => string;
+  showBulkEditDialog: boolean;
+  setShowBulkEditDialog: (show: boolean) => void;
+  bulkEditText: string;
+  setBulkEditText: (text: string) => void;
+  applyBulkEdit: () => void;
+}
+
 // Hook untuk mengelola operasi CRUD pada parameters
-export function useParameterManagement({ params, onChange, url }: UseParameterManagementProps) {
+export function useParameterManagement({
+  params,
+  onChange,
+  url,
+}: UseParameterManagementProps): UseParameterManagementReturn {
   const { toast } = useToast();
+
+  // State for bulk edit dialog
+  const [showBulkEditDialog, setShowBulkEditDialog] = useState(false);
+  const [bulkEditText, setBulkEditText] = useState('');
 
   // Tambah parameter baru
   const addParam = () => {
@@ -78,7 +117,11 @@ export function useParameterManagement({ params, onChange, url }: UseParameterMa
   };
 
   // Tambah parameter dari template
-  const addTemplate = (template: { key: string; value: string; description?: string }) => {
+  const addTemplate = (template: {
+    key: string;
+    value: string;
+    description?: string;
+  }) => {
     const newParam: QueryParam = {
       id: Date.now().toString(),
       key: template.key,
@@ -138,7 +181,7 @@ export function useParameterManagement({ params, onChange, url }: UseParameterMa
         title: 'Import Success',
         description: `Imported ${importedParams.length} parameters from URL`,
       });
-    } catch (error) {
+    } catch {
       toast({
         title: 'Import Failed',
         description: 'Invalid URL format',
@@ -148,48 +191,48 @@ export function useParameterManagement({ params, onChange, url }: UseParameterMa
   };
 
   // Bulk edit parameters
-  const bulkEdit = () => {
+  const bulkEdit = useCallback(() => {
     const paramsText = params
       .filter(param => param.enabled)
       .map(param => `${param.key}=${param.value}`)
       .join('\n');
 
-    const bulkText = prompt(
-      'Edit parameters (key=value per line):',
-      paramsText,
-    );
+    setBulkEditText(paramsText);
+    setShowBulkEditDialog(true);
+  }, [params]);
 
-    if (bulkText !== null) {
-      try {
-        const lines = bulkText.split('\n').filter(line => line.trim());
-        const bulkParams: QueryParam[] = [];
+  // Apply bulk edit
+  const applyBulkEdit = useCallback(() => {
+    try {
+      const lines = bulkEditText.split('\n').filter(line => line.trim());
+      const bulkParams: QueryParam[] = [];
 
-        lines.forEach(line => {
-          const [key, ...valueParts] = line.split('=');
-          if (key && valueParts.length > 0) {
-            bulkParams.push({
-              id: Date.now().toString() + Math.random(),
-              key: key.trim(),
-              value: valueParts.join('='),
-              enabled: true,
-            });
-          }
-        });
+      lines.forEach(line => {
+        const [key, ...valueParts] = line.split('=');
+        if (key && valueParts.length > 0) {
+          bulkParams.push({
+            id: Date.now().toString() + Math.random(),
+            key: key.trim(),
+            value: valueParts.join('='),
+            enabled: true,
+          });
+        }
+      });
 
-        onChange(bulkParams);
-        toast({
-          title: 'Bulk Edit Success',
-          description: `Updated ${bulkParams.length} parameters`,
-        });
-      } catch (error) {
-        toast({
-          title: 'Bulk Edit Failed',
-          description: 'Invalid format. Use key=value per line.',
-          variant: 'destructive',
-        });
-      }
+      onChange(bulkParams);
+      toast({
+        title: 'Bulk Edit Success',
+        description: `Updated ${bulkParams.length} parameters`,
+      });
+      setShowBulkEditDialog(false);
+    } catch {
+      toast({
+        title: 'Bulk Edit Failed',
+        description: 'Invalid format. Use key=value per line.',
+        variant: 'destructive',
+      });
     }
-  };
+  }, [bulkEditText, onChange, toast]);
 
   return {
     // CRUD operations
@@ -205,8 +248,13 @@ export function useParameterManagement({ params, onChange, url }: UseParameterMa
     copyAllParams,
     importFromUrl,
     bulkEdit,
+    applyBulkEdit,
 
     // Utilities
     generateQueryString,
+    showBulkEditDialog,
+    setShowBulkEditDialog,
+    bulkEditText,
+    setBulkEditText,
   };
 }

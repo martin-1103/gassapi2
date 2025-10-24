@@ -1,12 +1,12 @@
 import { X, Plus } from 'lucide-react';
 
 import EndpointBuilder from '@/features/endpoints/EndpointBuilder';
-import { cn } from '@/lib/utils/cn';
 import { useWorkspaceStore } from '@/stores/workspaceStore';
-import type { Environment } from '@/types/api';
+import type { Environment } from '@/types/variable-types';
+
+import { cn } from '@/lib/utils/cn';
 
 interface WorkspaceTabsProps {
-  projectId: string;
   selectedEnvironment: Environment | null;
 }
 
@@ -28,13 +28,23 @@ export default function WorkspaceTabs({
           {openTabs.map(tab => (
             <div
               key={tab.id}
+              role='tab'
+              tabIndex={0}
               onClick={() => setActiveTab(tab.id)}
+              onKeyDown={e => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  setActiveTab(tab.id);
+                }
+              }}
               className={cn(
                 'flex items-center gap-2 px-4 py-2 border-r border-gray-200 cursor-pointer group',
                 activeTabId === tab.id
                   ? 'bg-gray-50 border-b-2 border-b-blue-600'
                   : 'hover:bg-gray-50',
               )}
+              aria-label={`Tab ${tab.title}`}
+              aria-selected={activeTabId === tab.id}
             >
               <span className='text-sm font-medium text-gray-900 truncate max-w-[150px]'>
                 {tab.title}
@@ -45,6 +55,7 @@ export default function WorkspaceTabs({
                   closeTab(tab.id);
                 }}
                 className='p-0.5 rounded hover:bg-gray-200 opacity-0 group-hover:opacity-100 transition-opacity'
+                aria-label={`Tutup tab ${tab.title}`}
               >
                 <X className='w-3 h-3' />
               </button>

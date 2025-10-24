@@ -5,7 +5,10 @@
 
 import * as React from 'react';
 
-export const formatHeaderValue = (key: string, value: string): React.ReactNode => {
+export const formatHeaderValue = (
+  key: string,
+  value: string,
+): React.ReactNode => {
   // Format certain headers for better readability
   const keyLower = key.toLowerCase();
 
@@ -23,9 +26,17 @@ export const formatHeaderValue = (key: string, value: string): React.ReactNode =
       <>
         {value.split(';').map((part, index) => {
           if (index === 0) {
-            return <span key={index} className='font-medium'>{part}</span>;
+            return (
+              <span key={index} className='font-medium'>
+                {part}
+              </span>
+            );
           }
-          return <span key={index} className='text-muted-foreground'>{part}</span>;
+          return (
+            <span key={index} className='text-muted-foreground'>
+              {part}
+            </span>
+          );
         })}
       </>
     );
@@ -34,7 +45,7 @@ export const formatHeaderValue = (key: string, value: string): React.ReactNode =
   return value;
 };
 
-export const getHeaderIcon = (key: string) => {
+export const getHeaderIcon = (key: string): string => {
   const keyLower = key.toLowerCase();
   if (keyLower.includes('content-type')) return '📄';
   if (keyLower.includes('authorization')) return '🔐';
@@ -45,16 +56,20 @@ export const getHeaderIcon = (key: string) => {
   return '📋';
 };
 
-export const copyHeadersToClipboard = (headers: Record<string, string>) => {
+export const copyHeadersToClipboard = async (
+  headers: Record<string, string>,
+): Promise<void> => {
   const headersText = Object.entries(headers)
     .map(([key, value]) => `${key}: ${value}`)
     .join('\n');
-  return navigator.clipboard.writeText(headersText);
+  await navigator.clipboard.writeText(headersText);
 };
 
-export const copyHeadersAsJSON = (headers: Record<string, string>) => {
+export const copyHeadersAsJSON = async (
+  headers: Record<string, string>,
+): Promise<void> => {
   const headersJSON = JSON.stringify(headers, null, 2);
-  return navigator.clipboard.writeText(headersJSON);
+  await navigator.clipboard.writeText(headersJSON);
 };
 
 export const downloadHeadersAsFile = (headers: Record<string, string>) => {
@@ -72,6 +87,8 @@ export const downloadHeadersAsFile = (headers: Record<string, string>) => {
   URL.revokeObjectURL(url);
 };
 
-export const calculateHeadersSize = (headers: Record<string, string>) => {
+export const calculateHeadersSize = (
+  headers: Record<string, string>,
+): number => {
   return new Blob([JSON.stringify(headers)]).size;
 };

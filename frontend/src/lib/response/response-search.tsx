@@ -13,7 +13,7 @@ export const highlightSearch = (text: string, searchTerm: string) => {
   return parts.map((part, index) => {
     if (index % 2 === 1) {
       return (
-        <mark key={index} className="bg-yellow-200 px-1 rounded">
+        <mark key={index} className='bg-yellow-200 px-1 rounded'>
           {part}
         </mark>
       );
@@ -25,7 +25,7 @@ export const highlightSearch = (text: string, searchTerm: string) => {
 /**
  * Filters array items based on a search term
  */
-export const filterArray = (arr: any[], searchTerm: string) => {
+export const filterArray = (arr: unknown[], searchTerm: string) => {
   if (!searchTerm) return arr;
 
   return arr.filter(item => {
@@ -46,7 +46,10 @@ export const filterArray = (arr: any[], searchTerm: string) => {
 /**
  * Filters object keys based on a search term
  */
-export const filterObjectKeys = (obj: any, searchTerm: string) => {
+export const filterObjectKeys = (
+  obj: Record<string, unknown>,
+  searchTerm: string,
+) => {
   if (!searchTerm) return Object.keys(obj);
 
   return Object.keys(obj).filter(

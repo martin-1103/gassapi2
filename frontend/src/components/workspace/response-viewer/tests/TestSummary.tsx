@@ -8,11 +8,12 @@ import { Zap, CheckCircle } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 
-import { TestStatistics, TestSummary } from './types/test-types';
+import { TestStatistics } from './types/test-types';
+import { TestSummary as TestSummaryType } from './utils/test-helpers';
 
 interface TestSummaryProps {
   statistics: TestStatistics;
-  summary: TestSummary;
+  summary: TestSummaryType;
 }
 
 export function TestSummary({ statistics, summary }: TestSummaryProps) {

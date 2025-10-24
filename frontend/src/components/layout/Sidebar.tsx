@@ -7,7 +7,7 @@ import {
 } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 
-import { cn } from '@/lib/utils/cn';
+import { cn } from '@/lib/utils/index';
 import { useProjectStore } from '@/stores/projectStore';
 import { useWorkspaceStore } from '@/stores/workspaceStore';
 

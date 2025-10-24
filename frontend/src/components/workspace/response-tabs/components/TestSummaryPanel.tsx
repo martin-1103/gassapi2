@@ -1,6 +1,4 @@
-import {
-  BarChart3,
-} from 'lucide-react';
+import { BarChart3 } from 'lucide-react';
 import * as React from 'react';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -42,9 +40,7 @@ export function TestSummaryPanel({
             <div className='text-sm text-muted-foreground'>Passed</div>
           </div>
           <div className='text-center'>
-            <div className='text-2xl font-bold text-red-600'>
-              {failedTests}
-            </div>
+            <div className='text-2xl font-bold text-red-600'>{failedTests}</div>
             <div className='text-sm text-muted-foreground'>Failed</div>
           </div>
           <div className='text-center'>

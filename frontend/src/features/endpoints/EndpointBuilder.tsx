@@ -1,13 +1,13 @@
 import type { Endpoint, Environment } from '@/types/api';
 
 // Custom hooks
-import { useEndpointRequest } from './hooks/useEndpointRequest';
-import { useEndpointSend } from './hooks/useEndpointSend';
 
 // Components
 import { EndpointBuilderHeader } from './components/EndpointBuilderHeader';
 import { RequestTabsContainer } from './components/RequestTabsContainer';
 import { ResponseDisplay } from './components/ResponseDisplay';
+import { useEndpointRequest } from './hooks/useEndpointRequest';
+import { useEndpointSend } from './hooks/useEndpointSend';
 
 interface EndpointBuilderProps {
   endpoint: Endpoint;
@@ -43,20 +43,15 @@ export default function EndpointBuilder({
   } = useEndpointRequest({ initialEndpoint, environment });
 
   // Hook untuk HTTP request logic
-  const {
-    response,
-    isSending,
-    handleSend,
-    handleSave,
-    updateMutation,
-  } = useEndpointSend({
-    endpoint,
-    environment,
-    queryParams,
-    headersList,
-    bodyData,
-    authData,
-  });
+  const { response, isSending, handleSend, handleSave, updateMutation } =
+    useEndpointSend({
+      endpoint,
+      environment,
+      queryParams,
+      headersList,
+      bodyData,
+      authData,
+    });
 
   return (
     <div className='h-full flex flex-col bg-white'>

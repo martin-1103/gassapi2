@@ -9,7 +9,9 @@ export class HistoryUtils {
   /**
    * Sanitize headers untuk export (remove sensitive data)
    */
-  static sanitizeHeaders(headers: Record<string, string>): Record<string, string> {
+  static sanitizeHeaders(
+    headers: Record<string, string>,
+  ): Record<string, string> {
     const sanitized: Record<string, string> = {};
 
     for (const [key, value] of Object.entries(headers)) {
@@ -32,7 +34,7 @@ export class HistoryUtils {
   /**
    * Sanitize body untuk export (remove sensitive data)
    */
-  static sanitizeBody(body: any): any {
+  static sanitizeBody(body: unknown): unknown {
     if (!body || typeof body !== 'object') return body;
 
     try {
@@ -129,12 +131,12 @@ export class HistoryUtils {
    */
   static getMethodColor(method: string): string {
     const colors: Record<string, string> = {
-      GET: '#3b82f6',    // blue
-      POST: '#10b981',   // green
-      PUT: '#f59e0b',    // yellow
+      GET: '#3b82f6', // blue
+      POST: '#10b981', // green
+      PUT: '#f59e0b', // yellow
       DELETE: '#ef4444', // red
-      PATCH: '#8b5cf6',  // purple
-      HEAD: '#6b7280',   // gray
+      PATCH: '#8b5cf6', // purple
+      HEAD: '#6b7280', // gray
       OPTIONS: '#6b7280', // gray
     };
 

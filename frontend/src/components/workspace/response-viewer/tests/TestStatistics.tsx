@@ -13,11 +13,11 @@ import {
 
 import { Card, CardContent } from '@/components/ui/card';
 
-import { TestStatistics } from './types/test-types';
+import { TestStatistics as TestStatisticsType } from './utils/test-utils';
 import { formatDuration } from './utils/test-utils';
 
 interface TestStatisticsProps {
-  statistics: TestStatistics;
+  statistics: TestStatisticsType;
 }
 
 export function TestStatistics({ statistics }: TestStatisticsProps) {

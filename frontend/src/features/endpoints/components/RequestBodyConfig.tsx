@@ -1,19 +1,16 @@
 import React from 'react';
+
 import RequestBodyTab from '@/components/workspace/request-tabs/body-tab';
+import type { RequestBody } from '@/types/api';
 
 interface RequestBodyConfigProps {
-  bodyData: any;
-  onChange: (bodyData: any) => void;
+  bodyData: RequestBody;
+  onChange: (bodyData: RequestBody) => void;
 }
 
-export const RequestBodyConfig: React.FC<RequestBodyConfigProps> = ({ 
-  bodyData, 
-  onChange 
+export const RequestBodyConfig: React.FC<RequestBodyConfigProps> = ({
+  bodyData,
+  onChange,
 }) => {
-  return (
-    <RequestBodyTab 
-      bodyData={bodyData} 
-      onChange={onChange} 
-    />
-  );
+  return <RequestBodyTab bodyData={bodyData} onChange={onChange} />;
 };

@@ -1,4 +1,4 @@
 // Export utama untuk ResponseDocsTab
 // Menyediakan backward compatibility dengan import yang ada
 
-export { ResponseDocsTab } from './index'
+export { ResponseDocsTab } from './index';

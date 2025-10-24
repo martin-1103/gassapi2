@@ -1,7 +1,11 @@
 import { useState, useCallback } from 'react';
+
 import { useToast } from '@/hooks/use-toast';
+import {
+  formatResponseContent,
+  generateDownloadFilename,
+} from '@/lib/response/response-processor';
 import { ApiResponse } from '@/types/api';
-import { formatResponseContent, generateDownloadFilename } from '@/lib/response/response-processor';
 
 interface UseResponseViewStateProps {
   response?: ApiResponse | null;
@@ -29,7 +33,9 @@ export const useResponseViewState = ({
   // Response display options
   const [lineNumbers, setLineNumbers] = useState(true);
   const [wrapLines, setWrapLines] = useState(true);
-  const [expandedPaths, setExpandedPaths] = useState<Set<string>>(new Set(['root']));
+  const [expandedPaths, setExpandedPaths] = useState<Set<string>>(
+    new Set(['root']),
+  );
 
   // Toggle path expansion for tree view
   const togglePath = useCallback((path: string) => {
@@ -48,21 +54,24 @@ export const useResponseViewState = ({
     if (!response) return;
 
     const content = formatResponseContent(response, formatMode);
-    navigator.clipboard.writeText(content).then(() => {
-      toast({
-        title: 'Berhasil disalin',
-        description: 'Response berhasil disalin ke clipboard',
+    navigator.clipboard
+      .writeText(content)
+      .then(() => {
+        toast({
+          title: 'Berhasil disalin',
+          description: 'Response berhasil disalin ke clipboard',
+        });
+      })
+      .catch(() => {
+        toast({
+          title: 'Gagal menyalin',
+          description: 'Terjadi kesalahan saat menyalin response',
+          variant: 'destructive',
+        });
       });
-    }).catch(() => {
-      toast({
-        title: 'Gagal menyalin',
-        description: 'Terjadi kesalahan saat menyalin response',
-        variant: 'destructive',
-      });
-    });
 
     onCopyResponse?.();
-  }, [response, formatMode, toast, onCopyResponse]);
+  }, [response, formatMode, onCopyResponse]);
 
   const handleDownloadResponse = useCallback(() => {
     if (!response) return;
@@ -86,7 +95,7 @@ export const useResponseViewState = ({
     });
 
     onDownloadResponse?.();
-  }, [response, formatMode, toast, onDownloadResponse]);
+  }, [response, formatMode, onDownloadResponse]);
 
   const handleSaveResponse = useCallback(() => {
     // Implementasi save response logic

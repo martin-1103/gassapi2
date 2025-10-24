@@ -1,13 +1,14 @@
-import {
-  AlertCircle,
-  List,
-} from 'lucide-react';
+import { List } from 'lucide-react';
 import * as React from 'react';
 
 import { ScrollArea } from '@/components/ui/scroll-area';
 
 import type { ConsoleEntry } from '../types';
-import { getConsoleIcon, getConsoleColor, formatConsoleMessage } from '../utils';
+import {
+  getConsoleIcon,
+  getConsoleColor,
+  formatConsoleMessage,
+} from '../utils';
 
 interface ConsoleViewerProps {
   console: ConsoleEntry[];
@@ -24,9 +25,7 @@ export function ConsoleViewer({ console }: ConsoleViewerProps) {
         {console.length === 0 ? (
           <div className='text-center text-muted-foreground py-8'>
             <List className='w-12 h-12 mx-auto mb-4 opacity-50' />
-            <h3 className='text-lg font-semibold mb-2'>
-              No Console Output
-            </h3>
+            <h3 className='text-lg font-semibold mb-2'>No Console Output</h3>
             <p className='text-sm'>
               Test scripts console output will appear here
             </p>

@@ -31,6 +31,7 @@ class ApiRoutes {
                 // Projects
                 '/projects' => ['handler' => 'projects_list', 'description' => 'List projects'],
                 '/project/{id}' => ['handler' => 'project_detail', 'description' => 'Get project by ID'],
+                '/project/{id}/context' => ['handler' => 'project_context', 'description' => 'Get project context with environments and collections'],
                 // Environments
                 '/project/{id}/environments' => ['handler' => 'environments_list', 'description' => 'List environments for a project'],
                 '/environment/{id}' => ['handler' => 'environment_detail', 'description' => 'Get environment detail'],
@@ -222,6 +223,9 @@ class ApiRoutes {
                 break;
             case 'project_detail':
                 $projectHandler->getById($id);
+                break;
+            case 'project_context':
+                $projectHandler->getContext($id);
                 break;
             case 'project_update':
                 $projectHandler->update($id);

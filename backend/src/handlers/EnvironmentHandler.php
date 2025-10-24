@@ -4,6 +4,7 @@ namespace App\Handlers;
 use App\Helpers\ResponseHelper;
 use App\Helpers\ValidationHelper;
 use App\Helpers\JwtHelper;
+use App\Helpers\AuthHelper;
 use App\Repositories\ProjectRepository;
 use App\Repositories\EnvironmentRepository;
 
@@ -21,7 +22,8 @@ class EnvironmentHandler {
      */
     public function getAll($projectId) {
         if (!$projectId) { ResponseHelper::error('Project ID is required', 400); }
-        $userId = $this->requireUserId();
+        $user = AuthHelper::requireAuth();
+        $userId = $user['id'];
         if (!$this->projects->isMember($projectId, $userId)) {
             ResponseHelper::error('Forbidden', 403);
         }
@@ -34,7 +36,8 @@ class EnvironmentHandler {
      */
     public function create($projectId) {
         if (!$projectId) { ResponseHelper::error('Project ID is required', 400); }
-        $userId = $this->requireUserId();
+        $user = AuthHelper::requireAuth();
+        $userId = $user['id'];
         if (!$this->projects->isMember($projectId, $userId)) {
             ResponseHelper::error('Forbidden', 403);
         }
@@ -68,7 +71,8 @@ class EnvironmentHandler {
      */
     public function getById($id) {
         if (!$id) { ResponseHelper::error('Environment ID is required', 400); }
-        $userId = $this->requireUserId();
+        $user = AuthHelper::requireAuth();
+        $userId = $user['id'];
         $env = $this->envs->findById($id);
         if (!$env) { ResponseHelper::error('Environment not found', 404); }
         if (!$this->projects->isMember($env['project_id'], $userId)) {
@@ -82,7 +86,8 @@ class EnvironmentHandler {
      */
     public function update($id) {
         if (!$id) { ResponseHelper::error('Environment ID is required', 400); }
-        $userId = $this->requireUserId();
+        $user = AuthHelper::requireAuth();
+        $userId = $user['id'];
         $env = $this->envs->findById($id);
         if (!$env) { ResponseHelper::error('Environment not found', 404); }
         if (!$this->projects->isMember($env['project_id'], $userId)) {
@@ -119,7 +124,8 @@ class EnvironmentHandler {
      */
     public function delete($id) {
         if (!$id) { ResponseHelper::error('Environment ID is required', 400); }
-        $userId = $this->requireUserId();
+        $user = AuthHelper::requireAuth();
+        $userId = $user['id'];
         $env = $this->envs->findById($id);
         if (!$env) { ResponseHelper::error('Environment not found', 404); }
         if (!$this->projects->isMember($env['project_id'], $userId)) {
@@ -138,12 +144,5 @@ class EnvironmentHandler {
             error_log('Environment delete error: ' . $e->getMessage());
             ResponseHelper::error('Failed to delete environment', 500);
         }
-    }
-
-    private function requireUserId() {
-        $token = JwtHelper::getTokenFromRequest();
-        $payload = JwtHelper::validateAccessToken($token);
-        if (!$payload) { ResponseHelper::error('Unauthorized', 401); }
-        return $payload['sub'];
     }
 }

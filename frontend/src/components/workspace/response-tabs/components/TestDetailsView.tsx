@@ -31,24 +31,18 @@ export function TestDetailsView({
         {performanceData && (
           <Card>
             <CardHeader>
-              <CardTitle className='text-base'>
-                Performance Analysis
-              </CardTitle>
+              <CardTitle className='text-base'>Performance Analysis</CardTitle>
             </CardHeader>
             <CardContent>
               <div className='grid grid-cols-2 gap-4'>
                 <div>
-                  <div className='text-sm font-medium'>
-                    Fastest Test
-                  </div>
+                  <div className='text-sm font-medium'>Fastest Test</div>
                   <div className='text-2xl font-bold text-green-600'>
                     {performanceData.fastest}ms
                   </div>
                 </div>
                 <div>
-                  <div className='text-sm font-medium'>
-                    Slowest Test
-                  </div>
+                  <div className='text-sm font-medium'>Slowest Test</div>
                   <div className='text-2xl font-bold text-red-600'>
                     {performanceData.slowest}ms
                   </div>
@@ -61,9 +55,7 @@ export function TestDetailsView({
         {/* Test Categories */}
         <Card>
           <CardHeader>
-            <CardTitle className='text-base'>
-              Test Categories
-            </CardTitle>
+            <CardTitle className='text-base'>Test Categories</CardTitle>
           </CardHeader>
           <CardContent>
             <div className='space-y-3'>

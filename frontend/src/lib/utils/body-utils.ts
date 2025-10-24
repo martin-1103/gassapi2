@@ -77,7 +77,7 @@ export const getBodyPreview = (bodyData: BodyData): string => {
           null,
           2,
         );
-      } catch (e) {
+      } catch {
         return JSON.stringify(
           {
             query: bodyData.graphqlQuery,

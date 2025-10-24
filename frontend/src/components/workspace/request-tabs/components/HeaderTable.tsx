@@ -137,11 +137,15 @@ export function HeaderTable({
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent>
-                    <DropdownMenuItem onClick={() => onDuplicateHeader(header.id)}>
+                    <DropdownMenuItem
+                      onClick={() => onDuplicateHeader(header.id)}
+                    >
                       <Trash2 className='w-4 h-4 mr-2' />
                       Duplicate
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => onCopyHeaderValue(header.id)}>
+                    <DropdownMenuItem
+                      onClick={() => onCopyHeaderValue(header.id)}
+                    >
                       <Copy className='w-4 h-4 mr-2' />
                       Copy Value
                     </DropdownMenuItem>

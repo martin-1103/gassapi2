@@ -53,7 +53,9 @@ export function getStatusColor(status: TestResult['status']): string {
 /**
  * Mendapatkan icon berdasarkan level console
  */
-export function getConsoleIcon(level: ConsoleEntry['level']): React.ReactElement {
+export function getConsoleIcon(
+  level: ConsoleEntry['level'],
+): React.ReactElement {
   switch (level) {
     case 'log':
       return <List className='w-4 h-4 text-blue-500' />;

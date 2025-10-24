@@ -3,23 +3,50 @@
  */
 
 import * as React from 'react';
+
 import { useToast } from '@/hooks/use-toast';
+import {
+  filterHeaders,
+  groupHeadersByCategory,
+} from '@/lib/headers/header-analysis';
 import {
   copyHeadersToClipboard,
   copyHeadersAsJSON,
   downloadHeadersAsFile,
-  calculateHeadersSize
+  calculateHeadersSize,
 } from '@/lib/headers/header-utils';
-import {
-  filterHeaders,
-  groupHeadersByCategory
-} from '@/lib/headers/header-analysis';
 
 interface UseResponseHeadersStateProps {
   headers: Record<string, string>;
 }
 
-export function useResponseHeadersState({ headers }: UseResponseHeadersStateProps) {
+interface UseResponseHeadersStateReturn {
+  // State
+  searchQuery: string;
+  showOnlyStandard: boolean;
+
+  // Data
+  filteredHeaders: Record<string, string>;
+  groupedHeaders: Record<string, Record<string, string>>;
+  totalHeaders: number;
+  showingHeaders: number;
+  totalCategories: number;
+  headersSize: number;
+  hasFilteredResults: boolean;
+
+  // Actions
+  handleCopyHeaders: () => void;
+  handleCopyAsJSON: () => void;
+  handleDownloadHeaders: () => void;
+  handleSearchChange: (value: string) => void;
+  toggleStandardFilter: () => void;
+  setSearchQuery: (value: string) => void;
+  setShowOnlyStandard: (value: boolean) => void;
+}
+
+export function useResponseHeadersState({
+  headers,
+}: UseResponseHeadersStateProps): UseResponseHeadersStateReturn {
   const [searchQuery, setSearchQuery] = React.useState('');
   const [showOnlyStandard, setShowOnlyStandard] = React.useState(false);
   const { toast } = useToast();

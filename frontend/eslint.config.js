@@ -8,6 +8,8 @@ import jsxA11y from 'eslint-plugin-jsx-a11y'
 import importPlugin from 'eslint-plugin-import'
 import prettier from 'eslint-plugin-prettier'
 import prettierConfig from 'eslint-config-prettier'
+import security from 'eslint-plugin-security'
+import noSecrets from 'eslint-plugin-no-secrets'
 
 export default [
   js.configs.recommended,
@@ -35,6 +37,10 @@ export default [
         navigator: 'readonly',
         localStorage: 'readonly',
         sessionStorage: 'readonly',
+        setTimeout: 'readonly',
+        clearTimeout: 'readonly',
+        setInterval: 'readonly',
+        clearInterval: 'readonly',
       },
     },
     plugins: {
@@ -45,6 +51,8 @@ export default [
       'jsx-a11y': jsxA11y,
       import: importPlugin,
       prettier,
+      security,
+      'no-secrets': noSecrets,
     },
     rules: {
       // TypeScript rules
@@ -54,7 +62,7 @@ export default [
       '@typescript-eslint/explicit-function-return-type': 'off',
       '@typescript-eslint/explicit-module-boundary-types': 'off',
       '@typescript-eslint/no-non-null-assertion': 'warn',
-      '@typescript-eslint/no-var-requires': 'error',
+      '@typescript-eslint/no-require-imports': 'error',
 
       // React rules
       ...react.configs.recommended.rules,
@@ -98,6 +106,21 @@ export default [
 
       // Prettier rules
       'prettier/prettier': 'error',
+
+      // Security rules
+      ...security.configs.recommended.rules,
+      'security/detect-buffer-noassert': 'error',
+      'security/detect-child-process': 'warn',
+      'security/detect-disable-mustache-escape': 'error',
+      'security/detect-eval-with-expression': 'error',
+      'security/detect-new-buffer': 'warn',
+      'security/detect-no-csrf-before-method-override': 'error',
+      'security/detect-non-literal-fs-filename': 'error',
+      'security/detect-non-literal-regexp': 'warn',
+      'security/detect-non-literal-require': 'error',
+      'security/detect-possible-timing-attacks': 'warn',
+      'security/detect-pseudoRandomBytes': 'error',
+      'security/detect-unsafe-regex': 'error',
 
       // General rules
       'no-console': 'warn',

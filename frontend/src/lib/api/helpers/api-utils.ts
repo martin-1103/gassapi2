@@ -19,14 +19,12 @@ export function isValidURL(url: string): boolean {
  */
 export function interpolateUrl(
   url: string,
-  variables: Record<string, string>
+  variables: Record<string, string>,
 ): string {
   if (!url || !variables) return url;
 
   return url.replace(/\{\{([^}]+)\}\}/g, (match, key) => {
     const trimmedKey = key.trim();
-    return variables[trimmedKey] !== undefined
-      ? variables[trimmedKey]
-      : match;
+    return variables[trimmedKey] !== undefined ? variables[trimmedKey] : match;
   });
 }

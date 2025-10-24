@@ -1,8 +1,18 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useCallback } from 'react';
+import type { ChangeEvent } from 'react';
+
 import { useToast } from '@/hooks/use-toast';
-import { parseImportContent, detectImportType } from '@/utils/import/import-parser';
-import { validateImportContent } from '@/utils/import/validation';
+import { parseImportContent } from '@/utils/import/import-parser';
 import { ImportResult, ImportValidationResult } from '@/utils/import/types';
+import { validateImportContent } from '@/utils/import/validation';
+
+// Proper type for import data
+export interface ImportData {
+  requests?: unknown[];
+  info?: Record<string, unknown>;
+  name?: string;
+  [key: string]: unknown;
+}
 
 export interface ImportModalState {
   importMethod: 'file' | 'url';
@@ -18,13 +28,13 @@ export interface ImportModalActions {
   setImportMethod: (method: 'file' | 'url') => void;
   setImportType: (type: 'postman' | 'openapi' | 'curl') => void;
   setImportUrl: (url: string) => void;
-  handleFileUpload: (event: React.ChangeEvent<HTMLInputElement>) => Promise<void>;
+  handleFileUpload: (event: ChangeEvent<HTMLInputElement>) => Promise<void>;
   handleUrlImport: () => Promise<void>;
   resetState: () => void;
 }
 
 export const useImportModalLogic = (
-  onImport: (data: any) => void
+  onImport: (data: ImportData) => void,
 ): [ImportModalState, ImportModalActions] => {
   const [state, setState] = useState<ImportModalState>({
     importMethod: 'file',
@@ -33,10 +43,9 @@ export const useImportModalLogic = (
     isImporting: false,
     importProgress: 0,
     importResult: null,
-    validationErrors: null
+    validationErrors: null,
   });
 
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
   const setImportMethod = useCallback((method: 'file' | 'url') => {
@@ -44,11 +53,11 @@ export const useImportModalLogic = (
   }, []);
 
   const setImportType = useCallback((type: 'postman' | 'openapi' | 'curl') => {
-    setState(prev => ({ 
-      ...prev, 
+    setState(prev => ({
+      ...prev,
       importType: type,
       importResult: null,
-      validationErrors: null
+      validationErrors: null,
     }));
   }, []);
 
@@ -56,88 +65,93 @@ export const useImportModalLogic = (
     setState(prev => ({ ...prev, importUrl: url }));
   }, []);
 
-  const handleFileUpload = useCallback(async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
+  const handleFileUpload = useCallback(
+    async (event: ChangeEvent<HTMLInputElement>) => {
+      const file = event.target.files?.[0];
+      if (!file) return;
 
-    setState(prev => ({
-      ...prev,
-      isImporting: true,
-      importProgress: 0,
-      importResult: null,
-      validationErrors: null
-    }));
-
-    try {
-      setState(prev => ({ ...prev, importProgress: 20 }));
-      
-      const fileContent = await file.text();
-      setState(prev => ({ ...prev, importProgress: 40 }));
-
-      // Validate the content before parsing
-      const validation = validateImportContent(fileContent, state.importType);
-      setState(prev => ({ ...prev, validationErrors: validation }));
-      
-      if (!validation.isValid) {
-        throw new Error(`Validation failed: ${validation.errors.join(', ')}`);
-      }
-
-      setState(prev => ({ ...prev, importProgress: 60 }));
-      
-      const result = await parseImportContent(fileContent, state.importType);
-      setState(prev => ({ 
-        ...prev, 
-        importProgress: 100,
-        importResult: result
+      setState(prev => ({
+        ...prev,
+        isImporting: true,
+        importProgress: 0,
+        importResult: null,
+        validationErrors: null,
       }));
-      
-      if (result.success && result.data) {
-        onImport(result.data);
-        toast({
-          title: 'Import successful',
-          description: result.message
-        });
-      } else {
+
+      try {
+        setState(prev => ({ ...prev, importProgress: 20 }));
+
+        const fileContent = await file.text();
+        setState(prev => ({ ...prev, importProgress: 40 }));
+
+        // Validate the content before parsing
+        const validation = validateImportContent(fileContent, state.importType);
+        setState(prev => ({ ...prev, validationErrors: validation }));
+
+        if (!validation.isValid) {
+          throw new Error(`Validation failed: ${validation.errors.join(', ')}`);
+        }
+
+        setState(prev => ({ ...prev, importProgress: 60 }));
+
+        const result = await parseImportContent(fileContent, state.importType);
+        setState(prev => ({
+          ...prev,
+          importProgress: 100,
+          importResult: result,
+        }));
+
+        if (result.success && result.data) {
+          onImport(result.data as ImportData);
+          toast({
+            title: 'Import successful',
+            description: result.message,
+          });
+        } else {
+          toast({
+            title: 'Import failed',
+            description: result.message,
+            variant: 'destructive',
+          });
+        }
+      } catch (error: unknown) {
+        const errorMessage =
+          error instanceof Error ? error.message : 'Import failed';
+        const result: ImportResult = {
+          success: false,
+          message: errorMessage,
+        };
+        setState(prev => ({
+          ...prev,
+          importResult: result,
+          validationErrors: {
+            isValid: false,
+            errors: [errorMessage],
+            warnings: [],
+          },
+        }));
         toast({
           title: 'Import failed',
-          description: result.message,
-          variant: 'destructive'
+          description: errorMessage,
+          variant: 'destructive',
         });
+      } finally {
+        setState(prev => ({
+          ...prev,
+          isImporting: false,
+          importProgress: 0,
+        }));
       }
-    } catch (error: any) {
-      const result: ImportResult = {
-        success: false,
-        message: error.message || 'Import failed'
-      };
-      setState(prev => ({ 
-        ...prev, 
-        importResult: result,
-        validationErrors: {
-          isValid: false,
-          errors: [error.message || 'Unknown error occurred'],
-          warnings: []
-        }
-      }));
-      toast({
-        title: 'Import failed',
-        description: error.message || 'Unknown error occurred',
-        variant: 'destructive'
-      });
-    } finally {
-      setState(prev => ({ 
-        ...prev,
-        isImporting: false,
-        importProgress: 0
-      }));
-    }
-  }, [state.importType, onImport, toast]);
+    },
+    [state.importType, onImport, toast],
+  );
 
   const handleUrlImport = useCallback(async () => {
     if (!state.importUrl.trim()) {
       toast({
         title: 'URL required',
         description: 'Please enter a URL to import from',
-        variant: 'destructive'
+        variant: 'destructive',
       });
       return;
     }
@@ -147,19 +161,19 @@ export const useImportModalLogic = (
       isImporting: true,
       importProgress: 0,
       importResult: null,
-      validationErrors: null
+      validationErrors: null,
     }));
 
     try {
       setState(prev => ({ ...prev, importProgress: 20 }));
-      
-      const response = await fetch(state.importUrl);
+
+      const response = await globalThis.fetch(state.importUrl);
       if (!response.ok) {
         throw new Error(`Failed to fetch: ${response.statusText}`);
       }
-      
+
       setState(prev => ({ ...prev, importProgress: 40 }));
-      
+
       const content = await response.text();
       setState(prev => ({ ...prev, importProgress: 60 }));
 
@@ -167,7 +181,10 @@ export const useImportModalLogic = (
       let importType = state.importType;
       if (content.includes('openapi') || content.includes('swagger')) {
         importType = 'openapi';
-      } else if (content.includes('info.schema') || state.importUrl.includes('postman')) {
+      } else if (
+        content.includes('info.schema') ||
+        state.importUrl.includes('postman')
+      ) {
         importType = 'postman';
       } else if (content.includes('curl') || state.importUrl.includes('curl')) {
         importType = 'curl';
@@ -176,50 +193,52 @@ export const useImportModalLogic = (
       // Validate the content before parsing
       const validation = validateImportContent(content, importType);
       setState(prev => ({ ...prev, validationErrors: validation }));
-      
+
       if (!validation.isValid) {
         throw new Error(`Validation failed: ${validation.errors.join(', ')}`);
       }
-      
+
       const result = await parseImportContent(content, importType);
-      setState(prev => ({ 
-        ...prev, 
+      setState(prev => ({
+        ...prev,
         importType, // Update the state to reflect the detected import type
         importProgress: 100,
-        importResult: result
+        importResult: result,
       }));
-      
+
       if (result.success && result.data) {
-        onImport(result.data);
+        onImport(result.data as ImportData);
         toast({
           title: 'Import successful',
-          description: result.message
+          description: result.message,
         });
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const errorMessage =
+        error instanceof Error ? error.message : 'Import failed';
       const result: ImportResult = {
         success: false,
-        message: error.message || 'Import failed'
+        message: errorMessage,
       };
-      setState(prev => ({ 
-        ...prev, 
+      setState(prev => ({
+        ...prev,
         importResult: result,
         validationErrors: {
           isValid: false,
-          errors: [error.message || 'Unknown error occurred'],
-          warnings: []
-        }
+          errors: [errorMessage],
+          warnings: [],
+        },
       }));
       toast({
         title: 'Import failed',
-        description: error.message || 'Unknown error occurred',
-        variant: 'destructive'
+        description: errorMessage,
+        variant: 'destructive',
       });
     } finally {
-      setState(prev => ({ 
+      setState(prev => ({
         ...prev,
         isImporting: false,
-        importProgress: 0
+        importProgress: 0,
       }));
     }
   }, [state.importUrl, state.importType, onImport, toast]);
@@ -232,7 +251,7 @@ export const useImportModalLogic = (
       isImporting: false,
       importProgress: 0,
       importResult: null,
-      validationErrors: null
+      validationErrors: null,
     });
   }, []);
 
@@ -242,7 +261,7 @@ export const useImportModalLogic = (
     setImportUrl,
     handleFileUpload,
     handleUrlImport,
-    resetState
+    resetState,
   };
 
   return [state, actions];

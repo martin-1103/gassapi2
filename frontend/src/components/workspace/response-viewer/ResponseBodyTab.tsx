@@ -1,42 +1,33 @@
-import {
-  Search,
-  Code,
-  Eye,
-  Download,
-  Copy,
-  ChevronDown,
-  ChevronRight,
-  FileText,
-  FileJson,
-  Globe,
-  Monitor,
-  Smartphone,
-} from 'lucide-react';
+import { Copy, Download } from 'lucide-react';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useToast } from '@/hooks/use-toast';
-
-import { useTheme } from '@/contexts/theme-context';
 import { useResponseViewState } from '@/hooks/use-response-view-state';
-import { 
-  getContentType, 
-  getLanguage, 
-  formatData, 
+import { useToast } from '@/hooks/use-toast';
+import {
+  getContentType,
+  getLanguage,
+  formatData,
   getSyntaxHighlighterClass,
-  isJsonData
+  isJsonData,
 } from '@/lib/response/formatting-utils';
+
+import { BinaryResponseViewer } from './BinaryResponseViewer';
+import { HtmlResponseViewer } from './HtmlResponseViewer';
 import { JsonResponseViewer } from './JsonResponseViewer';
 import { TextViewer } from './TextViewer';
 import { XmlResponseViewer } from './XmlResponseViewer';
-import { HtmlResponseViewer } from './HtmlResponseViewer';
-import { BinaryResponseViewer } from './BinaryResponseViewer';
+
+import { useTheme } from '@/contexts/theme-context';
 
 interface ResponseBodyTabProps {
-  response: any;
+  response: {
+    data: unknown;
+    headers?: Record<string, string>;
+    status: number;
+    size: number;
+    time: number;
+  };
   formatMode: 'pretty' | 'raw';
   onFormatModeChange: (mode: 'pretty' | 'raw') => void;
   searchQuery: string;
@@ -48,11 +39,12 @@ export function ResponseBodyTab({
   formatMode,
   onFormatModeChange,
   searchQuery,
-  onSearchChange,
+  _onSearchChange,
 }: ResponseBodyTabProps) {
   const { resolvedTheme } = useTheme();
   const { toast } = useToast();
-  const { lineNumbers, setLineNumbers, wrapLines, setWrapLines } = useResponseViewState();
+  const { lineNumbers, setLineNumbers, wrapLines, setWrapLines } =
+    useResponseViewState();
 
   const contentType = getContentType(response?.headers);
   const language = getLanguage(contentType);
@@ -90,20 +82,25 @@ export function ResponseBodyTab({
           searchQuery={searchQuery}
           lineNumbers={lineNumbers}
           wrapLines={wrapLines}
-          getSyntaxHighlighterClass={() => 
-            getSyntaxHighlighterClass(language, resolvedTheme === 'dark' ? 'dark' : 'light')
+          getSyntaxHighlighterClass={() =>
+            getSyntaxHighlighterClass(
+              language,
+              resolvedTheme === 'dark' ? 'dark' : 'light',
+            )
           }
         />
       );
     }
 
     // For binary data, use BinaryResponseViewer
-    if (contentType.includes('application/') && 
-        !contentType.includes('json') && 
-        !contentType.includes('xml') && 
-        !contentType.includes('html') && 
-        !contentType.includes('javascript') && 
-        !contentType.includes('css')) {
+    if (
+      contentType.includes('application/') &&
+      !contentType.includes('json') &&
+      !contentType.includes('xml') &&
+      !contentType.includes('html') &&
+      !contentType.includes('javascript') &&
+      !contentType.includes('css')
+    ) {
       return (
         <BinaryResponseViewer
           data={response.data}
@@ -126,8 +123,11 @@ export function ResponseBodyTab({
           searchQuery={searchQuery}
           lineNumbers={lineNumbers}
           wrapLines={wrapLines}
-          getSyntaxHighlighterClass={() => 
-            getSyntaxHighlighterClass(language, resolvedTheme === 'dark' ? 'dark' : 'light')
+          getSyntaxHighlighterClass={() =>
+            getSyntaxHighlighterClass(
+              language,
+              resolvedTheme === 'dark' ? 'dark' : 'light',
+            )
           }
         />
       );
@@ -142,8 +142,11 @@ export function ResponseBodyTab({
           searchQuery={searchQuery}
           lineNumbers={lineNumbers}
           wrapLines={wrapLines}
-          getSyntaxHighlighterClass={() => 
-            getSyntaxHighlighterClass(language, resolvedTheme === 'dark' ? 'dark' : 'light')
+          getSyntaxHighlighterClass={() =>
+            getSyntaxHighlighterClass(
+              language,
+              resolvedTheme === 'dark' ? 'dark' : 'light',
+            )
           }
         />
       );
@@ -158,8 +161,11 @@ export function ResponseBodyTab({
         searchQuery={searchQuery}
         lineNumbers={lineNumbers}
         wrapLines={wrapLines}
-        getSyntaxHighlighterClass={() => 
-          getSyntaxHighlighterClass(language, resolvedTheme === 'dark' ? 'dark' : 'light')
+        getSyntaxHighlighterClass={() =>
+          getSyntaxHighlighterClass(
+            language,
+            resolvedTheme === 'dark' ? 'dark' : 'light',
+          )
         }
       />
     );
@@ -219,9 +225,7 @@ export function ResponseBodyTab({
       </div>
 
       {/* Content */}
-      <div className='flex-1'>
-        {getViewerComponent()}
-      </div>
+      <div className='flex-1'>{getViewerComponent()}</div>
 
       {/* Status Bar */}
       <div className='px-4 py-2 border-t bg-muted/50'>

@@ -1,5 +1,5 @@
-import { CodeSnippet, RequestData } from './types'
-import { formatHeaders } from './code-gen-utils'
+import { formatHeaders } from './code-gen-utils';
+import type { CodeSnippet, RequestData } from './types';
 
 export function generateRuby(requestData: RequestData): CodeSnippet {
   return {
@@ -19,6 +19,6 @@ body = response.body
 
 puts JSON.parse(body)`,
     description: 'Ruby (Net::HTTP)',
-    framework: 'Ruby'
-  }
+    framework: 'Ruby',
+  };
 }

@@ -54,7 +54,7 @@ $allowedActions = [
     'users', 'users_stats', 'user', 'profile',
     'user_update', 'user_toggle_status', 'user_delete',
     // Projects
-    'projects', 'project', 'project_update', 'project_delete', 'project_add_member',
+    'projects', 'project', 'project_context', 'project_update', 'project_delete', 'project_add_member',
     // Environments
     'project_environments', 'environment', 'environment_update', 'environment_delete', 'environment_create',
     // Collections

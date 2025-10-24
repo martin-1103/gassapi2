@@ -1,2 +1,2 @@
 // Re-export dari refactored components
-export { default } from './workspace-layout/index'
+export { default } from './workspace-layout/index';

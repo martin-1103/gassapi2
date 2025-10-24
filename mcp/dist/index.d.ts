@@ -3,7 +3,7 @@
  * GASSAPI MCP Client Entry Point
  * Titik awal aplikasi MCP Client
  */
-import { McpServer } from './server/McpServer.js';
+import { GassapiMcpServer } from './server/McpServer.js';
 import { config } from './config.js';
 /**
  * Main MCP Client Application
@@ -56,5 +56,5 @@ declare class GassapiMcpClient {
         options: Record<string, string>;
     };
 }
-export { GassapiMcpClient, McpServer, config };
+export { GassapiMcpClient, GassapiMcpServer, config };
 //# sourceMappingURL=index.d.ts.map

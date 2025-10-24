@@ -2,8 +2,6 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { highlightSearch } from '@/lib/response/response-search';
 
 interface XmlResponseViewerProps {
-  data: any;
-  formatMode: 'pretty' | 'raw';
   formattedData: string;
   searchQuery: string;
   lineNumbers: boolean;
@@ -12,8 +10,6 @@ interface XmlResponseViewerProps {
 }
 
 export const XmlResponseViewer = ({
-  data,
-  formatMode,
   formattedData,
   searchQuery,
   lineNumbers,

@@ -140,6 +140,8 @@ export function isValidForRequest(header: RequestHeader): boolean {
 /**
  * Filter hanya header yang valid untuk request
  */
-export function getValidHeadersForRequest(headers: RequestHeader[]): RequestHeader[] {
+export function getValidHeadersForRequest(
+  headers: RequestHeader[],
+): RequestHeader[] {
   return headers.filter(isValidForRequest);
 }

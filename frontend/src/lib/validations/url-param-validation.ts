@@ -8,17 +8,17 @@ export function validateQueryParam(param: QueryParam): {
   errors: string[];
 } {
   const errors: string[] = [];
-  
+
   // Check if key is valid
   if (param.key && !isValidParamKey(param.key)) {
     errors.push('Parameter key contains invalid characters');
   }
-  
+
   // Check if value is valid
   if (param.value && !isValidParamValue(param.value)) {
     errors.push('Parameter value contains invalid characters');
   }
-  
+
   return {
     isValid: errors.length === 0,
     errors,
@@ -33,14 +33,14 @@ export function validateAllParams(params: QueryParam[]): {
   errors: { [id: string]: string[] };
 } {
   const errors: { [id: string]: string[] } = {};
-  
+
   params.forEach(param => {
     const validation = validateQueryParam(param);
     if (!validation.isValid) {
       errors[param.id] = validation.errors;
     }
   });
-  
+
   return {
     isValid: Object.keys(errors).length === 0,
     errors,
@@ -62,8 +62,19 @@ export function isValidParamKey(key: string): boolean {
 export function isValidParamValue(value: string): boolean {
   // Basic check to prevent potentially harmful characters
   // We allow most characters but block control characters
-  const invalidCharRegex = /[\x00-\x1F\x7F]/;
-  return !invalidCharRegex.test(value);
+  // Check for characters with ASCII codes < 32 (control characters) and DEL (127)
+  for (let i = 0; i < value.length; i++) {
+    const charCode = value.charCodeAt(i);
+    if (
+      (charCode >= 0 && charCode <= 8) ||
+      (charCode >= 11 && charCode <= 12) ||
+      (charCode >= 14 && charCode <= 31) ||
+      charCode === 127
+    ) {
+      return false;
+    }
+  }
+  return true;
 }
 
 /**
@@ -79,5 +90,22 @@ export function sanitizeParamKey(key: string): string {
  */
 export function sanitizeParamValue(value: string): string {
   // Remove control characters but preserve other characters
-  return value.replace(/[\x00-\x1F\x7F]/g, '');
+  // Use character code filtering instead of regex with control characters
+  let result = '';
+  for (let i = 0; i < value.length; i++) {
+    const charCode = value.charCodeAt(i);
+    // Skip control characters (ASCII < 32, except tab=9, newline=10, carriage=13)
+    // and DEL character (127)
+    if (
+      !(
+        (charCode >= 0 && charCode <= 8) ||
+        (charCode >= 11 && charCode <= 12) ||
+        (charCode >= 14 && charCode <= 31) ||
+        charCode === 127
+      )
+    ) {
+      result += value[i];
+    }
+  }
+  return result;
 }

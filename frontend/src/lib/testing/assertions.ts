@@ -1,14 +1,14 @@
-import { TestContext, TestResult } from './types';
-import { JsonAssertions } from './json-assertions';
-import { HeaderAssertions } from './header-assertions';
-import { StatusAssertions } from './status-assertions';
 import { ContentAssertions } from './content-assertions';
+import { HeaderAssertions } from './header-assertions';
+import { JsonAssertions } from './json-assertions';
+import { StatusAssertions } from './status-assertions';
+import { TestContext, TestResult, JsonValue, Constructor } from './types';
 
 export class AssertionBuilder {
   private context: TestContext;
-  private actual: any;
+  private actual: JsonValue;
 
-  constructor(actual: any, context: TestContext) {
+  constructor(actual: JsonValue, context: TestContext) {
     this.context = context;
     this.actual = actual;
   }
@@ -20,9 +20,17 @@ export class AssertionBuilder {
     return this;
   }
 
-  toHavePropertyWithValue(propertyPath: string, expectedValue: any, message?: string): AssertionBuilder {
+  toHavePropertyWithValue(
+    propertyPath: string,
+    expectedValue: JsonValue,
+    message?: string,
+  ): AssertionBuilder {
     const jsonAssertions = new JsonAssertions(this.actual, this.context);
-    jsonAssertions.toHavePropertyWithValue(propertyPath, expectedValue, message);
+    jsonAssertions.toHavePropertyWithValue(
+      propertyPath,
+      expectedValue,
+      message,
+    );
     return this;
   }
 
@@ -56,7 +64,11 @@ export class AssertionBuilder {
     return this;
   }
 
-  expectKeyWithValue(key: string, value: any, message?: string): AssertionBuilder {
+  expectKeyWithValue(
+    key: string,
+    value: JsonValue,
+    message?: string,
+  ): AssertionBuilder {
     const jsonAssertions = new JsonAssertions(this.actual, this.context);
     jsonAssertions.expectKeyWithValue(key, value, message);
     return this;
@@ -82,7 +94,11 @@ export class AssertionBuilder {
     return this;
   }
 
-  toHaveStatusInRange(start: number, end: number, message?: string): AssertionBuilder {
+  toHaveStatusInRange(
+    start: number,
+    end: number,
+    message?: string,
+  ): AssertionBuilder {
     const statusAssertions = new StatusAssertions(this.actual, this.context);
     statusAssertions.toHaveStatusInRange(start, end, message);
     return this;
@@ -137,7 +153,7 @@ export class AssertionBuilder {
   }
 
   // Content Assertions
-  toEqual(expected: any, message?: string): AssertionBuilder {
+  toEqual(expected: JsonValue, message?: string): AssertionBuilder {
     const contentAssertions = new ContentAssertions(this.actual, this.context);
     contentAssertions.toEqual(expected, message);
     return this;
@@ -203,7 +219,10 @@ export class AssertionBuilder {
     return this;
   }
 
-  toBeInstanceOf(expectedClass: any, message?: string): AssertionBuilder {
+  toBeInstanceOf(
+    expectedClass: Constructor,
+    message?: string,
+  ): AssertionBuilder {
     const contentAssertions = new ContentAssertions(this.actual, this.context);
     contentAssertions.toBeInstanceOf(expectedClass, message);
     return this;
@@ -235,7 +254,10 @@ export class AssertionBuilder {
 }
 
 // Helper function to create assertion
-export function expect(actual: any, context?: TestContext): AssertionBuilder {
+export function expect(
+  actual: JsonValue,
+  context?: TestContext,
+): AssertionBuilder {
   const defaultContext: TestContext = {
     request: { url: '', method: 'GET' },
     response: {},
@@ -245,7 +267,7 @@ export function expect(actual: any, context?: TestContext): AssertionBuilder {
     assertions: [],
     console: [],
     environment: {},
-    results: []
+    results: [],
   };
 
   return new AssertionBuilder(actual, context || defaultContext);

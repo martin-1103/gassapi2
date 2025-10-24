@@ -3,6 +3,9 @@
  * Search input untuk response headers
  */
 
+import { Filter } from 'lucide-react';
+
+import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
 interface HeaderFilterProps {
@@ -28,9 +31,6 @@ export function HeaderFilter({
  * Header Filter Controls component
  * Filter controls untuk response headers
  */
-
-import { Filter } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 
 interface HeaderFilterControlsProps {
   showOnlyStandard: boolean;

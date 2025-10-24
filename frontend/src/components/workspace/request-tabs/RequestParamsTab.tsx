@@ -1,7 +1,10 @@
 import { useState } from 'react';
 
 // Import custom hook
-import { useParameterManagement, type QueryParam } from '@/hooks/useParameterManagement';
+import {
+  useParameterManagement,
+  type QueryParam,
+} from '@/hooks/useParameterManagement';
 
 // Import extracted components
 import { ParameterActions } from './ParameterActions';
@@ -21,7 +24,7 @@ export default function RequestParamsTab({
   params,
   onChange,
   url,
-  onUrlChange,
+  onUrlChange: _onUrlChange,
 }: RequestParamsTabProps) {
   // Local state untuk search
   const [searchTerm, setSearchTerm] = useState('');
