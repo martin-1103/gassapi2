@@ -57,19 +57,16 @@ export const validateEndpoint = (
  * Validates if a URL is properly formatted (basic validation)
  */
 export const isValidUrl = (url: string): boolean => {
-  try {
-    // If it's a variable reference, it's considered valid
-    if (url.startsWith('{{') && url.endsWith('}}')) {
-      return true;
-    }
+  // If it's a variable reference, it's considered valid
+  if (url.startsWith('{{') && url.endsWith('}}')) {
+    return true;
+  }
 
-    // Check for valid URL with or without protocol (fixed to prevent ReDoS)
-    const validUrlPattern =
-      /^(https?:\/\/)?([a-z0-9]([a-z0-9-]*[a-z0-9])?\.)+[a-z]{2,}(\/[^\s]*)?$/i;
-    return (
-      validUrlPattern.test(url) ||
-      new URL(url.startsWith('http') ? url : `http://${url}`).hostname !== ''
-    );
+  // Use URL constructor for validation instead of regex to avoid ReDoS
+  try {
+    const testUrl = url.startsWith('http') ? url : `http://${url}`;
+    new URL(testUrl);
+    return testUrl.includes('.') && testUrl.split('.')[1]?.length >= 2;
   } catch {
     return false;
   }

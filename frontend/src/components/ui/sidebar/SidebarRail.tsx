@@ -2,7 +2,7 @@ import * as React from 'react';
 
 import { cn } from '@/lib/utils/index';
 
-import { useSidebar } from './SidebarProvider';
+import { useSidebar } from './context';
 
 /**
  * Invisible rail handle untuk drag toggle sidebar

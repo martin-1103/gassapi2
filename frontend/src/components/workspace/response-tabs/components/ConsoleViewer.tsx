@@ -1,5 +1,5 @@
 import { List } from 'lucide-react';
-import * as React from 'react';
+// import * as React from 'react'; // Removed unused React import
 
 import { ScrollArea } from '@/components/ui/scroll-area';
 

@@ -1,5 +1,5 @@
 import { BarChart3 } from 'lucide-react';
-import * as React from 'react';
+// import * as React from 'react'; // Removed unused React import
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';

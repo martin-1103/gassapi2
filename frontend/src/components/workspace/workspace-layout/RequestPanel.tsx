@@ -212,4 +212,5 @@ export function RequestPanel({
         </Tabs>
       </div>
     </ScrollArea>
-  
+  );
+}

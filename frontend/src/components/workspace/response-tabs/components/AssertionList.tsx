@@ -1,5 +1,5 @@
 import { CheckCircle, XCircle } from 'lucide-react';
-import * as React from 'react';
+// import * as React from 'react'; // Removed unused React import
 
 import type { AssertionResult } from '../types';
 

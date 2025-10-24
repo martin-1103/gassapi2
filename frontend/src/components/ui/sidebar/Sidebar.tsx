@@ -9,7 +9,7 @@ import {
 } from '@/components/ui/sheet';
 import { cn } from '@/lib/utils/index';
 
-import { useSidebar } from './SidebarProvider';
+import { useSidebar } from './context';
 
 // Konstanta untuk sidebar mobile width
 const SIDEBAR_WIDTH_MOBILE = '18rem';
@@ -129,3 +129,6 @@ export const Sidebar = React.forwardRef<HTMLDivElement, SidebarProps>(
 );
 
 Sidebar.displayName = 'Sidebar';
+
+// Re-export types from other files
+export type { SidebarProviderProps } from './SidebarProvider';

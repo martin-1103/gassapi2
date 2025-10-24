@@ -37,42 +37,54 @@ export function CodeGeneratorModal({
   // Generate code snippets - memoize with deep comparison
   const snippets = React.useMemo(() => {
     return generateCodeSnippets(requestData);
-  }, [requestData.method, requestData.url, requestData.headers, requestData.body]);
+  }, [
+    requestData.method,
+    requestData.url,
+    requestData.headers,
+    requestData.body,
+    generateCodeSnippets,
+  ]);
 
   // Copy to clipboard
-  const copyToClipboard = React.useCallback(async (code: string, language: string) => {
-    try {
-      await navigator.clipboard.writeText(code);
-      setCopiedLanguage(language);
-      toast({
-        title: 'Code copied',
-        description: `${language} code copied to clipboard`,
-      });
-    } catch {
-      toast({
-        title: 'Copy failed',
-        description: 'Failed to copy code to clipboard',
-      });
-    }
-  }, [toast]);
+  const copyToClipboard = React.useCallback(
+    async (code: string, language: string) => {
+      try {
+        await navigator.clipboard.writeText(code);
+        setCopiedLanguage(language);
+        toast({
+          title: 'Code copied',
+          description: `${language} code copied to clipboard`,
+        });
+      } catch {
+        toast({
+          title: 'Copy failed',
+          description: 'Failed to copy code to clipboard',
+        });
+      }
+    },
+    [toast],
+  );
 
   // Download code
-  const downloadCode = React.useCallback((code: string, language: string, extension: string) => {
-    const blob = new Blob([code], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `request.${extension}`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+  const downloadCode = React.useCallback(
+    (code: string, language: string, extension: string) => {
+      const blob = new Blob([code], { type: 'text/plain' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `request.${extension}`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
 
-    toast({
-      title: 'Code downloaded',
-      description: `${language} code downloaded`,
-    });
-  }, [toast]);
+      toast({
+        title: 'Code downloaded',
+        description: `${language} code downloaded`,
+      });
+    },
+    [toast],
+  );
 
   // Reset selected language when modal opens
   React.useEffect(() => {

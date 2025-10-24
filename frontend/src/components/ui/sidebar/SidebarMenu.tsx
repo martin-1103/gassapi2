@@ -9,7 +9,7 @@ import {
 } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils/index';
 
-import { useSidebar } from './SidebarProvider';
+import { useSidebar } from './context';
 
 /**
  * Menu container (ul element)

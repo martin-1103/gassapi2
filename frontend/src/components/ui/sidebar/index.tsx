@@ -43,6 +43,7 @@ export {
 
 // Re-export types
 export type { SidebarProps, SidebarProviderProps } from './Sidebar';
+export type { SidebarContextProps } from './context';
 
 export type {
   UseSidebarStateProps,

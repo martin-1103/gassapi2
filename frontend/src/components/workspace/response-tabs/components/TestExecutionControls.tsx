@@ -1,5 +1,5 @@
 import { PlayCircle, RefreshCw } from 'lucide-react';
-import * as React from 'react';
+// import * as React from 'react'; // Removed unused React import
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';

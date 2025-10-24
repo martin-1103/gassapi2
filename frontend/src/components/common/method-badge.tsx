@@ -1,4 +1,4 @@
-import * as React from 'react';
+// import * as React from 'react'; // Removed unused React import
 
 import Badge from '@/components/ui/badge';
 import { cn } from '@/lib/utils/index';

@@ -237,6 +237,215 @@ function formatDuration(ms: number): string {
   }
 }
 
+// Flow Management Interfaces
+interface FlowCreateData {
+  name: string;
+  description?: string;
+  collection_id?: string;
+  flow_data: {
+    nodes: Array<{
+      id: string;
+      type: 'http_request' | 'delay' | 'condition' | 'variable_set';
+      data: any;
+      position: { x: number; y: number };
+    }>;
+    edges: Array<{
+      id: string;
+      source: string;
+      target: string;
+      type: 'success' | 'error' | 'true' | 'false' | 'always';
+      label?: string;
+    }>;
+  };
+  is_active?: boolean;
+}
+
+interface FlowUpdateData {
+  name?: string;
+  description?: string;
+  collection_id?: string;
+  flow_data?: any;
+  is_active?: boolean;
+}
+
+// Tool: create_flow
+export const createFlowTool: McpTool = {
+  name: 'create_flow',
+  description: 'Create a new flow in the project',
+  inputSchema: {
+    type: 'object',
+    properties: {
+      project_id: {
+        type: 'string',
+        description: 'Project ID where the flow will be created (required)'
+      },
+      name: {
+        type: 'string',
+        description: 'Flow name (required)'
+      },
+      description: {
+        type: 'string',
+        description: 'Flow description (optional)'
+      },
+      collection_id: {
+        type: 'string',
+        description: 'Collection ID to associate with this flow (optional)'
+      },
+      flow_data: {
+        type: 'object',
+        description: 'Flow configuration with nodes and edges',
+        properties: {
+          nodes: {
+            type: 'array',
+            description: 'Array of flow nodes',
+            items: {
+              type: 'object',
+              properties: {
+                id: { type: 'string', description: 'Unique node identifier' },
+                type: { type: 'string', enum: ['http_request', 'delay', 'condition', 'variable_set'], description: 'Node type' },
+                data: { type: 'object', description: 'Node-specific configuration' },
+                position: {
+                  type: 'object',
+                  description: 'Node position in canvas',
+                  properties: {
+                    x: { type: 'number' },
+                    y: { type: 'number' }
+                  }
+                }
+              },
+              required: ['id', 'type', 'data', 'position']
+            }
+          },
+          edges: {
+            type: 'array',
+            description: 'Array of flow edges/connections',
+            items: {
+              type: 'object',
+              properties: {
+                id: { type: 'string', description: 'Unique edge identifier' },
+                source: { type: 'string', description: 'Source node ID' },
+                target: { type: 'string', description: 'Target node ID' },
+                type: { type: 'string', enum: ['success', 'error', 'true', 'false', 'always'], description: 'Connection type' },
+                label: { type: 'string', description: 'Edge label (optional)' }
+              },
+              required: ['id', 'source', 'target', 'type']
+            }
+          }
+        },
+        required: ['nodes', 'edges']
+      },
+      is_active: {
+        type: 'boolean',
+        description: 'Set flow as active (default: true)',
+        default: true
+      }
+    },
+    required: ['project_id', 'name']
+  }
+};
+
+// Tool: list_flows
+export const listFlowsTool: McpTool = {
+  name: 'list_flows',
+  description: 'List all flows in a project with filtering options',
+  inputSchema: {
+    type: 'object',
+    properties: {
+      project_id: {
+        type: 'string',
+        description: 'Project ID to list flows from (required)'
+      },
+      active_only: {
+        type: 'boolean',
+        description: 'List only active flows (default: false)',
+        default: false
+      },
+      include_inactive: {
+        type: 'boolean',
+        description: 'Include inactive flows in results (default: true)',
+        default: true
+      },
+      collection_id: {
+        type: 'string',
+        description: 'Filter flows by collection ID (optional)'
+      }
+    },
+    required: ['project_id']
+  }
+};
+
+// Tool: get_flow_detail
+export const getFlowDetailTool: McpTool = {
+  name: 'get_flow_detail',
+  description: 'Get detailed information about a specific flow',
+  inputSchema: {
+    type: 'object',
+    properties: {
+      flow_id: {
+        type: 'string',
+        description: 'Flow ID to get details for (required)'
+      }
+    },
+    required: ['flow_id']
+  }
+};
+
+// Tool: update_flow
+export const updateFlowTool: McpTool = {
+  name: 'update_flow',
+  description: 'Update an existing flow configuration',
+  inputSchema: {
+    type: 'object',
+    properties: {
+      flow_id: {
+        type: 'string',
+        description: 'Flow ID to update (required)'
+      },
+      name: {
+        type: 'string',
+        description: 'Updated flow name (optional)'
+      },
+      description: {
+        type: 'string',
+        description: 'Updated flow description (optional)'
+      },
+      collection_id: {
+        type: 'string',
+        description: 'Updated collection ID (optional)'
+      },
+      flow_data: {
+        type: 'object',
+        description: 'Updated flow configuration (optional)',
+        properties: {
+          nodes: { type: 'array', description: 'Array of flow nodes' },
+          edges: { type: 'array', description: 'Array of flow edges' }
+        }
+      },
+      is_active: {
+        type: 'boolean',
+        description: 'Update flow active status (optional)'
+      }
+    },
+    required: ['flow_id']
+  }
+};
+
+// Tool: delete_flow
+export const deleteFlowTool: McpTool = {
+  name: 'delete_flow',
+  description: 'Delete a flow from the project',
+  inputSchema: {
+    type: 'object',
+    properties: {
+      flow_id: {
+        type: 'string',
+        description: 'Flow ID to delete (required)'
+      }
+    },
+    required: ['flow_id']
+  }
+};
+
 // Tool: execute_flow
 export const executeFlowTool: McpTool = {
   name: 'execute_flow',

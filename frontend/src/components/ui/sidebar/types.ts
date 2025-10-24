@@ -1,9 +1,8 @@
 // Re-export semua types dari sidebar untuk React Fast Refresh
+export type { SidebarContextProps } from './context';
+export type { SidebarProps, SidebarProviderProps } from './Sidebar';
 export type {
-  SidebarContextProps,
-  SidebarProps,
-  SidebarProviderProps,
   UseSidebarStateProps,
   UseSidebarStateReturn,
   SidebarState,
-} from './sidebar';
+} from './hooks/use-sidebar-state';
