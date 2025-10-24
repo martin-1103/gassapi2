@@ -1,5 +1,5 @@
-import { CacheManager } from '../cache/CacheManager';
-import { logger } from '../utils/Logger';
+import { CacheManager } from '../cache/CacheManager.js';
+import { logger } from '../utils/Logger.js';
 import {
   ApiResponse,
   ProjectDetailsResponse,
@@ -16,7 +16,7 @@ import {
   EndpointCreateRequest,
   EndpointUpdateRequest,
   CollectionDetailsResponse
-} from '../types/api.types';
+} from '../types/api.types.js';
 
 /**
  * Backend API Client with integrated caching

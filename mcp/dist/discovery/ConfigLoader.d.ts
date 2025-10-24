@@ -1,4 +1,4 @@
-import { GassapiConfig } from '../types/config.types';
+import { GassapiConfig } from '../types/config.types.js';
 /**
  * Loader untuk konfigurasi GASSAPI
  * Otomatis deteksi dan parsing file konfigurasi gassapi.json

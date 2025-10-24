@@ -1,6 +1,6 @@
-import { ConfigLoader } from '../discovery/ConfigLoader';
-import { BackendClient } from '../client/BackendClient';
-import { logger } from '../utils/Logger';
+import { ConfigLoader } from '../discovery/ConfigLoader.js';
+import { BackendClient } from '../client/BackendClient.js';
+import { logger } from '../utils/Logger.js';
 /**
  * Tool autentikasi MCP
  * Handle validasi token dan operasi autentikasi lainnya

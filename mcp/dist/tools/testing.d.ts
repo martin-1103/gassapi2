@@ -1,43 +1,20 @@
-import { McpTool } from '../types/mcp.types';
+import { McpTool } from '../types/mcp.types.js';
 export declare class TestingTools {
     private configLoader;
     private backendClient;
+    private executionEngine;
+    private envManager;
     constructor();
     /**
-     * Validasi format UUID
-     */
-    private isValidUUID;
-    /**
-     * Validasi dan sanitasi input parameters
-     * Validation logic dibagi jadi basic validation dan detailed validation
-     */
-    private validateTestEndpointArgs;
-    /**
-     * Check apakah sedang dalam test environment
-     * Deteksi berdasarkan pattern ID yang biasa dipakai di test
-     */
-    private isTestEnvironment;
-    /**
-     * Check apakah ID adalah invalid UUID (bukan test ID pattern dan bukan valid UUID)
-     */
-    private isInvalidUUIDFormat;
-    /**
-     * Transformasi aman environment variables array ke Record
-     */
-    private transformEnvironmentVariables;
-    /**
-     * Wrapper aman untuk pemanggilan API
-     */
-    private safeApiCall;
-    private getBackendClient;
-    /**
-     * Test single endpoint dengan environment variables
+     * Test single endpoint with environment variables
      */
     testEndpoint(args: {
         endpointId: string;
         environmentId: string;
         overrideVariables?: Record<string, string>;
         saveResult?: boolean;
+        timeout?: number;
+        executionMode?: 'direct' | 'backend';
     }): Promise<{
         content: Array<{
             type: 'text';
@@ -46,41 +23,21 @@ export declare class TestingTools {
         isError?: boolean;
     }>;
     /**
-     * Format test result untuk display
+     * Test endpoint using direct HTTP execution
      */
-    private formatTestResult;
+    private testEndpointDirect;
     /**
-     * Quick test dengan auto-detection
+     * Test endpoint using backend API (fallback)
      */
-    quickTest(args: {
-        url?: string;
-        method?: string;
-    }): Promise<{
-        content: Array<{
-            type: 'text';
-            text: string;
-        }>;
-        isError?: boolean;
-    }>;
+    private testEndpointBackend;
     /**
-     * Test multiple endpoints
+     * Format direct test result
      */
-    batchTest(args: {
-        endpointIds: string[];
-        environmentId: string;
-        parallel?: boolean;
-        delay?: number;
-    }): Promise<{
-        content: Array<{
-            type: 'text';
-            text: string;
-        }>;
-        isError?: boolean;
-    }>;
+    private formatDirectTestResult;
     /**
-     * Helper function untuk delays
+     * Get backend client instance
      */
-    private sleep;
+    private getBackendClient;
     /**
      * Get testing tools list
      */

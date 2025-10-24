@@ -1,10 +1,10 @@
-import { logger, initializeLogger } from './Logger';
+import { logger, initializeLogger } from './Logger.js';
 /**
  * Simple test to validate the logging infrastructure
  */
 export function testLogger() {
-    // CLI output untuk testing tetap gunakan console.log agar visible
-    console.log('=== Testing Logger Infrastructure ===');
+    // CLI output untuk testing menggunakan logger.cli
+    logger.cli('=== Testing Logger Infrastructure ===');
     // Initialize logger
     initializeLogger();
     // Test different log levels
@@ -21,7 +21,7 @@ export function testLogger() {
     const childLogger = logger.child('ChildModule');
     childLogger.info('This is from a child logger', { child: true });
     // CLI output untuk menandakan test selesai
-    console.log('=== Logger Test Complete ===');
+    logger.cli('=== Logger Test Complete ===', 'success');
 }
 // Run test if called directly
 if (require.main === module) {

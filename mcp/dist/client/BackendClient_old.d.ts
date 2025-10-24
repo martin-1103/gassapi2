@@ -1,4 +1,4 @@
-import { ProjectDetailsResponse, CollectionsResponse, EnvironmentsResponse, EnvironmentVariablesResponse, EndpointsResponse, EndpointDetailsResponse, TokenValidationResponse, TestExecutionResponse, EnvironmentSetVariableRequest, EnvironmentImportRequest, CollectionCreateRequest, EndpointCreateRequest, EndpointUpdateRequest, CollectionDetailsResponse } from '../types/api.types';
+import { ProjectDetailsResponse, CollectionsResponse, EnvironmentsResponse, EnvironmentVariablesResponse, EndpointsResponse, EndpointDetailsResponse, TokenValidationResponse, TestExecutionResponse, EnvironmentSetVariableRequest, EnvironmentImportRequest, CollectionCreateRequest, EndpointCreateRequest, EndpointUpdateRequest, CollectionDetailsResponse } from '../types/api.types.js';
 /**
  * Backend API Client with integrated caching
  * Handles all communication with GASSAPI backend

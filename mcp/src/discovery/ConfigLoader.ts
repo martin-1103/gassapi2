@@ -1,8 +1,8 @@
 import * as fs from 'fs/promises';
 import * as path from 'path';
-import { CacheManager } from '../cache/CacheManager';
-import { GassapiConfig } from '../types/config.types';
-import { logger } from '../utils/Logger';
+import { CacheManager } from '../cache/CacheManager.js';
+import { GassapiConfig } from '../types/config.types.js';
+import { logger } from '../utils/Logger.js';
 
 /**
  * Loader untuk konfigurasi GASSAPI

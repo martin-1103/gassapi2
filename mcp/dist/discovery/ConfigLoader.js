@@ -1,7 +1,7 @@
 import * as fs from 'fs/promises';
 import * as path from 'path';
-import { CacheManager } from '../cache/CacheManager';
-import { logger } from '../utils/Logger';
+import { CacheManager } from '../cache/CacheManager.js';
+import { logger } from '../utils/Logger.js';
 /**
  * Loader untuk konfigurasi GASSAPI
  * Otomatis deteksi dan parsing file konfigurasi gassapi.json

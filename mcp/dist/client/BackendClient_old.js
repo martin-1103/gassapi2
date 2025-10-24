@@ -1,5 +1,5 @@
-import { CacheManager } from '../cache/CacheManager';
-import { logger } from '../utils/Logger';
+import { CacheManager } from '../cache/CacheManager.js';
+import { logger } from '../utils/Logger.js';
 /**
  * Backend API Client with integrated caching
  * Handles all communication with GASSAPI backend

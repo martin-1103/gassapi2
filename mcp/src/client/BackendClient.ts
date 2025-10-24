@@ -1,4 +1,4 @@
-import { CacheManager } from '../cache/CacheManager';
+import { CacheManager } from '../cache/CacheManager.js';
 import {
   ApiResponse,
   ProjectDetailsResponse,
@@ -15,8 +15,8 @@ import {
   EndpointCreateRequest,
   EndpointUpdateRequest,
   CollectionDetailsResponse
-} from '../types/api.types';
-import { logger } from '../utils/Logger';
+} from '../types/api.types.js';
+import { logger } from '../utils/Logger.js';
 
 // Unified environment type that works for both project data and cache
 export type UnifiedEnvironment = {

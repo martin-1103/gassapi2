@@ -1,4 +1,4 @@
-import { McpTool, McpServerStatus } from '../types/mcp.types';
+import { McpTool, McpServerStatus } from '../types/mcp.types.js';
 /**
  * GASSAPI MCP Server
  * Implementasi Model Context Protocol buat Claude Desktop integration
@@ -58,6 +58,7 @@ export declare class McpServer {
         collection: McpTool[];
         endpoint: McpTool[];
         testing: McpTool[];
+        flow: McpTool[];
     };
     /**
      * Add custom tool (for future extensions)

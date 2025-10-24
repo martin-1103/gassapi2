@@ -7,7 +7,7 @@
 
 import * as fs from 'fs';
 import * as path from 'path';
-import { LogMetadata } from '../types/mcp.types';
+import { LogMetadata } from '../types/mcp.types.js';
 
 export enum LogLevel {
   DEBUG = 0,

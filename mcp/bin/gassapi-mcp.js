@@ -21,4 +21,4 @@ process.env.NODE_PATH = [
 ].join(path.delimiter);
 
 // Import and run the CLI
-import(path.join(distDir, 'index.js'));
+import('file://' + path.join(distDir, 'index.js'));

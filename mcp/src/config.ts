@@ -1,7 +1,7 @@
 import { promises as fs } from 'fs';
-import { ConfigLoader } from './discovery/ConfigLoader';
-import { CacheConfig, McpServerConfig, ExecutionConfig, GassapiConfig } from './types/config.types';
-import { logger } from './utils/Logger';
+import { ConfigLoader } from './discovery/ConfigLoader.js';
+import { CacheConfig, McpServerConfig, ExecutionConfig, GassapiConfig } from './types/config.types.js';
+import { logger } from './utils/Logger.js';
 
 /**
  * GASSAPI MCP Client Configuration

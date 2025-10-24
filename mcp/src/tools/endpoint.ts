@@ -1,7 +1,7 @@
-import { McpTool, GassapiEndpoint } from '../types/mcp.types';
-import { ConfigLoader } from '../discovery/ConfigLoader';
-import { BackendClient } from '../client/BackendClient';
-import { HttpMethod, EndpointCreateRequest, EndpointUpdateRequest } from '../types/api.types';
+import { McpTool, GassapiEndpoint } from '../types/mcp.types.js';
+import { ConfigLoader } from '../discovery/ConfigLoader.js';
+import { BackendClient } from '../client/BackendClient.js';
+import { HttpMethod, EndpointCreateRequest, EndpointUpdateRequest } from '../types/api.types.js';
 
 /**
  * Tools untuk mengelola endpoint API

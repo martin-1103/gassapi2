@@ -2,7 +2,7 @@
 import fetch from 'node-fetch';
 import * as fs from 'fs';
 import * as path from 'path';
-import { logger } from './utils/Logger';
+import { logger } from './utils/Logger.js';
 /**
  * Type guards for configuration validation
  */

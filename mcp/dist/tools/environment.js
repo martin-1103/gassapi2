@@ -1,5 +1,5 @@
-import { ConfigLoader } from '../discovery/ConfigLoader';
-import { BackendClient } from '../client/BackendClient';
+import { ConfigLoader } from '../discovery/ConfigLoader.js';
+import { BackendClient } from '../client/BackendClient.js';
 /**
  * Tool MCP buat ngelola environment
  * Handle operasi variabel environment dan konfigurasi

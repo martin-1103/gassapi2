@@ -2,7 +2,7 @@
   "compilerOptions": {
     // Phase 1: Module Configuration Update
     "target": "ES2020",         // Target ES2020 untuk compatibility dengan MCP
-    "module": "ES2020",         // Ubah dari CommonJS ke ES2020 modules
+    "module": "ES2020",         // ES2020 modules untuk MCP compatibility
     "moduleResolution": "node", // Set moduleResolution ke "node" untuk ES modules
     "lib": ["ES2020"],
     "outDir": "./dist",

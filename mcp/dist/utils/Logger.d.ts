@@ -4,7 +4,7 @@
  * A centralized logging system that replaces console.log statements
  * with proper logging infrastructure for production readiness.
  */
-import { LogMetadata } from '../types/mcp.types';
+import { LogMetadata } from '../types/mcp.types.js';
 export declare enum LogLevel {
     DEBUG = 0,
     INFO = 1,

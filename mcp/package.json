@@ -4,11 +4,11 @@
   "description": "AI-powered API testing with Claude Desktop integration",
   "main": "dist/index.js",
   "type": "module",
-  "bin": {
-    "gassapi-mcp": "bin/gassapi-mcp"
+    "bin": {
+    "gassapi-mcp": "bin/gassapi-mcp.js"
   },
   "scripts": {
-    "build": "tsc && chmod +x bin/gassapi-mcp",
+    "build": "tsc && chmod +x bin/gassapi-mcp.js",
     "dev": "tsx watch src/index.ts",
     "start": "node dist/index.js",
     "test": "jest",
@@ -57,13 +57,31 @@
     "lib": "dist"
   },
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.0.0"
+    "@modelcontextprotocol/sdk": "^1.20.1",
+    "abort-controller": "^3.0.0",
+    "follow-redirects": "^1.15.11",
+    "form-data": "^4.0.4",
+    "joi": "^17.13.3",
+    "jsonpath-plus": "^8.1.0",
+    "mustache": "^4.2.0",
+    "performance-now": "^2.1.0",
+    "readline-sync": "^1.4.10",
+    "uuid": "^9.0.1",
+    "vm2": "^3.9.19",
+    "winston": "^3.18.3",
+    "winston-daily-rotate-file": "^4.7.1"
   },
   "devDependencies": {
     "@jest/globals": "^30.2.0",
+    "@types/follow-redirects": "^1.14.4",
     "@types/jest": "^29.0.0",
+    "@types/joi": "^17.2.3",
+    "@types/mustache": "^4.2.6",
     "@types/node": "^20.19.22",
+    "@types/node-fetch": "^2.6.13",
     "@types/readline-sync": "^1.4.8",
+    "@types/uuid": "^9.0.8",
+    "@types/winston": "^2.4.4",
     "@typescript-eslint/eslint-plugin": "^6.0.0",
     "@typescript-eslint/parser": "^6.0.0",
     "eslint": "^8.0.0",
@@ -95,13 +113,16 @@
       "^(\\.{1,2}/.*)\\.js$": "$1"
     },
     "transform": {
-      "^.+\\.tsx?$": ["ts-jest", {
-        "useESM": false,
-        "tsconfig": {
-          "module": "commonjs",
-          "esModuleInterop": true
+      "^.+\\.tsx?$": [
+        "ts-jest",
+        {
+          "useESM": false,
+          "tsconfig": {
+            "module": "commonjs",
+            "esModuleInterop": true
+          }
         }
-      }]
+      ]
     },
     "coverageThreshold": {
       "global": {

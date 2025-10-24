@@ -1,5 +1,5 @@
-import { ConfigLoader } from '../discovery/ConfigLoader';
-import { BackendClient } from '../client/BackendClient';
+import { ConfigLoader } from '../discovery/ConfigLoader.js';
+import { BackendClient } from '../client/BackendClient.js';
 /**
  * Tools untuk mengelola endpoint API
  * Handle operasi konfigurasi endpoint API

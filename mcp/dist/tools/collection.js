@@ -1,5 +1,6 @@
-import { ConfigLoader } from '../discovery/ConfigLoader';
-import { BackendClient } from '../client/BackendClient';
+import { ConfigLoader } from '../discovery/ConfigLoader.js';
+import { BackendClient } from '../client/BackendClient.js';
+import { logger } from '../utils/Logger.js';
 /**
  * Tool koleksi MCP untuk management API
  * Handles operasi koleksi API
@@ -353,7 +354,9 @@ Penghapusan koleksi dibatalkan untuk keamanan.`
                 }
                 catch (error) {
                     // Jika tidak bisa cek, lanjut dengan warning
-                    console.warn('Tidak bisa memeriksa detail koleksi, melanjutkan dengan hati-hati');
+                    logger.warn('Tidak bisa memeriksa detail koleksi, melanjutkan dengan hati-hati', {
+                        error: error instanceof Error ? error.message : String(error)
+                    }, 'CollectionTools');
                 }
             }
             const result = await client.deleteCollection(args.collectionId, force);

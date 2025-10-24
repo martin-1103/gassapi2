@@ -1,4 +1,4 @@
-import { logger, initializeLogger } from './Logger';
+import { logger, initializeLogger } from './Logger.js';
 
 /**
  * Simple test to validate the logging infrastructure

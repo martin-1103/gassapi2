@@ -6,8 +6,8 @@
  */
 
 import * as readline from 'readline';
-import { config } from './config';
-import { logger, initializeLogger } from './utils/Logger';
+import { config } from './config.js';
+import { logger, initializeLogger } from './utils/Logger.js';
 
 /**
  * CLI application class

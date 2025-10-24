@@ -1,7 +1,7 @@
-import { McpTool, GassapiEnvironment, GassapiCollection } from '../types/mcp.types';
-import { ConfigLoader } from '../discovery/ConfigLoader';
-import { BackendClient, UnifiedEnvironment } from '../client/BackendClient';
-import { logger } from '../utils/Logger';
+import { McpTool, GassapiEnvironment, GassapiCollection } from '../types/mcp.types.js';
+import { ConfigLoader } from '../discovery/ConfigLoader.js';
+import { BackendClient, UnifiedEnvironment } from '../client/BackendClient.js';
+import { logger } from '../utils/Logger.js';
 
 /**
  * Tool autentikasi MCP

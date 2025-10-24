@@ -1,4 +1,4 @@
-import { McpTool } from '../types/mcp.types';
+import { McpTool } from '../types/mcp.types.js';
 export declare class CollectionTools {
     private configLoader;
     private backendClient;

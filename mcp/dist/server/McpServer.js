@@ -1,11 +1,12 @@
-import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio';
+import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
-import { authTools, AUTH_TOOLS } from '../tools/auth';
-import { environmentTools, ENVIRONMENT_TOOLS } from '../tools/environment';
-import { collectionTools, COLLECTION_TOOLS } from '../tools/collection';
-import { endpointTools, ENDPOINT_TOOLS } from '../tools/endpoint';
-import { testingTools, TESTING_TOOLS } from '../tools/testing';
-import { logger } from '../utils/Logger';
+import { authTools, AUTH_TOOLS } from '../tools/auth.js';
+import { environmentTools, ENVIRONMENT_TOOLS } from '../tools/environment.js';
+import { collectionTools, COLLECTION_TOOLS } from '../tools/collection.js';
+import { endpointTools, ENDPOINT_TOOLS } from '../tools/endpoint.js';
+import { testingTools, TESTING_TOOLS } from '../tools/testing.js';
+import { flowTools, FLOW_TOOLS } from '../tools/flow.js';
+import { logger } from '../utils/Logger.js';
 /**
  * GASSAPI MCP Server
  * Implementasi Model Context Protocol buat Claude Desktop integration
@@ -48,8 +49,12 @@ export class McpServer {
         ENDPOINT_TOOLS.forEach(tool => {
             this.tools.set(tool.name, tool);
         });
-        // Register testing tools
+        // Register testing tools (enhanced with direct execution)
         TESTING_TOOLS.forEach(tool => {
+            this.tools.set(tool.name, tool);
+        });
+        // Register flow tools (new direct execution)
+        FLOW_TOOLS.forEach(tool => {
             this.tools.set(tool.name, tool);
         });
         logger.info(`Daftar ${this.tools.size} tool MCP udah terdaftar buat operasi GASSAPI`, { toolsCount: this.tools.size }, 'McpServer');
@@ -156,6 +161,9 @@ export class McpServer {
             else if (TESTING_TOOLS.some(t => t.name === name)) {
                 result = await testingTools.handleToolCall(name, args || {});
             }
+            else if (FLOW_TOOLS.some(t => t.name === name)) {
+                result = await flowTools.handleToolCall(name, args || {});
+            }
             else {
                 throw new Error(`No handler found for tool: ${name}`);
             }
@@ -206,7 +214,8 @@ export class McpServer {
             environment: ENVIRONMENT_TOOLS,
             collection: COLLECTION_TOOLS,
             endpoint: ENDPOINT_TOOLS,
-            testing: TESTING_TOOLS
+            testing: TESTING_TOOLS,
+            flow: FLOW_TOOLS
         };
     }
     /**
@@ -273,7 +282,8 @@ export class McpServer {
             ...toolsByCategory.environment.map(t => ({ ...t, category: 'environment' })),
             ...toolsByCategory.collection.map(t => ({ ...t, category: 'collection' })),
             ...toolsByCategory.endpoint.map(t => ({ ...t, category: 'endpoint' })),
-            ...toolsByCategory.testing.map(t => ({ ...t, category: 'testing' }))
+            ...toolsByCategory.testing.map(t => ({ ...t, category: 'testing' })),
+            ...toolsByCategory.flow.map(t => ({ ...t, category: 'flow' }))
         ];
         return {
             server: {

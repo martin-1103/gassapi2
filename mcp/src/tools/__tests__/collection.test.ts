@@ -1,7 +1,7 @@
 import { describe, it, expect, jest, beforeEach } from '@jest/globals';
-import { CollectionTools } from '../collection';
-import { ConfigLoader } from '../../discovery/ConfigLoader';
-import { BackendClient } from '../../client/BackendClient';
+import { CollectionTools } from '../collection.js';
+import { ConfigLoader } from '../../discovery/ConfigLoader.js';
+import { BackendClient } from '../../client/BackendClient.js';
 
 // Mock dependencies
 jest.mock('../../discovery/ConfigLoader');

@@ -1,7 +1,7 @@
-import { McpTool, McpParameter, GassapiEnvironmentVariable, GassapiEnvironmentVariableImport } from '../types/mcp.types';
-import { ConfigLoader } from '../discovery/ConfigLoader';
-import { BackendClient } from '../client/BackendClient';
-import { EnvironmentVariablesResponse } from '../types/api.types';
+import { McpTool, McpParameter, GassapiEnvironmentVariable, GassapiEnvironmentVariableImport } from '../types/mcp.types.js';
+import { ConfigLoader } from '../discovery/ConfigLoader.js';
+import { BackendClient } from '../client/BackendClient.js';
+import { EnvironmentVariablesResponse } from '../types/api.types.js';
 
 /**
  * Tool MCP buat ngelola environment

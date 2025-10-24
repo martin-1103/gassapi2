@@ -1,4 +1,4 @@
-import { CacheConfig, McpServerConfig, ExecutionConfig, GassapiConfig } from './types/config.types';
+import { CacheConfig, McpServerConfig, ExecutionConfig, GassapiConfig } from './types/config.types.js';
 export declare class Config {
     private static instance;
     private configLoader;
