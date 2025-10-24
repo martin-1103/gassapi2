@@ -1,17 +1,17 @@
 /**
  * CORS Handling untuk berbagai environment
- * 
+ *
  * Web: detect CORS error dan suggest proxy
  * Electron: bypass CORS dengan webRequest API
  */
 
-import type { RuntimeEnvironment, CorsProxyConfig } from '@/types/http-client'
+import type { RuntimeEnvironment, CorsProxyConfig } from '@/types/http-client';
 
 export class CorsHandler {
-  private environment: RuntimeEnvironment
+  private environment: RuntimeEnvironment;
 
   constructor() {
-    this.environment = this.detectEnvironment()
+    this.environment = this.detectEnvironment();
   }
 
   /**
@@ -19,25 +19,25 @@ export class CorsHandler {
    */
   private detectEnvironment(): RuntimeEnvironment {
     // Check kalau running di Electron
-    const isElectron = 
-      typeof window !== 'undefined' && 
-      window.navigator.userAgent.toLowerCase().includes('electron')
+    const isElectron =
+      typeof window !== 'undefined' &&
+      window.navigator.userAgent.toLowerCase().includes('electron');
 
     if (isElectron) {
       return {
         type: 'electron',
         corsMode: 'electron-bypass',
-      }
+      };
     }
 
     // Web environment - cek apakah perlu proxy
-    const needsProxy = this.shouldUseProxy()
-    
+    const needsProxy = this.shouldUseProxy();
+
     return {
       type: 'web',
       corsMode: needsProxy ? 'proxy' : 'direct',
       corsProxyConfig: needsProxy ? this.getDefaultProxyConfig() : undefined,
-    }
+    };
   }
 
   /**
@@ -46,13 +46,13 @@ export class CorsHandler {
    */
   private shouldUseProxy(): boolean {
     // Cek user preference dari localStorage
-    const userPreference = localStorage.getItem('cors-proxy-enabled')
+    const userPreference = localStorage.getItem('cors-proxy-enabled');
     if (userPreference !== null) {
-      return userPreference === 'true'
+      return userPreference === 'true';
     }
 
     // Default: false, let user enable manually kalau ada CORS issue
-    return false
+    return false;
   }
 
   /**
@@ -62,16 +62,18 @@ export class CorsHandler {
   private getDefaultProxyConfig(): CorsProxyConfig {
     return {
       enabled: true,
-      url: localStorage.getItem('cors-proxy-url') || 'https://cors-anywhere.herokuapp.com',
+      url:
+        localStorage.getItem('cors-proxy-url') ||
+        'https://cors-anywhere.herokuapp.com',
       bypassDomains: ['localhost', '127.0.0.1', '0.0.0.0'],
-    }
+    };
   }
 
   /**
    * Get current environment info
    */
   getEnvironment(): RuntimeEnvironment {
-    return this.environment
+    return this.environment;
   }
 
   /**
@@ -80,39 +82,42 @@ export class CorsHandler {
   transformUrl(url: string): string {
     // Kalau Electron, ga perlu transform
     if (this.environment.type === 'electron') {
-      return url
+      return url;
     }
 
     // Kalau ga pake proxy, return original
-    if (this.environment.corsMode !== 'proxy' || !this.environment.corsProxyConfig?.enabled) {
-      return url
+    if (
+      this.environment.corsMode !== 'proxy' ||
+      !this.environment.corsProxyConfig?.enabled
+    ) {
+      return url;
     }
 
     // Check kalau URL ini perlu di-bypass (localhost, etc)
-    const shouldBypass = this.shouldBypassProxy(url)
+    const shouldBypass = this.shouldBypassProxy(url);
     if (shouldBypass) {
-      return url
+      return url;
     }
 
     // Apply proxy
-    const proxyUrl = this.environment.corsProxyConfig.url
-    return `${proxyUrl}/${url}`
+    const proxyUrl = this.environment.corsProxyConfig.url;
+    return `${proxyUrl}/${url}`;
   }
 
   /**
    * Check apakah URL ini bypass proxy
    */
   private shouldBypassProxy(url: string): boolean {
-    const bypassDomains = this.environment.corsProxyConfig?.bypassDomains || []
-    
+    const bypassDomains = this.environment.corsProxyConfig?.bypassDomains || [];
+
     try {
-      const urlObj = new URL(url)
-      return bypassDomains.some(domain => 
-        urlObj.hostname === domain || 
-        urlObj.hostname.endsWith(`.${domain}`)
-      )
+      const urlObj = new URL(url);
+      return bypassDomains.some(
+        domain =>
+          urlObj.hostname === domain || urlObj.hostname.endsWith(`.${domain}`),
+      );
     } catch {
-      return false
+      return false;
     }
   }
 
@@ -120,10 +125,10 @@ export class CorsHandler {
    * Check apakah error ini CORS error
    */
   isCorsError(error: any): boolean {
-    if (!error) return false
+    if (!error) return false;
 
-    const message = error.message?.toLowerCase() || ''
-    const name = error.name?.toLowerCase() || ''
+    const message = error.message?.toLowerCase() || '';
+    const name = error.name?.toLowerCase() || '';
 
     return (
       message.includes('cors') ||
@@ -131,18 +136,18 @@ export class CorsHandler {
       name === 'corserror' ||
       // Network error yang kemungkinan CORS
       (message.includes('network') && !error.response)
-    )
+    );
   }
 
   /**
    * Get user-friendly CORS error message dengan solution
    */
   getCorsErrorMessage(url: string): {
-    title: string
-    message: string
-    solutions: string[]
+    title: string;
+    message: string;
+    solutions: string[];
   } {
-    const isLocalhost = this.isLocalhost(url)
+    const isLocalhost = this.isLocalhost(url);
 
     if (isLocalhost) {
       return {
@@ -153,7 +158,7 @@ export class CorsHandler {
           'Gunakan aplikasi Desktop version (Electron)',
           'Setup CORS proxy di settings',
         ],
-      }
+      };
     }
 
     return {
@@ -164,7 +169,7 @@ export class CorsHandler {
         'Enable CORS proxy di settings',
         'Gunakan aplikasi Desktop version (Electron)',
       ],
-    }
+    };
   }
 
   /**
@@ -172,15 +177,15 @@ export class CorsHandler {
    */
   private isLocalhost(url: string): boolean {
     try {
-      const urlObj = new URL(url)
+      const urlObj = new URL(url);
       return (
         urlObj.hostname === 'localhost' ||
         urlObj.hostname === '127.0.0.1' ||
         urlObj.hostname === '0.0.0.0' ||
         urlObj.hostname === '::1'
-      )
+      );
     } catch {
-      return false
+      return false;
     }
   }
 
@@ -188,25 +193,25 @@ export class CorsHandler {
    * Enable/disable CORS proxy
    */
   setCorsProxyEnabled(enabled: boolean): void {
-    localStorage.setItem('cors-proxy-enabled', String(enabled))
-    this.environment = this.detectEnvironment()
+    localStorage.setItem('cors-proxy-enabled', String(enabled));
+    this.environment = this.detectEnvironment();
   }
 
   /**
    * Set custom CORS proxy URL
    */
   setCorsProxyUrl(url: string): void {
-    localStorage.setItem('cors-proxy-url', url)
-    this.environment = this.detectEnvironment()
+    localStorage.setItem('cors-proxy-url', url);
+    this.environment = this.detectEnvironment();
   }
 
   /**
    * Get CORS proxy config
    */
   getProxyConfig(): CorsProxyConfig | undefined {
-    return this.environment.corsProxyConfig
+    return this.environment.corsProxyConfig;
   }
 }
 
 // Singleton instance
-export const corsHandler = new CorsHandler()
+export const corsHandler = new CorsHandler();

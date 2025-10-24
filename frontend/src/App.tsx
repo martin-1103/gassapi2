@@ -1,17 +1,18 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { Toaster } from 'sonner'
-import { useAuthStore } from '@/stores/authStore'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { Toaster } from 'sonner';
 
 // Pages
-import LoginPage from '@/pages/LoginPage'
-import RegisterPage from '@/pages/RegisterPage'
-import DashboardPage from '@/pages/DashboardPage'
-import ProjectsPage from '@/pages/ProjectsPage'
-import WorkspacePage from '@/pages/WorkspacePage'
+import AppLayout from '@/components/layout/AppLayout';
+import WorkspaceLayout from '@/components/workspace/workspace-layout';
+import DashboardPage from '@/pages/DashboardPage';
+import LoginPage from '@/pages/LoginPage';
+import ProjectsPage from '@/pages/ProjectsPage';
+import RegisterPage from '@/pages/RegisterPage';
+import WorkspacePage from '@/pages/WorkspacePage';
 
 // Layout
-import AppLayout from '@/components/layout/AppLayout'
+import { useAuthStore } from '@/stores/authStore';
 
 // Create React Query client
 const queryClient = new QueryClient({
@@ -22,28 +23,28 @@ const queryClient = new QueryClient({
       staleTime: 5 * 60 * 1000, // 5 menit
     },
   },
-})
+});
 
 // Protected Route wrapper
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const isAuthenticated = useAuthStore((state) => state.isAuthenticated)
-  
+  const isAuthenticated = useAuthStore(state => state.isAuthenticated);
+
   if (!isAuthenticated) {
-    return <Navigate to="/login" replace />
+    return <Navigate to='/login' replace />;
   }
-  
-  return <>{children}</>
+
+  return <>{children}</>;
 }
 
 // Public Route wrapper (redirect ke dashboard jika sudah login)
 function PublicRoute({ children }: { children: React.ReactNode }) {
-  const isAuthenticated = useAuthStore((state) => state.isAuthenticated)
-  
+  const isAuthenticated = useAuthStore(state => state.isAuthenticated);
+
   if (isAuthenticated) {
-    return <Navigate to="/dashboard" replace />
+    return <Navigate to='/dashboard' replace />;
   }
-  
-  return <>{children}</>
+
+  return <>{children}</>;
 }
 
 function App() {
@@ -53,7 +54,7 @@ function App() {
         <Routes>
           {/* Public routes */}
           <Route
-            path="/login"
+            path='/login'
             element={
               <PublicRoute>
                 <LoginPage />
@@ -61,7 +62,7 @@ function App() {
             }
           />
           <Route
-            path="/register"
+            path='/register'
             element={
               <PublicRoute>
                 <RegisterPage />
@@ -71,28 +72,28 @@ function App() {
 
           {/* Protected routes */}
           <Route
-            path="/"
+            path='/'
             element={
               <ProtectedRoute>
                 <AppLayout />
               </ProtectedRoute>
             }
           >
-            <Route index element={<Navigate to="/dashboard" replace />} />
-            <Route path="dashboard" element={<DashboardPage />} />
-            <Route path="projects" element={<ProjectsPage />} />
-            <Route path="workspace/:projectId" element={<WorkspacePage />} />
+            <Route index element={<Navigate to='/dashboard' replace />} />
+            <Route path='dashboard' element={<DashboardPage />} />
+            <Route path='projects' element={<ProjectsPage />} />
+            <Route path='workspace/:projectId' element={<WorkspacePage />} />
           </Route>
 
           {/* 404 */}
-          <Route path="*" element={<Navigate to="/" replace />} />
+          <Route path='*' element={<Navigate to='/' replace />} />
         </Routes>
       </BrowserRouter>
 
       {/* Toast notifications */}
-      <Toaster position="top-right" richColors />
+      <Toaster position='top-right' richColors />
     </QueryClientProvider>
-  )
+  );
 }
 
-export default App
+export default App;

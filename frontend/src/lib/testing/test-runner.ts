@@ -133,18 +133,12 @@ export class TestRunner {
               message: passed ? 'Test passed' : 'Test failed',
               duration
             })
-          }
+          })
         }
         
         results.push(...testContext.assertions)
-        
-        return {
-          console: testContext.console,
-          variables: testContext.variables,
-          globals: testContext.globals,
-          tests: testContext.tests,
-          assertions: results
-        }
+
+        // Function continues to next script in the loop
       } catch (error: Error) {
         const endTime = Date.now()
         results.push({

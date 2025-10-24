@@ -1,20 +1,21 @@
-import { create } from 'zustand'
-import { persist } from 'zustand/middleware'
-import type { Project } from '@/types/api'
+import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
+
+import type { Project } from '@/types/api';
 
 interface ProjectState {
-  currentProject: Project | null
+  currentProject: Project | null;
 }
 
 interface ProjectActions {
-  setCurrentProject: (project: Project | null) => void
+  setCurrentProject: (project: Project | null) => void;
 }
 
-type ProjectStore = ProjectState & ProjectActions
+type ProjectStore = ProjectState & ProjectActions;
 
 export const useProjectStore = create<ProjectStore>()(
   persist(
-    (set) => ({
+    set => ({
       // State
       currentProject: null,
 
@@ -24,6 +25,6 @@ export const useProjectStore = create<ProjectStore>()(
     }),
     {
       name: 'project-storage',
-    }
-  )
-)
+    },
+  ),
+);

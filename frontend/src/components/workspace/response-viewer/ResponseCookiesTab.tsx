@@ -349,6 +349,7 @@ export function ResponseCookiesTab({ cookies }: ResponseCookiesTabProps) {
                     )}
                   </div>
                 </div>
+                </div>
                 
                 {/* Actions */}
                 <div className="flex items-center gap-1">

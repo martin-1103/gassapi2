@@ -6,10 +6,10 @@ export {
   VariableInterpolator,
   interpolateString,
   interpolateVariables,
-} from './variable-interpolator'
+} from './variable-interpolator';
 
 export type {
   VariableContext,
   EnvironmentContext,
   InterpolationResult,
-} from '@/types/http-client'
+} from '@/types/http-client';

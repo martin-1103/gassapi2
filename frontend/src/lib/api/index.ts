@@ -3,9 +3,9 @@
  * Central export point untuk HTTP client functionality
  */
 
-export { directApiClient, DirectApiClient } from './direct-client'
-export { corsHandler, CorsHandler } from './cors-handler'
-export { apiClient, buildQuery } from './client'
+export { directApiClient, DirectApiClient } from './direct-client';
+export { corsHandler, CorsHandler } from './cors-handler';
+export { apiClient, buildQuery } from './client';
 
 // Re-export types
 export type {
@@ -21,4 +21,4 @@ export type {
   ContentType,
   RuntimeEnvironment,
   CorsProxyConfig,
-} from '@/types/http-client'
+} from '@/types/http-client';

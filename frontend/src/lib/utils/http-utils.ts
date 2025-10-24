@@ -2,16 +2,16 @@
  * HTTP utilities untuk formatting dan helper functions
  */
 
-import type { HttpResponseData, HttpHeader } from '@/types/http-client'
+import type { HttpResponseData, HttpHeader } from '@/types/http-client';
 
 /**
  * Format response time untuk display
  */
 export function formatResponseTime(ms: number): string {
   if (ms < 1000) {
-    return `${ms}ms`
+    return `${ms}ms`;
   }
-  return `${(ms / 1000).toFixed(2)}s`
+  return `${(ms / 1000).toFixed(2)}s`;
 }
 
 /**
@@ -19,13 +19,13 @@ export function formatResponseTime(ms: number): string {
  */
 export function formatResponseSize(bytes: number): string {
   if (bytes < 1024) {
-    return `${bytes}B`
+    return `${bytes}B`;
   } else if (bytes < 1024 * 1024) {
-    return `${(bytes / 1024).toFixed(2)}KB`
+    return `${(bytes / 1024).toFixed(2)}KB`;
   } else if (bytes < 1024 * 1024 * 1024) {
-    return `${(bytes / (1024 * 1024)).toFixed(2)}MB`
+    return `${(bytes / (1024 * 1024)).toFixed(2)}MB`;
   }
-  return `${(bytes / (1024 * 1024 * 1024)).toFixed(2)}GB`
+  return `${(bytes / (1024 * 1024 * 1024)).toFixed(2)}GB`;
 }
 
 /**
@@ -33,29 +33,31 @@ export function formatResponseSize(bytes: number): string {
  */
 export function getStatusColor(status: number): string {
   if (status >= 200 && status < 300) {
-    return 'text-green-600'
+    return 'text-green-600';
   } else if (status >= 300 && status < 400) {
-    return 'text-blue-600'
+    return 'text-blue-600';
   } else if (status >= 400 && status < 500) {
-    return 'text-orange-600'
+    return 'text-orange-600';
   } else if (status >= 500) {
-    return 'text-red-600'
+    return 'text-red-600';
   }
-  return 'text-gray-600'
+  return 'text-gray-600';
 }
 
 /**
  * Get status badge variant
  */
-export function getStatusBadgeVariant(status: number): 'default' | 'secondary' | 'destructive' | 'outline' {
+export function getStatusBadgeVariant(
+  status: number,
+): 'default' | 'secondary' | 'destructive' | 'outline' {
   if (status >= 200 && status < 300) {
-    return 'default'
+    return 'default';
   } else if (status >= 300 && status < 400) {
-    return 'secondary'
+    return 'secondary';
   } else if (status >= 400) {
-    return 'destructive'
+    return 'destructive';
   }
-  return 'outline'
+  return 'outline';
 }
 
 /**
@@ -64,11 +66,11 @@ export function getStatusBadgeVariant(status: number): 'default' | 'secondary' |
 export function prettyPrintJson(data: any): string {
   try {
     if (typeof data === 'string') {
-      data = JSON.parse(data)
+      data = JSON.parse(data);
     }
-    return JSON.stringify(data, null, 2)
+    return JSON.stringify(data, null, 2);
   } catch {
-    return String(data)
+    return String(data);
   }
 }
 
@@ -76,50 +78,57 @@ export function prettyPrintJson(data: any): string {
  * Format response body berdasarkan content type
  */
 export function formatResponseBody(response: HttpResponseData): {
-  formatted: string
-  type: 'json' | 'html' | 'xml' | 'text' | 'binary'
+  formatted: string;
+  type: 'json' | 'html' | 'xml' | 'text' | 'binary';
 } {
-  const contentType = response.headers['content-type']?.toLowerCase() || ''
+  const contentType = response.headers['content-type']?.toLowerCase() || '';
 
   // JSON
   if (contentType.includes('application/json')) {
     try {
-      const formatted = prettyPrintJson(response.data)
-      return { formatted, type: 'json' }
+      const formatted = prettyPrintJson(response.data);
+      return { formatted, type: 'json' };
     } catch {
-      return { formatted: String(response.data), type: 'text' }
+      return { formatted: String(response.data), type: 'text' };
     }
   }
 
   // HTML
   if (contentType.includes('text/html')) {
-    return { formatted: String(response.data), type: 'html' }
+    return { formatted: String(response.data), type: 'html' };
   }
 
   // XML
-  if (contentType.includes('application/xml') || contentType.includes('text/xml')) {
-    return { formatted: String(response.data), type: 'xml' }
+  if (
+    contentType.includes('application/xml') ||
+    contentType.includes('text/xml')
+  ) {
+    return { formatted: String(response.data), type: 'xml' };
   }
 
   // Binary
-  if (contentType.includes('application/octet-stream') || 
-      contentType.includes('image/') ||
-      contentType.includes('video/') ||
-      contentType.includes('audio/')) {
-    return { formatted: '[Binary Data]', type: 'binary' }
+  if (
+    contentType.includes('application/octet-stream') ||
+    contentType.includes('image/') ||
+    contentType.includes('video/') ||
+    contentType.includes('audio/')
+  ) {
+    return { formatted: '[Binary Data]', type: 'binary' };
   }
 
   // Default: text
-  return { formatted: String(response.data), type: 'text' }
+  return { formatted: String(response.data), type: 'text' };
 }
 
 /**
  * Parse headers dari berbagai format
  */
-export function parseHeaders(headers: string | Record<string, string> | HttpHeader[]): HttpHeader[] {
+export function parseHeaders(
+  headers: string | Record<string, string> | HttpHeader[],
+): HttpHeader[] {
   // Kalau sudah format HttpHeader[]
   if (Array.isArray(headers)) {
-    return headers
+    return headers;
   }
 
   // Kalau object
@@ -128,7 +137,7 @@ export function parseHeaders(headers: string | Record<string, string> | HttpHead
       key,
       value,
       enabled: true,
-    }))
+    }));
   }
 
   // Kalau string (multi-line format)
@@ -137,16 +146,16 @@ export function parseHeaders(headers: string | Record<string, string> | HttpHead
       .split('\n')
       .filter(line => line.trim())
       .map(line => {
-        const [key, ...valueParts] = line.split(':')
+        const [key, ...valueParts] = line.split(':');
         return {
           key: key.trim(),
           value: valueParts.join(':').trim(),
           enabled: true,
-        }
-      })
+        };
+      });
   }
 
-  return []
+  return [];
 }
 
 /**
@@ -155,10 +164,13 @@ export function parseHeaders(headers: string | Record<string, string> | HttpHead
 export function headersToObject(headers: HttpHeader[]): Record<string, string> {
   return headers
     .filter(h => h.enabled)
-    .reduce((acc, header) => {
-      acc[header.key] = header.value
-      return acc
-    }, {} as Record<string, string>)
+    .reduce(
+      (acc, header) => {
+        acc[header.key] = header.value;
+        return acc;
+      },
+      {} as Record<string, string>,
+    );
 }
 
 /**
@@ -166,14 +178,14 @@ export function headersToObject(headers: HttpHeader[]): Record<string, string> {
  */
 export function isValidUrl(url: string): boolean {
   try {
-    new URL(url)
-    return true
+    new URL(url);
+    return true;
   } catch {
     // Check kalau relative URL atau with variable
     if (url.startsWith('/') || url.includes('{{')) {
-      return true
+      return true;
     }
-    return false
+    return false;
   }
 }
 
@@ -183,41 +195,43 @@ export function isValidUrl(url: string): boolean {
 export function getMethodColor(method: string): string {
   switch (method.toUpperCase()) {
     case 'GET':
-      return 'text-green-600'
+      return 'text-green-600';
     case 'POST':
-      return 'text-blue-600'
+      return 'text-blue-600';
     case 'PUT':
-      return 'text-orange-600'
+      return 'text-orange-600';
     case 'DELETE':
-      return 'text-red-600'
+      return 'text-red-600';
     case 'PATCH':
-      return 'text-purple-600'
+      return 'text-purple-600';
     case 'HEAD':
-      return 'text-gray-600'
+      return 'text-gray-600';
     case 'OPTIONS':
-      return 'text-gray-600'
+      return 'text-gray-600';
     default:
-      return 'text-gray-600'
+      return 'text-gray-600';
   }
 }
 
 /**
  * Get HTTP method badge variant
  */
-export function getMethodBadgeVariant(method: string): 'default' | 'secondary' | 'destructive' | 'outline' {
+export function getMethodBadgeVariant(
+  method: string,
+): 'default' | 'secondary' | 'destructive' | 'outline' {
   switch (method.toUpperCase()) {
     case 'GET':
-      return 'default'
+      return 'default';
     case 'POST':
-      return 'default'
+      return 'default';
     case 'PUT':
-      return 'secondary'
+      return 'secondary';
     case 'DELETE':
-      return 'destructive'
+      return 'destructive';
     case 'PATCH':
-      return 'secondary'
+      return 'secondary';
     default:
-      return 'outline'
+      return 'outline';
   }
 }
 
@@ -226,10 +240,10 @@ export function getMethodBadgeVariant(method: string): 'default' | 'secondary' |
  */
 export function extractDomain(url: string): string {
   try {
-    const urlObj = new URL(url)
-    return urlObj.hostname
+    const urlObj = new URL(url);
+    return urlObj.hostname;
   } catch {
-    return url
+    return url;
   }
 }
 
@@ -239,68 +253,72 @@ export function extractDomain(url: string): string {
 export async function copyToClipboard(text: string): Promise<boolean> {
   try {
     if (navigator.clipboard) {
-      await navigator.clipboard.writeText(text)
-      return true
+      await navigator.clipboard.writeText(text);
+      return true;
     } else {
       // Fallback untuk browser yang ga support clipboard API
-      const textarea = document.createElement('textarea')
-      textarea.value = text
-      textarea.style.position = 'fixed'
-      textarea.style.opacity = '0'
-      document.body.appendChild(textarea)
-      textarea.select()
-      document.execCommand('copy')
-      document.body.removeChild(textarea)
-      return true
+      const textarea = document.createElement('textarea');
+      textarea.value = text;
+      textarea.style.position = 'fixed';
+      textarea.style.opacity = '0';
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textarea);
+      return true;
     }
   } catch {
-    return false
+    return false;
   }
 }
 
 /**
  * Download response sebagai file
  */
-export function downloadResponse(response: HttpResponseData, filename?: string): void {
-  const { formatted } = formatResponseBody(response)
-  const blob = new Blob([formatted], { type: 'text/plain' })
-  const url = URL.createObjectURL(blob)
-  const a = document.createElement('a')
-  a.href = url
-  a.download = filename || `response-${Date.now()}.txt`
-  document.body.appendChild(a)
-  a.click()
-  document.body.removeChild(a)
-  URL.revokeObjectURL(url)
+export function downloadResponse(
+  response: HttpResponseData,
+  filename?: string,
+): void {
+  const { formatted } = formatResponseBody(response);
+  const blob = new Blob([formatted], { type: 'text/plain' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename || `response-${Date.now()}.txt`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
 }
 
 /**
  * Generate cURL command dari request config
  */
 export function generateCurlCommand(config: {
-  method: string
-  url: string
-  headers?: HttpHeader[]
-  body?: any
+  method: string;
+  url: string;
+  headers?: HttpHeader[];
+  body?: any;
 }): string {
-  let curl = `curl -X ${config.method} '${config.url}'`
+  let curl = `curl -X ${config.method} '${config.url}'`;
 
   // Add headers
   if (config.headers && config.headers.length > 0) {
     config.headers
       .filter(h => h.enabled)
       .forEach(header => {
-        curl += ` \\\n  -H '${header.key}: ${header.value}'`
-      })
+        curl += ` \\\n  -H '${header.key}: ${header.value}'`;
+      });
   }
 
   // Add body
   if (config.body) {
-    const bodyStr = typeof config.body === 'string' 
-      ? config.body 
-      : JSON.stringify(config.body)
-    curl += ` \\\n  -d '${bodyStr}'`
+    const bodyStr =
+      typeof config.body === 'string'
+        ? config.body
+        : JSON.stringify(config.body);
+    curl += ` \\\n  -d '${bodyStr}'`;
   }
 
-  return curl
+  return curl;
 }

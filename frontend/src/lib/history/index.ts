@@ -2,9 +2,9 @@
  * Request History Exports
  */
 
-export { requestHistory, RequestHistoryManager } from './request-history'
+export { requestHistory, RequestHistoryManager } from './request-history';
 
 export type {
   RequestHistoryItem,
   RequestHistoryFilter,
-} from '@/types/http-client'
+} from '@/types/http-client';

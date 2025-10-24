@@ -1,421 +1,306 @@
 /**
- * Direct HTTP Client
- * Kirim request langsung ke target API tanpa melalui backend proxy
- * 
- * Features:
- * - Support semua HTTP methods
- * - Variable interpolation
- * - Request/response timing
- * - File upload
- * - Cookie handling
- * - CORS handling untuk web/electron
+ * Direct HTTP Client untuk bypass backend dan testing API endpoints langsung
+ * Mendukung web dan Electron environment dengan CORS handling
  */
 
-import axios, { type AxiosInstance, type AxiosRequestConfig, type AxiosError } from 'axios'
-import { corsHandler } from './cors-handler'
-import { VariableInterpolator } from '../variables/variable-interpolator'
-import type {
-  HttpRequestConfig,
-  HttpResponseData,
-  HttpError,
-  HttpHeader,
-  HttpQueryParam,
-  VariableContext,
-} from '@/types/http-client'
+import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
+
+export interface DirectRequestConfig {
+  method: string;
+  url: string;
+  headers?: Record<string, string>;
+  body?: any;
+  timeout?: number;
+  followRedirects?: boolean;
+  validateSSL?: boolean;
+}
+
+export interface DirectResponse {
+  status: number;
+  statusText: string;
+  headers: Record<string, string>;
+  data: any;
+  time: number;
+  size: number;
+  redirected?: boolean;
+  redirectUrl?: string;
+  error?: {
+    message: string;
+    type: string;
+    corsError?: boolean;
+    solutions?: string[];
+  };
+}
 
 export class DirectApiClient {
-  private axiosInstance: AxiosInstance
-  private interpolator: VariableInterpolator
+  private startTime: number = 0;
+  private corsProxyUrls = [
+    'https://cors-anywhere.herokuapp.com/',
+    'https://api.allorigins.win/raw?url=',
+    'https://corsproxy.io/?',
+  ];
 
-  constructor() {
-    this.axiosInstance = axios.create({
-      timeout: 30000,
-      validateStatus: () => true, // Accept semua status code, jangan throw error
-    })
-
-    this.interpolator = new VariableInterpolator()
-
-    // Setup interceptors untuk timing
-    this.setupInterceptors()
-  }
-
-  /**
-   * Setup axios interceptors untuk timing dan logging
-   */
-  private setupInterceptors(): void {
-    // Request interceptor - add timing
-    this.axiosInstance.interceptors.request.use(
-      (config: any) => {
-        config.metadata = { startTime: Date.now() }
-        return config
-      },
-      (error) => Promise.reject(error)
-    )
-
-    // Response interceptor - calculate duration
-    this.axiosInstance.interceptors.response.use(
-      (response: any) => {
-        const endTime = Date.now()
-        const startTime = response.config.metadata?.startTime || endTime
-        response.duration = endTime - startTime
-        return response
-      },
-      (error: any) => {
-        const endTime = Date.now()
-        const startTime = error.config?.metadata?.startTime || endTime
-        error.duration = endTime - startTime
-        return Promise.reject(error)
-      }
-    )
-  }
-
-  /**
-   * Update variable context untuk interpolation
-   */
-  setVariableContext(context: VariableContext): void {
-    this.interpolator.updateContext(context)
-  }
-
-  /**
-   * Send HTTP request dengan full configuration
-   */
-  async sendRequest(config: HttpRequestConfig): Promise<HttpResponseData> {
-    const startTime = Date.now()
+  async sendRequest(config: DirectRequestConfig): Promise<DirectResponse> {
+    this.startTime = Date.now();
 
     try {
-      // Interpolate URL
-      const interpolatedUrl = this.interpolator.interpolate(config.url).value
-      
-      // Transform URL untuk CORS handling
-      const finalUrl = corsHandler.transformUrl(interpolatedUrl)
-
-      // Build headers
-      const headers = this.buildHeaders(config.headers)
-
-      // Build query params
-      const params = this.buildQueryParams(config.queryParams)
-
-      // Build request body
-      const requestBody = await this.buildRequestBody(config.body, headers)
-
-      // Build axios config
       const axiosConfig: AxiosRequestConfig = {
-        url: finalUrl,
         method: config.method,
-        headers,
-        params,
-        data: requestBody,
+        url: config.url,
+        headers: {
+          'Content-Type': 'application/json',
+          'User-Agent': 'GASS-API-Client/1.0',
+          ...config.headers,
+        },
+        data: config.body,
         timeout: config.timeout || 30000,
         maxRedirects: config.followRedirects ? 5 : 0,
-        validateStatus: () => true,
+        validateStatus: () => true, // Jangan throw pada HTTP errors
+      };
+
+      // Handle CORS untuk Electron vs Web
+      if (this.isElectron()) {
+        return this.sendElectronRequest(axiosConfig);
+      } else {
+        return this.sendWebRequest(axiosConfig);
       }
-
-      // Add proxy kalau ada
-      if (config.proxyUrl) {
-        const proxyUrl = new URL(config.proxyUrl)
-        axiosConfig.proxy = {
-          host: proxyUrl.hostname,
-          port: parseInt(proxyUrl.port) || 80,
-          protocol: proxyUrl.protocol,
-        }
-      }
-
-      // Send request
-      const response = await this.axiosInstance.request(axiosConfig)
-      const endTime = Date.now()
-
-      // Build response data
-      return this.buildResponse(response, endTime - startTime)
-
     } catch (error) {
-      const endTime = Date.now()
-      throw this.buildError(error, endTime - startTime)
+      return this.handleError(error);
     }
   }
 
-  /**
-   * Build headers dari config
-   */
-  private buildHeaders(headers?: HttpHeader[]): Record<string, string> {
-    if (!headers || headers.length === 0) {
-      return {}
-    }
-
-    const result: Record<string, string> = {}
-
-    headers
-      .filter(h => h.enabled)
-      .forEach(header => {
-        const interpolated = this.interpolator.interpolate(header.value).value
-        result[header.key] = interpolated
-      })
-
-    return result
-  }
-
-  /**
-   * Build query params dari config
-   */
-  private buildQueryParams(params?: HttpQueryParam[]): Record<string, string> {
-    if (!params || params.length === 0) {
-      return {}
-    }
-
-    const result: Record<string, string> = {}
-
-    params
-      .filter(p => p.enabled)
-      .forEach(param => {
-        const interpolated = this.interpolator.interpolate(param.value).value
-        result[param.key] = interpolated
-      })
-
-    return result
-  }
-
-  /**
-   * Build request body berdasarkan type
-   */
-  private async buildRequestBody(
-    body: HttpRequestConfig['body'],
-    headers: Record<string, string>
-  ): Promise<any> {
-    if (!body || body.type === 'none') {
-      return undefined
-    }
-
-    switch (body.type) {
-      case 'json':
-        headers['Content-Type'] = 'application/json'
-        return body.json
-
-      case 'raw':
-        if (!headers['Content-Type']) {
-          headers['Content-Type'] = 'text/plain'
-        }
-        return this.interpolator.interpolate(body.raw || '').value
-
-      case 'x-www-form-urlencoded':
-        headers['Content-Type'] = 'application/x-www-form-urlencoded'
-        const urlEncodedData = new URLSearchParams()
-        body.urlEncoded?.filter(f => f.enabled).forEach(field => {
-          const value = this.interpolator.interpolate(field.value).value
-          urlEncodedData.append(field.key, value)
-        })
-        return urlEncodedData
-
-      case 'form-data':
-        headers['Content-Type'] = 'multipart/form-data'
-        const formData = new FormData()
-        body.formData?.filter(f => f.enabled).forEach(field => {
-          if (field.type === 'file' && field.value instanceof File) {
-            formData.append(field.key, field.value)
-          } else {
-            const value = this.interpolator.interpolate(String(field.value)).value
-            formData.append(field.key, value)
-          }
-        })
-        return formData
-
-      case 'binary':
-        if (body.binary instanceof File) {
-          headers['Content-Type'] = body.binary.type || 'application/octet-stream'
-          return body.binary
-        }
-        return undefined
-
-      default:
-        return undefined
-    }
-  }
-
-  /**
-   * Build response object dari axios response
-   */
-  private buildResponse(response: any, duration: number): HttpResponseData {
-    // Calculate response size
-    const responseSize = this.calculateResponseSize(response)
-
-    // Extract cookies
-    const cookies = this.extractCookies(response.headers)
-
-    return {
-      status: response.status,
-      statusText: response.statusText,
-      headers: response.headers,
-      data: response.data,
-      time: duration,
-      size: responseSize,
-      cookies,
-    }
-  }
-
-  /**
-   * Calculate response size dalam bytes
-   */
-  private calculateResponseSize(response: any): number {
+  private async sendWebRequest(
+    config: AxiosRequestConfig,
+  ): Promise<DirectResponse> {
     try {
-      if (response.headers['content-length']) {
-        return parseInt(response.headers['content-length'])
+      const response: AxiosResponse = await axios(config);
+      const endTime = Date.now();
+
+      return {
+        status: response.status,
+        statusText: response.statusText,
+        headers: response.headers as Record<string, string>,
+        data: response.data,
+        time: endTime - this.startTime,
+        size: this.calculateSize(response.data),
+        redirected: response.request?.res?.responseUrl !== config.url,
+        redirectUrl: response.request?.res?.responseUrl,
+      };
+    } catch (error: any) {
+      // Coba CORS proxy jika error adalah CORS
+      if (this.isCorsError(error)) {
+        return this.handleCorsError(config);
       }
-      
-      // Estimate dari data
-      const dataStr = JSON.stringify(response.data)
-      return new Blob([dataStr]).size
-    } catch {
-      return 0
+
+      return this.handleWebError(error);
     }
   }
 
-  /**
-   * Extract cookies dari response headers
-   */
-  private extractCookies(headers: Record<string, string>): Array<{
-    name: string
-    value: string
-    domain?: string
-    path?: string
-  }> {
-    const setCookieHeader = headers['set-cookie']
-    if (!setCookieHeader) return []
+  private async sendElectronRequest(
+    config: AxiosRequestConfig,
+  ): Promise<DirectResponse> {
+    // Di Electron, kita bisa bypass CORS dengan native HTTP client
+    if (window.electronAPI?.httpClient) {
+      try {
+        const response =
+          await window.electronAPI.httpClient.sendRequest(config);
+        const endTime = Date.now();
 
-    const cookies: Array<{
-      name: string
-      value: string
-      domain?: string
-      path?: string
-    }> = []
+        return {
+          status: response.status,
+          statusText: response.statusText,
+          headers: response.headers,
+          data: response.data,
+          time: endTime - this.startTime,
+          size: this.calculateSize(response.data),
+          redirected: response.redirected,
+          redirectUrl: response.redirectUrl,
+        };
+      } catch (error) {
+        return this.handleError(error);
+      }
+    }
 
-    // Parse Set-Cookie header
-    const cookieStrings = Array.isArray(setCookieHeader) 
-      ? setCookieHeader 
-      : [setCookieHeader]
-
-    cookieStrings.forEach(cookieStr => {
-      const parts = cookieStr.split(';')
-      const [nameValue] = parts
-      const [name, value] = nameValue.split('=')
-
-      const cookie: any = { name: name.trim(), value: value.trim() }
-
-      // Parse attributes
-      parts.slice(1).forEach((part: string) => {
-        const [key, val] = part.trim().split('=')
-        if (key.toLowerCase() === 'domain') {
-          cookie.domain = val
-        } else if (key.toLowerCase() === 'path') {
-          cookie.path = val
-        }
-      })
-
-      cookies.push(cookie)
-    })
-
-    return cookies
+    // Fallback ke axios jika Electron API tidak tersedia
+    return this.sendWebRequest(config);
   }
 
-  /**
-   * Build error object dari axios error
-   */
-  private buildError(error: any, _duration: number): HttpError {
-    // Check kalau CORS error
-    if (corsHandler.isCorsError(error)) {
-      const axiosError = error as AxiosError
-      const url = axiosError.config?.url || ''
-      const corsMessage = corsHandler.getCorsErrorMessage(url)
+  private async handleCorsError(
+    originalConfig: AxiosRequestConfig,
+  ): Promise<DirectResponse> {
+    // Coba CORS proxy
+    for (const proxyUrl of this.corsProxyUrls) {
+      try {
+        const proxyConfig = {
+          ...originalConfig,
+          url: proxyUrl + originalConfig.url,
+          headers: {
+            ...originalConfig.headers,
+            'X-Requested-With': 'XMLHttpRequest',
+          },
+        };
 
-      return {
-        type: 'cors',
-        message: `${corsMessage.title}: ${corsMessage.message}`,
-        originalError: error,
+        const response = await axios(proxyConfig);
+        const endTime = Date.now();
+
+        return {
+          status: response.status,
+          statusText: response.statusText,
+          headers: response.headers as Record<string, string>,
+          data: response.data,
+          time: endTime - this.startTime,
+          size: this.calculateSize(response.data),
+          redirected: false,
+        };
+      } catch {
+        continue;
       }
     }
 
-    // Check kalau timeout
-    if (error.code === 'ECONNABORTED' || error.message?.includes('timeout')) {
-      return {
-        type: 'timeout',
-        message: 'Request timeout. Server tidak merespon dalam waktu yang ditentukan.',
-        originalError: error,
-      }
-    }
-
-    // Check kalau network error
-    if (!error.response && (error.code === 'ERR_NETWORK' || error.message?.includes('Network'))) {
-      return {
-        type: 'network',
-        message: 'Network error. Pastikan koneksi internet dan server target berjalan.',
-        originalError: error,
-      }
-    }
-
-    // Check kalau SSL error
-    if (error.code === 'UNABLE_TO_VERIFY_LEAF_SIGNATURE' || 
-        error.message?.includes('certificate') ||
-        error.message?.includes('SSL')) {
-      return {
-        type: 'ssl',
-        message: 'SSL certificate error. Server menggunakan sertifikat yang tidak valid.',
-        originalError: error,
-      }
-    }
-
-    // Generic error dengan response
-    if (error.response) {
-      return {
-        type: 'unknown',
-        message: error.message || 'Request failed',
-        originalError: error,
-        response: {
-          status: error.response.status,
-          statusText: error.response.statusText,
-          data: error.response.data,
-        },
-      }
-    }
-
-    // Unknown error
+    // Fallback: Tampilkan instruksi ke user
+    const endTime = Date.now();
     return {
-      type: 'unknown',
-      message: error.message || 'Unknown error occurred',
-      originalError: error,
+      status: 0,
+      statusText: 'CORS Error',
+      headers: {},
+      data: null,
+      time: endTime - this.startTime,
+      size: 0,
+      error: {
+        message:
+          'Tidak bisa membuat request ke URL ini dari browser karena CORS policy.',
+        type: 'CORS_ERROR',
+        corsError: true,
+        solutions: [
+          'Gunakan desktop app (Electron) untuk local API testing',
+          'Enable CORS pada target server',
+          'Gunakan browser CORS extension untuk development',
+          'Gunakan API proxy atau VPN',
+        ],
+      },
+    };
+  }
+
+  private handleError(error: any): DirectResponse {
+    const endTime = Date.now();
+
+    return {
+      status: 0,
+      statusText: 'Network Error',
+      headers: {},
+      data: null,
+      time: endTime - this.startTime,
+      size: 0,
+      error: {
+        message: error.message || 'Unknown error occurred',
+        type: this.getErrorType(error),
+        corsError: this.isCorsError(error),
+      },
+    };
+  }
+
+  private handleWebError(error: any): DirectResponse {
+    const endTime = Date.now();
+
+    return {
+      status: error.response?.status || 0,
+      statusText:
+        error.response?.statusText || error.message || 'Request failed',
+      headers: error.response?.headers || {},
+      data: error.response?.data || null,
+      time: endTime - this.startTime,
+      size: this.calculateSize(error.response?.data),
+      error: {
+        message: error.message || 'Network error',
+        type: this.getErrorType(error),
+      },
+    };
+  }
+
+  private getErrorType(error: any): string {
+    if (error.code === 'ECONNREFUSED') return 'CONNECTION_REFUSED';
+    if (error.code === 'ENOTFOUND') return 'DNS_ERROR';
+    if (error.code === 'ETIMEDOUT') return 'TIMEOUT';
+    if (error.code === 'ECONNRESET') return 'CONNECTION_RESET';
+    if (this.isCorsError(error)) return 'CORS_ERROR';
+    if (error.response) return 'HTTP_ERROR';
+    return 'NETWORK_ERROR';
+  }
+
+  private isCorsError(error: any): boolean {
+    return (
+      error.message?.includes('CORS') ||
+      error.message?.includes('Cross-Origin') ||
+      error.message?.includes('Access-Control') ||
+      error.response?.status === 0
+    );
+  }
+
+  private isElectron(): boolean {
+    return (
+      window &&
+      (window as any).process &&
+      (window as any).process.type === 'renderer'
+    );
+  }
+
+  private calculateSize(data: any): number {
+    if (!data) return 0;
+
+    try {
+      if (typeof data === 'string') {
+        return new Blob([data]).size;
+      } else if (typeof data === 'object') {
+        return new Blob([JSON.stringify(data)]).size;
+      }
+    } catch {
+      // Fallback
+      return JSON.stringify(data).length;
+    }
+
+    return 0;
+  }
+
+  /**
+   * Validasi URL sebelum request
+   */
+  isValidURL(url: string): boolean {
+    try {
+      new URL(url);
+      return true;
+    } catch {
+      return false;
     }
   }
 
   /**
-   * Quick helper method untuk testing endpoint
+   * Dapatkan base URL dari environment variables
    */
-  async quickRequest(
-    method: HttpRequestConfig['method'],
-    url: string,
-    options?: {
-      headers?: Record<string, string>
-      body?: any
-      timeout?: number
-    }
-  ): Promise<HttpResponseData> {
-    const config: HttpRequestConfig = {
-      method,
-      url,
-      headers: options?.headers 
-        ? Object.entries(options.headers).map(([key, value]) => ({
-            key,
-            value,
-            enabled: true,
-          }))
-        : [],
-      body: options?.body 
-        ? {
-            type: 'json',
-            json: options.body,
-          }
-        : undefined,
-      timeout: options?.timeout,
-    }
+  interpolateUrl(url: string, variables: Record<string, string>): string {
+    if (!url || !variables) return url;
 
-    return this.sendRequest(config)
+    return url.replace(/\{\{([^}]+)\}\}/g, (match, key) => {
+      const trimmedKey = key.trim();
+      return variables[trimmedKey] !== undefined
+        ? variables[trimmedKey]
+        : match;
+    });
   }
 }
 
-// Singleton instance
-export const directApiClient = new DirectApiClient()
+// Global instance
+export const directApiClient = new DirectApiClient();
+
+// Types untuk Electron API
+declare global {
+  interface Window {
+    electronAPI?: {
+      httpClient?: {
+        sendRequest: (config: AxiosRequestConfig) => Promise<any>;
+      };
+      process?: {
+        type: string;
+      };
+    };
+  }
+}

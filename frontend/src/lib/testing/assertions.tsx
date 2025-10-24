@@ -1,4 +1,4 @@
-import { TestResult, TestContext } from '@/types/testing'
+import { TestResult, TestContext } from './types'
 
 export class AssertionBuilder {
   private context: TestContext
@@ -10,462 +10,415 @@ export class AssertionBuilder {
     this.actual = actual
   }
 
+  // Utility method untuk menambahkan assertion
+  private addAssertion(assertion: string, data: any, customMessage?: string): AssertionBuilder {
+    const passed = data.passed !== undefined ? data.passed : data.status === data.expected
+    const message = customMessage || (passed ? 'Assertion passed' : 'Assertion failed')
+
+    const result: TestResult = {
+      name: assertion,
+      status: passed ? 'pass' : 'fail',
+      message,
+      duration: 0,
+      actual: this.actual,
+      expected: data.expected || data.status
+    }
+
+    // Simpan hasil ke context
+    if (this.context.results) {
+      this.context.results.push(result)
+    }
+    if (this.context.assertions) {
+      this.context.assertions.push(result)
+    }
+
+    return this
+  }
+
+  // Utility method untuk mendapatkan nilai nested object
+  private getValue(obj: any, path: string): any {
+    return path.split('.').reduce((current, key) => {
+      if (current === null || current === undefined || current[key] === undefined) {
+        return undefined
+      }
+      return current[key]
+    }, obj)
+  }
+
+  // Equality Assertions
   toEqual(expected: any, message?: string): AssertionBuilder {
-    this.negated = false
-    this.actual = actual
-    
     const passed = this.actual === expected
-    const message = message || (
-      passed ? 'Assertion passed' : 
+    const assertionMessage = message || (
+      passed ? 'Assertion passed' :
       `Expected ${JSON.stringify(expected)}, but got ${JSON.stringify(this.actual)}`
     )
 
-    return {
-      assertion: 'to equal',
-      message,
-      passed,
-      actual,
-      expected
-    }
+    return this.addAssertion('to equal', {
+      expected,
+      actual: this.actual,
+      passed
+    }, assertionMessage)
   }
 
   toBeNull(message?: string): AssertionBuilder {
-    this.negated = false
-    this.actual = actual
-
     const passed = this.actual === null
-    const message = message || 'Value is null but expected null'
-    
-    return {
-      assertion: 'to be null',
-      message,
-      passed,
-      actual,
-      expected: null
-    }
-  }
+    const assertionMessage = message || (passed ? 'Value is null' : 'Value is not null but expected null')
+
+    return this.addAssertion('to be null', {
+      expected: null,
+      actual: this.actual,
+      passed
+    }, assertionMessage)
   }
 
   toBeUndefined(message?: string): AssertionBuilder {
-    this.negated = false
-    this.actual = actual
-
     const passed = typeof this.actual === 'undefined'
-    const message = message || 'Value is undefined but expected undefined'
-    
-    return {
-      assertion: 'to be undefined',
-      message,
-      passed,
-      actual,
-      expected: undefined
-    }
-    }
+    const assertionMessage = message || (passed ? 'Value is undefined' : 'Value is not undefined but expected undefined')
+
+    return this.addAssertion('to be undefined', {
+      expected: undefined,
+      actual: this.actual,
+      passed
+    }, assertionMessage)
   }
 
   toBeTruthy(message?: string): AssertionBuilder {
-    this.negated = false
-    this.actual = actual
-
     const passed = Boolean(this.actual)
-    const message = message || 'Value is not truthy'
-    
-    return {
-      assertion: 'to be truthy',
-      message,
-      passed,
-      actual,
-      expected: true
-    }
+    const assertionMessage = message || (passed ? 'Value is truthy' : 'Value is not truthy')
+
+    return this.addAssertion('to be truthy', {
+      expected: true,
+      actual: this.actual,
+      passed
+    }, assertionMessage)
   }
 
   toBeFalsy(message?: string): AssertionBuilder {
-    this.negated = false
-    this.actual = actual
-
     const passed = !Boolean(this.actual)
-    const message = message || 'Value is not falsy'
-    
-    return {
-      assertion: 'to be falsy',
-      message,
-      passed,
-      actual,
-      expected: false
-    }
-  }
+    const assertionMessage = message || (passed ? 'Value is falsy' : 'Value is not falsy')
+
+    return this.addAssertion('to be falsy', {
+      expected: false,
+      actual: this.actual,
+      passed
+    }, assertionMessage)
   }
 
-  toInclude(expected: string): AssertionBuilder {
-    this.negated = false
-    const actual = this.actual
-    
-    if (typeof actual === 'string') {
-      const passed = actual.includes(expected)
-      message = message || 
-        (passed ? 'Contains string' : `String does not contain "${expected}"`)
-    } else if (typeof expected === 'object' && expected) {
-      try {
-        const actualStr = JSON.stringify(actual)
-        const expectedStr = JSON.stringify(expected)
-        const passed = actualStr === expectedStr
-        message = message || (passed ? 'Object structures match' : 'Object structures do not match')
-      } catch {
-        passed = false
-        message = 'Invalid JSON comparison'
-      }
+  // String Assertions
+  toInclude(expected: string, message?: string): AssertionBuilder {
+    let passed = false
+    let assertionMessage = message
+
+    if (typeof this.actual === 'string') {
+      passed = this.actual.includes(expected)
+      assertionMessage = assertionMessage ||
+        (passed ? `String contains "${expected}"` : `String does not contain "${expected}"`)
+    } else {
+      passed = false
+      assertionMessage = assertionMessage || 'Actual value is not a string'
     }
-    
-    return {
-      assertion: 'to include',
-      message,
-      passed,
-      actual,
-      expected
-    }
+
+    return this.addAssertion('to include', {
+      expected,
+      actual: this.actual,
+      passed
+    }, assertionMessage)
   }
 
-  toNotInclude(expected: string): AssertionBuilder {
-    this.negated = false
-    const actual = this.actual
-    
-    if (typeof actual === 'string') {
-      const passed = !actual.includes(expected)
-      message = message || 
-        (passed ? 'String does not contain "${expected}" : 'String contains "${expected}"')
-    } else if (typeof expected === 'object' && expected) {
-      try {
-        const actualKeys = Object.keys(actual)
-        const expectedKeys = Object.keys(expected)
-        
-        const extraKeys = actualKeys.filter(key => !expectedKeys.includes(key))
-        const missingKeys = expectedKeys.filter(key => !actualKeys.includes(key))
-        
-        const passed = extraKeys.length === 0
-        message = message || 
-          (passed ? 'Object contains all required properties' : 
-            `Missing properties: ${missingKeys.join(', ')}`)
-      } catch {
-        passed = false
-        message = 'Invalid object comparison'
-      }
+  toNotInclude(expected: string, message?: string): AssertionBuilder {
+    let passed = false
+    let assertionMessage = message
+
+    if (typeof this.actual === 'string') {
+      passed = !this.actual.includes(expected)
+      assertionMessage = assertionMessage ||
+        (passed ? `String does not contain "${expected}"` : `String contains "${expected}"`)
+    } else {
+      passed = false
+      assertionMessage = assertionMessage || 'Actual value is not a string'
     }
-    
-    return {
-      assertion: 'to not include',
-      message,
-      passed,
-      actual,
-      expected
-    }
+
+    return this.addAssertion('to not include', {
+      expected,
+      actual: this.actual,
+      passed
+    }, assertionMessage)
   }
 
-  toContain(expected: string): AssertionBuilder {
-    this.negated = false
-    const actual = this.actual
-    
-    const passed = typeof actual === 'string' && actual.includes(expected)
-    message = message || 
-      (passed ? `String contains expected` : `String does not contain "${expected}"`)
-    }
-    
-    return {
-      assertion: 'to contain',
-      message,
-      passed,
-      actual,
-      expected
-    }
+  toContain(expected: string, message?: string): AssertionBuilder {
+    return this.toInclude(expected, message)
   }
 
   toMatch(pattern: string | RegExp, message?: string): AssertionBuilder {
-    this.negated = false
-    this.actual = this.actual
-    
     let regex: RegExp
-    
+
     if (typeof pattern === 'string') {
       regex = new RegExp(pattern, 'gi')
     } else {
       regex = pattern
     }
-    
+
     const passed = regex.test(String(this.actual))
-    message = message || 
+    const assertionMessage = message ||
       (passed ? 'String matches pattern' : 'String does not match pattern')
-    
-    return {
-      assertion: 'to match',
-      message,
-      passed,
-      actual,
-      expected: pattern
-    }
+
+    return this.addAssertion('to match', {
+      expected: pattern,
+      actual: this.actual,
+      passed
+    }, assertionMessage)
   }
 
-  toHaveLength(expected: number): AssertionBuilder {
-    this.negated = false
-    this.actual = this.actual
-
+  // Length and Size Assertions
+  toHaveLength(expected: number, message?: string): AssertionBuilder {
     let actualLength = 0
-    if (typeof actual === 'string') {
-      actualLength = actual.length
-    } else if (Array.isArray(actual)) {
-      actualLength = actual.length
+
+    if (typeof this.actual === 'string') {
+      actualLength = this.actual.length
+    } else if (Array.isArray(this.actual)) {
+      actualLength = this.actual.length
     }
-    
+
     const passed = actualLength === expected
-    message = message || 
-      (passed ? 'Length matches' : 
-        `${actualLength}/${expected} items`
-      )
-    
-    return {
-      assertion: 'to have length',
-      message,
-      passed,
-      actual,
-      expected
-    }
+    const assertionMessage = message ||
+      (passed ? 'Length matches' : `${actualLength}/${expected} items`)
+
+    return this.addAssertion('to have length', {
+      expected,
+      actual: actualLength,
+      passed
+    }, assertionMessage)
   }
 
-  toHaveProperty(propertyPath: string): AssertionBuilder {
-    this.negated = false
-    this.actual = this.actual
-
-    const getValue = (obj: any, path: string) => {
-      return path.split('.').reduce((current, key) => {
-        if (current[key] === undefined) return undefined
-        return current[key]
-      }, this.actual)
-    }
-    
-    const hasProperty = getValue(this.actual, propertyPath) !== undefined
-    const expected = expected !== undefined
-    
-    const passed = hasProperty === expected
-    message = message || 
-      (passed ? 'Has property "${propertyPath}"' : `Missing property "${propertyPath}"`
-    
-    return {
-      assertion: 'to have property',
-      message,
-      passed,
-      actual,
-      expected
-    }
+  toHaveSize(expected: number, message?: string): AssertionBuilder {
+    return this.toHaveLength(expected, message)
   }
 
-  toHavePropertyWithValue(propertyPath: string, expectedValue: any): AssertionBuilder {
-    this.negated = false
-    this.actual = this.actual
+  // Object Property Assertions
+  toHaveProperty(propertyPath: string, message?: string): AssertionBuilder {
+    const hasProperty = this.getValue(this.actual, propertyPath) !== undefined
+    const assertionMessage = message ||
+      (hasProperty ? `Has property "${propertyPath}"` : `Missing property "${propertyPath}"`)
 
-    const actualValue = getValue(this.actual, propertyPath)
-    
+    return this.addAssertion('to have property', {
+      expected: true,
+      actual: hasProperty,
+      passed: hasProperty
+    }, assertionMessage)
+  }
+
+  toHavePropertyWithValue(propertyPath: string, expectedValue: any, message?: string): AssertionBuilder {
+    const actualValue = this.getValue(this.actual, propertyPath)
     const passed = actualValue === expectedValue
-    message = message || 
-      (passed ? `Property "${propertyPath}" : 
-        `Expected "${expectedValue}" but got "${actualValue}"`
-    }
-    
-    return {
-      assertion: 'to have property with value', 
-      message,
-      passed,
-      actualValue,
-      expectedValue
-    }
+    const assertionMessage = message ||
+      (passed ? `Property "${propertyPath}" has expected value` :
+        `Expected "${expectedValue}" but got "${actualValue}"`)
+
+    return this.addAssertion('to have property with value', {
+      expected: expectedValue,
+      actual: actualValue,
+      passed
+    }, assertionMessage)
   }
 
-  toBeInstanceOf(expected: any, constructor: Function): AssertionBuilder {
-    this.negated = false
-    this.actual = this.actual
-
-    const passed = this.actual instanceof expected
-    const message = message || 
-      (passed ? 
-        `Value is instanceof ${expected.name}` : 
-        `Value is not instance of ${expected.name}`
+  // Type Assertions
+  toBeInstanceOf(expectedClass: any, message?: string): AssertionBuilder {
+    const passed = this.actual instanceof expectedClass
+    const assertionMessage = message ||
+      (passed ?
+        `Value is instanceof ${expectedClass.name}` :
+        `Value is not instance of ${expectedClass.name}`
     )
-    
-    return {
-      assertion: 'to be instance',
-      message,
-      passed,
-      actual,
-      expected
-    }
+
+    return this.addAssertion('to be instance', {
+      expected: expectedClass.name,
+      actual: this.actual?.constructor?.name,
+      passed
+    }, assertionMessage)
   }
 
-  toBeArray(expected: any[]): AssertionBuilder {
-    this.negated = false
-    this.actual = this.actual
-
+  toBeArray(message?: string): AssertionBuilder {
     const passed = Array.isArray(this.actual)
-    message = message || 
-      (passed ? 'Is array' : 'Value is not an array')
-    }
-    
-    return {
-      assertion: 'to be array',
-      message,
-      passed,
-      actual,
-      expected
-    }
+    const assertionMessage = message || (passed ? 'Is array' : 'Value is not an array')
+
+    return this.addAssertion('to be array', {
+      expected: 'Array',
+      actual: Array.isArray(this.actual) ? 'Array' : typeof this.actual,
+      passed
+    }, assertionMessage)
   }
 
-  toHaveSize(expected: number): AssertionBuilder {
-    this.negated = false
-    this.actual = this.actual
+  toBeObject(message?: string): AssertionBuilder {
+    const passed = typeof this.actual === 'object' && this.actual !== null && !Array.isArray(this.actual)
+    const assertionMessage = message || (passed ? 'Is object' : 'Value is not an object')
 
-    let actualSize = 0
-    if (typeof actual === 'string') {
-      actualSize = actual.length
-    } else if (typeof actual === 'object') {
-      actualSize = JSON.stringify(this.actual).length
-    } else if (Array.isArray(actual)) {
-      actualSize = actual.length
-    }
-    }
-    
-    const passed = actualSize === expected
-    message = message || 
-      (passed ? `Size is ${expectedSize} bytes` : 
-        `Size is ${actualSize} bytes but expected ${expectedSize} bytes`
-    )
-    
-    return {
-      assertion: 'to have size',
-      message,
-      passed,
-      actualSize,
-      expected
-    }
+    return this.addAssertion('to be object', {
+      expected: 'Object',
+      actual: typeof this.actual,
+      passed
+    }, assertionMessage)
   }
 
-    toMatchType(expected: string): AssertionBuilder {
-    this.negated = false
-    this.actual = this.actual
+  toMatchType(expectedType: string, message?: string): AssertionBuilder {
+    const actualType = typeof this.actual
+    const passed = actualType === expectedType
+    const assertionMessage = message ||
+      (passed ? `Type is ${expectedType}` : `Type is ${actualType} but expected ${expectedType}`)
 
-    const passed = typeof this.actual === expected
-    const message = message || 
-      (passed ? 
-        `Type is ${expected}` : 
-        `Type is ${typeof actual}`
-    )
-    
-    return {
-      assertion: 'to match type',
-      message,
-      passed,
-      actual,
-      expected
-    }
+    return this.addAssertion('to match type', {
+      expected: expectedType,
+      actual: actualType,
+      passed
+    }, assertionMessage)
   }
 
-    // HTTP specific assertions
-  toHaveStatus(expected: number): AssertionBuilder {
-    this.negated = false
+  // HTTP Specific Assertions
+  toHaveStatus(expected: number, message?: string): AssertionBuilder {
     const status = this.actual?.status
     const passed = status === expected
+    const assertionMessage = message ||
+      (passed ? `Status is ${expected}` : `Status is ${status} but expected ${expected}`)
+
     return this.addAssertion('to have status', {
       expected,
-      status,
+      actual: status,
       passed
-      actual
-    })
+    }, assertionMessage)
   }
 
-  toHaveStatusInRange(start: number, end: number): AssertionBuilder {
-    this.negated = false
+  toHaveStatusInRange(start: number, end: number, message?: string): AssertionBuilder {
     const status = this.actual?.status
     const passed = typeof status === 'number' && status >= start && status <= end
+    const assertionMessage = message ||
+      (passed ? `Status ${status} is in range ${start}-${end}` :
+        `Status ${status} is not in range ${start}-${end}`)
+
     return this.addAssertion('to have status in range', {
-      start,
-      end,
-      passed: status
-    })
+      expected: `${start}-${end}`,
+      actual: status,
+      passed
+    }, assertionMessage)
   }
 
-  toHaveContentType(expected: string): AssertionBuilder {
-    this.negated = false
-    const contentType = response?.headers?.['content-type'] || response?.headers?.['Content-Type']
+  toHaveContentType(expected: string, message?: string): AssertionBuilder {
+    const contentType = this.actual?.headers?.['content-type'] || this.actual?.headers?.['Content-Type']
     const passed = contentType && contentType.includes(expected)
+    const assertionMessage = message ||
+      (passed ? `Content type contains "${expected}"` :
+        `Content type "${contentType}" does not contain "${expected}"`)
+
     return this.addAssertion('to have content type', {
       expected,
-      passed,
-      contentType,
-    })
+      actual: contentType,
+      passed
+    }, assertionMessage)
   }
 
-  toHaveHeader(headerName: string): AssertionBuilder {
-    this.negated = false
-    const headers = response?.headers
+  toHaveHeader(headerName: string, message?: string): AssertionBuilder {
+    const headers = this.actual?.headers
     const passed = headers && headerName in headers
-    return this.addAssertion('to have header', {
-      headerName,
-      passed,
-      headers
-    })
-    }
+    const assertionMessage = message ||
+      (passed ? `Header "${headerName}" exists` : `Header "${headerName}" is missing`)
 
-  // Convenience methods for common assertions
-  success(): AssertionBuilder {
-    return this.addAssertion('test passed', 'Test should pass')
+    return this.addAssertion('to have header', {
+      expected: `Header ${headerName}`,
+      actual: headers?.[headerName],
+      passed
+    }, assertionMessage)
+  }
+
+  // Convenience Methods for Common Assertions
+  success(message?: string): AssertionBuilder {
+    return this.addAssertion('test passed', {
+      passed: true
+    }, message || 'Test passed')
   }
 
   failure(message?: string): AssertionBuilder {
-    return this.addAssertion('test failed', message || 'Test should have passed')
-    }
-
-  expectStatus(status: number): AssertionBuilder {
-    return this.addAssertion('to have status', {
-      status,
-      status,
-      status
-    })
-    }
+    return this.addAssertion('test failed', {
+      passed: false
+    }, message || 'Test failed')
   }
 
-  expectOk(): AssertionBuilder {
-    return this.addAssertion('to have status', 200, 'Status should be OK')
-    }
-
-  expectCreated(): AssertionBuilder {
-    return this.addAssertion('to have status', 201, 'Resource should be created')
+  // Status shortcut methods
+  expectStatus(status: number, message?: string): AssertionBuilder {
+    return this.toHaveStatus(status, message)
   }
 
-  expectBadRequest(): AssertionBuilder {
-    return this.addAssertion('to have status', 400, 'Status should be bad request')
-    expectUnauthorized(): AssertionBuilder {
-    return this.addAssertion('to have status', 401, 'Should be unauthorized')
-    expectForbidden(): AssertionBuilder {
-    return this.addAssertion('to have status', 403, 'Should be forbidden')
+  expectOk(message?: string): AssertionBuilder {
+    return this.toHaveStatus(200, message || 'Status should be OK (200)')
   }
 
-  expectServerError(): AssertionBuilder {
-    return this.addAssertion('to have status in range', 500, 'Should be server error')
+  expectCreated(message?: string): AssertionBuilder {
+    return this.toHaveStatus(201, message || 'Resource should be created (201)')
+  }
+
+  expectBadRequest(message?: string): AssertionBuilder {
+    return this.toHaveStatus(400, message || 'Status should be bad request (400)')
+  }
+
+  expectUnauthorized(message?: string): AssertionBuilder {
+    return this.toHaveStatus(401, message || 'Should be unauthorized (401)')
+  }
+
+  expectForbidden(message?: string): AssertionBuilder {
+    return this.toHaveStatus(403, message || 'Should be forbidden (403)')
+  }
+
+  expectNotFound(message?: string): AssertionBuilder {
+    return this.toHaveStatus(404, message || 'Should be not found (404)')
+  }
+
+  expectServerError(message?: string): AssertionBuilder {
+    return this.toHaveStatusInRange(500, 599, message || 'Should be server error (500-599)')
   }
 
   // Response content assertions
-  expectJSON(): AssertionBuilder {
-    return this.toHaveProperty('data').toBeObject()
+  expectJSON(message?: string): AssertionBuilder {
+    return this.toHaveProperty('data', message).toBeObject()
   }
 
-  expectArray(): AssertionBuilder {
-    return this.toHaveProperty('data').toBeArray()
+  expectArray(message?: string): AssertionBuilder {
+    return this.toHaveProperty('data', message).toBeArray()
   }
 
-  expectEmpty(): AssertionBuilder {
-    return this.toBeNull('data')
+  expectEmpty(message?: string): AssertionBuilder {
+    const isEmpty = !this.actual?.data ||
+      (Array.isArray(this.actual.data) && this.actual.data.length === 0) ||
+      (typeof this.actual.data === 'object' && Object.keys(this.actual.data).length === 0)
+
+    return this.addAssertion('to be empty', {
+      expected: 'empty',
+      actual: this.actual?.data,
+      passed: isEmpty
+    }, message || (isEmpty ? 'Data is empty' : 'Data is not empty'))
   }
 
-  expectKeyExists(key: string): AssertionBuilder {
-    return this.toHaveProperty('data', key)
+  expectKeyExists(key: string, message?: string): AssertionBuilder {
+    return this.toHaveProperty(`data.${key}`, message)
   }
 
-  expectKeyWithValue(key: string, value: any): AssertionBuilder {
-    return this.toHaveProperty('data', key, value)
+  expectKeyWithValue(key: string, value: any, message?: string): AssertionBuilder {
+    return this.toHavePropertyWithValue(`data.${key}`, value, message)
   }
 }
+
+// Helper function untuk membuat assertion
+export function expect(actual: any, context?: TestContext): AssertionBuilder {
+  const defaultContext: TestContext = {
+    request: { url: '', method: 'GET' },
+    response: {},
+    variables: new Map(),
+    globals: new Map(),
+    tests: new Map(),
+    assertions: [],
+    console: [],
+    environment: {},
+    results: []
+  }
+
+  return new AssertionBuilder(actual, context || defaultContext)
+}
+
+// Export types untuk penggunaan external
+export type { TestResult, TestContext }

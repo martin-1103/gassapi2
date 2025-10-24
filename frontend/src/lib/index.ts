@@ -14,10 +14,10 @@ export {
   type HttpHeader,
   type HttpQueryParam,
   type HttpRequestBody,
-} from './api'
+} from './api';
 
 // CORS Handler
-export { corsHandler, CorsHandler } from './api/cors-handler'
+export { corsHandler, CorsHandler } from './api/cors-handler';
 
 // Variable Interpolation
 export {
@@ -26,7 +26,7 @@ export {
   interpolateVariables,
   type VariableContext,
   type InterpolationResult,
-} from './variables'
+} from './variables';
 
 // Request History
 export {
@@ -34,7 +34,7 @@ export {
   RequestHistoryManager,
   type RequestHistoryItem,
   type RequestHistoryFilter,
-} from './history'
+} from './history';
 
 // HTTP Utilities
 export {
@@ -53,4 +53,4 @@ export {
   copyToClipboard,
   downloadResponse,
   generateCurlCommand,
-} from './utils/http-utils'
+} from './utils/http-utils';
