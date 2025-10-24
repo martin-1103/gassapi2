@@ -6,7 +6,7 @@
 import { useState, useCallback } from 'react';
 
 import { directApiClient } from '@/lib/api/direct-client';
-import { requestHistory } from '@/lib/history/request-history';
+import { requestHistory } from '@/lib/history';
 import type {
   HttpRequestConfig,
   HttpResponseData,
@@ -54,11 +54,13 @@ export function useDirectApi(
 
         // Save to history
         try {
-          await requestHistory.addItem({
-            id: crypto.randomUUID(),
-            timestamp: startTime,
-            request: config,
+          await requestHistory.addToHistory({
+            method: config.method,
+            url: config.url,
+            headers: config.headers || {},
+            body: config.body,
             response: result,
+            status: result.status >= 200 && result.status < 300 ? 'success' : 'error',
             duration: endTime - startTime,
             collectionId:
               config.body?.type === 'json'
@@ -78,12 +80,17 @@ export function useDirectApi(
 
         // Save error to history juga
         try {
-          await requestHistory.addItem({
-            id: crypto.randomUUID(),
-            timestamp: startTime,
-            request: config,
-            error: httpError,
+          await requestHistory.addToHistory({
+            method: config.method,
+            url: config.url,
+            headers: config.headers || {},
+            body: config.body,
+            status: 'error',
             duration: endTime - startTime,
+            collectionId:
+              config.body?.type === 'json'
+                ? (config.body.json as any)?.collectionId
+                : undefined,
           });
         } catch (historyError) {
           console.error('Failed to save request history:', historyError);

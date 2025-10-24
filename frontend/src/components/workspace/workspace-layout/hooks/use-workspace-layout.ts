@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { directApiClient } from '@/lib/api/direct-client'
-import { requestHistory } from '@/lib/history/request-history'
+import { requestHistory } from '@/lib/history'
 import { QueryParam } from '../../request-tabs/params-tab'
 import { RequestHeader } from '../../request-tabs/headers-tab'
 import { BodyData } from '../../request-tabs/body-tab'

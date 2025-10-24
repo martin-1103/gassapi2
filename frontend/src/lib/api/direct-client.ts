@@ -3,7 +3,11 @@
  * Mendukung web dan Electron environment dengan CORS handling
  */
 
-import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
+import axios, { AxiosRequestConfig } from 'axios';
+import { RequestHandler } from './helpers/request-handler';
+import { ResponseHandler } from './helpers/response-handler';
+import { ErrorHandler } from './helpers/error-handler';
+import { isValidURL, interpolateUrl } from './helpers/api-utils';
 
 export interface DirectRequestConfig {
   method: string;
@@ -33,7 +37,9 @@ export interface DirectResponse {
 }
 
 export class DirectApiClient {
-  private startTime: number = 0;
+  private requestHandler: RequestHandler = new RequestHandler();
+  private responseHandler: ResponseHandler = new ResponseHandler();
+  private errorHandler: ErrorHandler = new ErrorHandler();
   private corsProxyUrls = [
     'https://cors-anywhere.herokuapp.com/',
     'https://api.allorigins.win/raw?url=',
@@ -41,7 +47,9 @@ export class DirectApiClient {
   ];
 
   async sendRequest(config: DirectRequestConfig): Promise<DirectResponse> {
-    this.startTime = Date.now();
+    // Set start time for both response and error handlers
+    this.responseHandler.setStartTime();
+    this.errorHandler.setStartTime();
 
     try {
       const axiosConfig: AxiosRequestConfig = {
@@ -59,13 +67,13 @@ export class DirectApiClient {
       };
 
       // Handle CORS untuk Electron vs Web
-      if (this.isElectron()) {
+      if (this.requestHandler.isElectron()) {
         return this.sendElectronRequest(axiosConfig);
       } else {
         return this.sendWebRequest(axiosConfig);
       }
     } catch (error) {
-      return this.handleError(error);
+      return this.errorHandler.handleGeneralError(error);
     }
   }
 
@@ -73,234 +81,73 @@ export class DirectApiClient {
     config: AxiosRequestConfig,
   ): Promise<DirectResponse> {
     try {
-      const response: AxiosResponse = await axios(config);
-      const endTime = Date.now();
-
-      return {
-        status: response.status,
-        statusText: response.statusText,
-        headers: response.headers as Record<string, string>,
-        data: response.data,
-        time: endTime - this.startTime,
-        size: this.calculateSize(response.data),
-        redirected: response.request?.res?.responseUrl !== config.url,
-        redirectUrl: response.request?.res?.responseUrl,
-      };
+      const response = await this.requestHandler.sendRequest(config);
+      return this.responseHandler.formatResponse(response, config);
     } catch (error: any) {
       // Coba CORS proxy jika error adalah CORS
-      if (this.isCorsError(error)) {
+      if (this.errorHandler.isCorsError(error)) {
         return this.handleCorsError(config);
       }
 
-      return this.handleWebError(error);
+      return this.errorHandler.handleWebError(error);
     }
   }
 
   private async sendElectronRequest(
     config: AxiosRequestConfig,
   ): Promise<DirectResponse> {
-    // Di Electron, kita bisa bypass CORS dengan native HTTP client
-    if (window.electronAPI?.httpClient) {
-      try {
-        const response =
-          await window.electronAPI.httpClient.sendRequest(config);
-        const endTime = Date.now();
-
-        return {
-          status: response.status,
-          statusText: response.statusText,
-          headers: response.headers,
-          data: response.data,
-          time: endTime - this.startTime,
-          size: this.calculateSize(response.data),
-          redirected: response.redirected,
-          redirectUrl: response.redirectUrl,
-        };
-      } catch (error) {
-        return this.handleError(error);
-      }
+    try {
+      const response = await this.requestHandler.sendElectronRequest(config);
+      // For Electron response, we format it directly since it doesn't use AxiosResponse
+      const endTime = Date.now();
+      
+      return {
+        status: response.status,
+        statusText: response.statusText,
+        headers: response.headers,
+        data: response.data,
+        time: endTime - (this.responseHandler as any)['startTime'],
+        size: this.responseHandler.calculateSize(response.data),
+        redirected: response.redirected,
+        redirectUrl: response.redirectUrl,
+      };
+    } catch (error) {
+      // If Electron request fails, fallback to web request
+      return this.sendWebRequest(config);
     }
-
-    // Fallback ke axios jika Electron API tidak tersedia
-    return this.sendWebRequest(config);
   }
 
   private async handleCorsError(
     originalConfig: AxiosRequestConfig,
   ): Promise<DirectResponse> {
-    // Coba CORS proxy
-    for (const proxyUrl of this.corsProxyUrls) {
-      try {
-        const proxyConfig = {
-          ...originalConfig,
-          url: proxyUrl + originalConfig.url,
-          headers: {
-            ...originalConfig.headers,
-            'X-Requested-With': 'XMLHttpRequest',
-          },
-        };
+    // Try CORS proxy
+    const response = await this.requestHandler.sendRequestWithCorsProxy(
+      originalConfig,
+      this.corsProxyUrls
+    );
 
-        const response = await axios(proxyConfig);
-        const endTime = Date.now();
-
-        return {
-          status: response.status,
-          statusText: response.statusText,
-          headers: response.headers as Record<string, string>,
-          data: response.data,
-          time: endTime - this.startTime,
-          size: this.calculateSize(response.data),
-          redirected: false,
-        };
-      } catch {
-        continue;
-      }
+    if (response) {
+      return this.responseHandler.formatResponse(response, originalConfig);
     }
 
-    // Fallback: Tampilkan instruksi ke user
-    const endTime = Date.now();
-    return {
-      status: 0,
-      statusText: 'CORS Error',
-      headers: {},
-      data: null,
-      time: endTime - this.startTime,
-      size: 0,
-      error: {
-        message:
-          'Tidak bisa membuat request ke URL ini dari browser karena CORS policy.',
-        type: 'CORS_ERROR',
-        corsError: true,
-        solutions: [
-          'Gunakan desktop app (Electron) untuk local API testing',
-          'Enable CORS pada target server',
-          'Gunakan browser CORS extension untuk development',
-          'Gunakan API proxy atau VPN',
-        ],
-      },
-    };
-  }
-
-  private handleError(error: any): DirectResponse {
-    const endTime = Date.now();
-
-    return {
-      status: 0,
-      statusText: 'Network Error',
-      headers: {},
-      data: null,
-      time: endTime - this.startTime,
-      size: 0,
-      error: {
-        message: error.message || 'Unknown error occurred',
-        type: this.getErrorType(error),
-        corsError: this.isCorsError(error),
-      },
-    };
-  }
-
-  private handleWebError(error: any): DirectResponse {
-    const endTime = Date.now();
-
-    return {
-      status: error.response?.status || 0,
-      statusText:
-        error.response?.statusText || error.message || 'Request failed',
-      headers: error.response?.headers || {},
-      data: error.response?.data || null,
-      time: endTime - this.startTime,
-      size: this.calculateSize(error.response?.data),
-      error: {
-        message: error.message || 'Network error',
-        type: this.getErrorType(error),
-      },
-    };
-  }
-
-  private getErrorType(error: any): string {
-    if (error.code === 'ECONNREFUSED') return 'CONNECTION_REFUSED';
-    if (error.code === 'ENOTFOUND') return 'DNS_ERROR';
-    if (error.code === 'ETIMEDOUT') return 'TIMEOUT';
-    if (error.code === 'ECONNRESET') return 'CONNECTION_RESET';
-    if (this.isCorsError(error)) return 'CORS_ERROR';
-    if (error.response) return 'HTTP_ERROR';
-    return 'NETWORK_ERROR';
-  }
-
-  private isCorsError(error: any): boolean {
-    return (
-      error.message?.includes('CORS') ||
-      error.message?.includes('Cross-Origin') ||
-      error.message?.includes('Access-Control') ||
-      error.response?.status === 0
-    );
-  }
-
-  private isElectron(): boolean {
-    return (
-      window &&
-      (window as any).process &&
-      (window as any).process.type === 'renderer'
-    );
-  }
-
-  private calculateSize(data: any): number {
-    if (!data) return 0;
-
-    try {
-      if (typeof data === 'string') {
-        return new Blob([data]).size;
-      } else if (typeof data === 'object') {
-        return new Blob([JSON.stringify(data)]).size;
-      }
-    } catch {
-      // Fallback
-      return JSON.stringify(data).length;
-    }
-
-    return 0;
+    // Fallback: Return CORS error response
+    return this.responseHandler.formatCorsErrorResponse();
   }
 
   /**
    * Validasi URL sebelum request
    */
-  isValidURL(url: string): boolean {
-    try {
-      new URL(url);
-      return true;
-    } catch {
-      return false;
-    }
+  public isValidURL(url: string): boolean {
+    return isValidURL(url);
   }
 
   /**
    * Dapatkan base URL dari environment variables
    */
-  interpolateUrl(url: string, variables: Record<string, string>): string {
-    if (!url || !variables) return url;
-
-    return url.replace(/\{\{([^}]+)\}\}/g, (match, key) => {
-      const trimmedKey = key.trim();
-      return variables[trimmedKey] !== undefined
-        ? variables[trimmedKey]
-        : match;
-    });
+  public interpolateUrl(url: string, variables: Record<string, string>): string {
+    return interpolateUrl(url, variables);
   }
 }
 
 // Global instance
 export const directApiClient = new DirectApiClient();
-
-// Types untuk Electron API
-declare global {
-  interface Window {
-    electronAPI?: {
-      httpClient?: {
-        sendRequest: (config: AxiosRequestConfig) => Promise<any>;
-      };
-      process?: {
-        type: string;
-      };
-    };
-  }
-}

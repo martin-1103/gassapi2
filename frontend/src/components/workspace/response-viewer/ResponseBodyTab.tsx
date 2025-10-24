@@ -12,7 +12,6 @@ import {
   Monitor,
   Smartphone,
 } from 'lucide-react';
-import { useState } from 'react';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -22,6 +21,19 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 
 import { useTheme } from '@/contexts/theme-context';
+import { useResponseViewState } from '@/hooks/use-response-view-state';
+import { 
+  getContentType, 
+  getLanguage, 
+  formatData, 
+  getSyntaxHighlighterClass,
+  isJsonData
+} from '@/lib/response/formatting-utils';
+import { JsonResponseViewer } from './JsonResponseViewer';
+import { TextViewer } from './TextViewer';
+import { XmlResponseViewer } from './XmlResponseViewer';
+import { HtmlResponseViewer } from './HtmlResponseViewer';
+import { BinaryResponseViewer } from './BinaryResponseViewer';
 
 interface ResponseBodyTabProps {
   response: any;
@@ -38,51 +50,17 @@ export function ResponseBodyTab({
   searchQuery,
   onSearchChange,
 }: ResponseBodyTabProps) {
-  const [expandedPaths, setExpandedPaths] = useState<Set<string>>(
-    new Set(['root']),
-  );
-  const [lineNumbers, setLineNumbers] = useState(true);
-  const [wrapLines, setWrapLines] = useState(false);
   const { resolvedTheme } = useTheme();
   const { toast } = useToast();
+  const { lineNumbers, setLineNumbers, wrapLines, setWrapLines } = useResponseViewState();
 
-  const getContentType = () => {
-    if (!response?.headers) return 'unknown';
-    const contentType =
-      response.headers['content-type'] || response.headers['Content-Type'];
-    return contentType?.split(';')[0] || 'unknown';
-  };
-
-  const getLanguage = () => {
-    const contentType = getContentType();
-    if (contentType.includes('json')) return 'json';
-    if (contentType.includes('xml')) return 'xml';
-    if (contentType.includes('html')) return 'html';
-    if (contentType.includes('javascript')) return 'javascript';
-    if (contentType.includes('css')) return 'css';
-    if (contentType.includes('sql')) return 'sql';
-    return 'text';
-  };
-
-  const formatBody = (data: any) => {
-    if (formatMode === 'raw') {
-      return typeof data === 'string' ? data : JSON.stringify(data);
-    }
-
-    if (typeof data === 'string') {
-      try {
-        return JSON.stringify(JSON.parse(data), null, 2);
-      } catch {
-        return data;
-      }
-    }
-
-    return JSON.stringify(data, null, 2);
-  };
+  const contentType = getContentType(response?.headers);
+  const language = getLanguage(contentType);
+  const formattedBody = formatData(response.data, formatMode);
+  const jsonData = isJsonData(response.data, language);
 
   const copyToClipboard = () => {
-    const formatted = formatBody(response.data);
-    navigator.clipboard.writeText(formatted);
+    navigator.clipboard.writeText(formattedBody);
     toast({
       title: 'Copied',
       description: 'Response body copied to clipboard',
@@ -90,212 +68,102 @@ export function ResponseBodyTab({
   };
 
   const downloadResponse = () => {
-    const formatted = formatBody(response.data);
-    const blob = new Blob([formatted], { type: 'text/plain' });
+    const blob = new Blob([formattedBody], { type: 'text/plain' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `response_${response.status}_${Date.now()}.${getLanguage()}`;
+    a.download = `response_${response.status}_${Date.now()}.${language}`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
   };
 
-  const togglePath = (path: string) => {
-    const newExpanded = new Set(expandedPaths);
-    if (newExpanded.has(path)) {
-      newExpanded.delete(path);
-    } else {
-      newExpanded.add(path);
-    }
-    setExpandedPaths(newExpanded);
-  };
-
-  const renderTreeView = (
-    data: any,
-    path: string = 'root',
-    level: number = 0,
-    searchTerm: string = '',
-  ) => {
-    if (data === null) return <span className='text-purple-600'>null</span>;
-    if (data === undefined)
-      return <span className='text-purple-600'>undefined</span>;
-
-    if (typeof data === 'string') {
+  // Determine the appropriate viewer component based on content type
+  const getViewerComponent = () => {
+    if (jsonData && formatMode === 'pretty') {
       return (
-        <span className='text-green-600'>
-          "{searchTerm ? highlightSearch(data, searchTerm) : data}"
-        </span>
+        <JsonResponseViewer
+          data={response.data}
+          formatMode={formatMode}
+          formattedData={formattedBody}
+          searchQuery={searchQuery}
+          lineNumbers={lineNumbers}
+          wrapLines={wrapLines}
+          getSyntaxHighlighterClass={() => 
+            getSyntaxHighlighterClass(language, resolvedTheme === 'dark' ? 'dark' : 'light')
+          }
+        />
       );
     }
 
-    if (typeof data === 'number') {
-      return <span className='text-blue-600'>{data}</span>;
-    }
-
-    if (typeof data === 'boolean') {
-      return <span className='text-orange-600'>{data.toString()}</span>;
-    }
-
-    if (Array.isArray(data)) {
-      const isExpanded = expandedPaths.has(path);
-      const filteredData = searchTerm ? filterArray(data, searchTerm) : data;
-
+    // For binary data, use BinaryResponseViewer
+    if (contentType.includes('application/') && 
+        !contentType.includes('json') && 
+        !contentType.includes('xml') && 
+        !contentType.includes('html') && 
+        !contentType.includes('javascript') && 
+        !contentType.includes('css')) {
       return (
-        <div className={`${level > 0 ? 'ml-4' : ''}`}>
-          <span
-            className='cursor-pointer select-none hover:bg-muted/50 rounded p-1'
-            onClick={() => togglePath(path)}
-          >
-            {isExpanded ? (
-              <ChevronDown className='inline w-3 h-3 mr-1' />
-            ) : (
-              <ChevronRight className='inline w-3 h-3 mr-1' />
-            )}
-            <span className='text-gray-600'>[{filteredData.length}]</span>
-            {filteredData.length < data.length && (
-              <span className='text-yellow-600 ml-2'>
-                ({data.length - filteredData.length} hidden)
-              </span>
-            )}
-          </span>
-          {isExpanded && filteredData.length > 0 && (
-            <div className='mt-1 border-l-2 border-gray-200 ml-2'>
-              {filteredData.map((item, index) => (
-                <div key={index} className='ml-4'>
-                  <span className='text-gray-500'>{index}:</span>
-                  {renderTreeView(
-                    item,
-                    `${path}[${index}]`,
-                    level + 1,
-                    searchTerm,
-                  )}
-                  {index < filteredData.length - 1 && (
-                    <span className='text-gray-400'>,</span>
-                  )}
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
+        <BinaryResponseViewer
+          data={response.data}
+          formatMode={formatMode}
+          formattedData={formattedBody}
+          searchQuery={searchQuery}
+          lineNumbers={lineNumbers}
+          wrapLines={wrapLines}
+        />
       );
     }
 
-    if (typeof data === 'object') {
-      const isExpanded = expandedPaths.has(path);
-      const keys = Object.keys(data);
-      const filteredKeys = searchTerm
-        ? keys.filter(
-            key =>
-              key.toLowerCase().includes(searchTerm.toLowerCase()) ||
-              (typeof data[key] === 'string' &&
-                data[key].toLowerCase().includes(searchTerm.toLowerCase())),
-          )
-        : keys;
-
+    // For XML or HTML, use their specific viewers
+    if (contentType.includes('xml')) {
       return (
-        <div className={`${level > 0 ? 'ml-4' : ''}`}>
-          <span
-            className='cursor-pointer select-none hover:bg-muted/50 rounded p-1'
-            onClick={() => togglePath(path)}
-          >
-            {isExpanded ? (
-              <ChevronDown className='inline w-3 h-3 mr-1' />
-            ) : (
-              <ChevronRight className='inline w-3 h-3 mr-1' />
-            )}
-            <span className='text-gray-600'>
-              {'{' + filteredKeys.length + '}'}
-            </span>
-            {filteredKeys.length < keys.length && (
-              <span className='text-yellow-600 ml-2'>
-                ({keys.length - filteredKeys.length} hidden)
-              </span>
-            )}
-          </span>
-          {isExpanded && filteredKeys.length > 0 && (
-            <div className='mt-1 border-l-2 border-gray-200 ml-2'>
-              {filteredKeys.map(key => (
-                <div key={key} className='ml-4'>
-                  <span className='text-blue-600 font-mono'>
-                    "
-                    {searchTerm &&
-                    key.toLowerCase().includes(searchTerm.toLowerCase())
-                      ? highlightSearch(key, searchTerm)
-                      : key}
-                    ":
-                  </span>
-                  {renderTreeView(
-                    data[key],
-                    `${path}.${key}`,
-                    level + 1,
-                    searchTerm,
-                  )}
-                  <span className='text-gray-400'>,</span>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
+        <XmlResponseViewer
+          data={response.data}
+          formatMode={formatMode}
+          formattedData={formattedBody}
+          searchQuery={searchQuery}
+          lineNumbers={lineNumbers}
+          wrapLines={wrapLines}
+          getSyntaxHighlighterClass={() => 
+            getSyntaxHighlighterClass(language, resolvedTheme === 'dark' ? 'dark' : 'light')
+          }
+        />
       );
     }
 
-    return null;
-  };
-
-  const filterArray = (arr: any[], searchTerm: string) => {
-    if (!searchTerm) return arr;
-
-    return arr.filter(item => {
-      if (typeof item === 'string') {
-        return item.toLowerCase().includes(searchTerm.toLowerCase());
-      }
-      if (typeof item === 'object' && item !== null) {
-        return Object.values(item).some(
-          value =>
-            typeof value === 'string' &&
-            value.toLowerCase().includes(searchTerm.toLowerCase()),
-        );
-      }
-      return false;
-    });
-  };
-
-  const highlightSearch = (text: string, searchTerm: string) => {
-    const regex = new RegExp(`(${searchTerm})`, 'gi');
-    const parts = text.split(regex);
-    return parts.map((part, index) => {
-      if (index % 2 === 1) {
-        return (
-          <mark key={index} className='bg-yellow-200 px-1 rounded'>
-            {part}
-          </mark>
-        );
-      }
-      return part;
-    });
-  };
-
-  const getSyntaxHighlighterClass = () => {
-    const theme = resolvedTheme === 'dark' ? 'dark' : 'light';
-    switch (getLanguage()) {
-      case 'json':
-        return theme === 'dark' ? 'hljs-json' : 'hljs-json-light';
-      case 'javascript':
-        return theme === 'dark' ? 'hljs-javascript' : 'hljs-javascript-light';
-      case 'html':
-        return theme === 'dark' ? 'hljs-html' : 'hljs-html-light';
-      case 'xml':
-        return theme === 'dark' ? 'hljs-xml' : 'hljs-xml-light';
-      default:
-        return theme === 'dark' ? 'hljs-default' : 'hljs-default-light';
+    if (contentType.includes('html')) {
+      return (
+        <HtmlResponseViewer
+          data={response.data}
+          formatMode={formatMode}
+          formattedData={formattedBody}
+          searchQuery={searchQuery}
+          lineNumbers={lineNumbers}
+          wrapLines={wrapLines}
+          getSyntaxHighlighterClass={() => 
+            getSyntaxHighlighterClass(language, resolvedTheme === 'dark' ? 'dark' : 'light')
+          }
+        />
+      );
     }
-  };
 
-  const language = getLanguage();
-  const formattedBody = formatBody(response.data);
-  const hasJsonData = language === 'json' && typeof response.data === 'object';
+    // Default to TextViewer for text-based content
+    return (
+      <TextViewer
+        data={response.data}
+        formatMode={formatMode}
+        formattedData={formattedBody}
+        searchQuery={searchQuery}
+        lineNumbers={lineNumbers}
+        wrapLines={wrapLines}
+        getSyntaxHighlighterClass={() => 
+          getSyntaxHighlighterClass(language, resolvedTheme === 'dark' ? 'dark' : 'light')
+        }
+      />
+    );
+  };
 
   return (
     <div className='h-full flex flex-col'>
@@ -322,7 +190,7 @@ export function ResponseBodyTab({
           </div>
 
           <Badge variant='outline' className='text-xs'>
-            {getContentType()}
+            {contentType}
           </Badge>
         </div>
 
@@ -352,68 +220,7 @@ export function ResponseBodyTab({
 
       {/* Content */}
       <div className='flex-1'>
-        {hasJsonData && formatMode === 'pretty' ? (
-          <Tabs defaultValue='tree' className='h-full flex flex-col'>
-            <div className='px-4'>
-              <TabsList className='grid w-full grid-cols-2'>
-                <TabsTrigger value='tree' className='flex items-center gap-2'>
-                  <FileText className='w-4 h-4' />
-                  Tree
-                </TabsTrigger>
-                <TabsTrigger value='code' className='flex items-center gap-2'>
-                  <Code className='w-4 h-4' />
-                  Code
-                </TabsTrigger>
-              </TabsList>
-            </div>
-
-            <div className='flex-1 mt-4'>
-              <TabsContent value='tree' className='h-full mt-0'>
-                <ScrollArea className='h-full px-4'>
-                  <div className='font-mono text-sm'>
-                    {renderTreeView(response.data, 'root', 0, searchQuery)}
-                  </div>
-                </ScrollArea>
-              </TabsContent>
-
-              <TabsContent value='code' className='h-full mt-0'>
-                <ScrollArea className='h-full px-4'>
-                  <pre
-                    className={`
-                    ${getSyntaxHighlighterClass()}
-                    ${lineNumbers ? 'line-numbers' : ''}
-                    ${wrapLines ? 'wrap-lines' : ''}
-                    text-xs
-                    p-4
-                    overflow-x-auto
-                    bg-background
-                    rounded
-                  `}
-                  >
-                    <code>{formattedBody}</code>
-                  </pre>
-                </ScrollArea>
-              </TabsContent>
-            </div>
-          </Tabs>
-        ) : (
-          <ScrollArea className='h-full px-4'>
-            <pre
-              className={`
-              ${getSyntaxHighlighterClass()}
-              ${lineNumbers ? 'line-numbers' : ''}
-              ${wrapLines ? 'wrap-lines' : ''}
-              text-xs
-              p-4
-              overflow-x-auto
-              bg-background
-              rounded
-            `}
-            >
-              <code>{formattedBody}</code>
-            </pre>
-          </ScrollArea>
-        )}
+        {getViewerComponent()}
       </div>
 
       {/* Status Bar */}
@@ -427,7 +234,7 @@ export function ResponseBodyTab({
           <div className='flex items-center gap-4'>
             <span>Language: {language}</span>
             <span>Encoding: UTF-8</span>
-            {searchQuery && <span>Found: search results</span>}
+            {searchQuery && <span>Found: {searchQuery}</span>}
           </div>
         </div>
       </div>

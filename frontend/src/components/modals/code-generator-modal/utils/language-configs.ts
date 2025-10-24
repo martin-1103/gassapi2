@@ -63,6 +63,13 @@ export const LANGUAGE_CONFIGS: Record<string, LanguageConfig> = {
     framework: 'PowerShell',
     extension: 'ps1',
     icon: 'terminal'
+  },
+  go: {
+    language: 'go',
+    displayName: 'Go',
+    framework: 'Go',
+    extension: 'go',
+    icon: 'code'
   }
 }
 
