@@ -1,0 +1,129 @@
+# Large Files in Project (> 300 lines)
+*Last updated: 2025-10-24*
+
+## 🔴 Critical Files (> 500 lines)
+
+### 1. **src/components/modals/import-modal.tsx** - 546 lines
+- Modal untuk import data/request
+- Kemungkinan mengandung logika parsing berbagai format data
+- UI kompleks untuk preview dan konfigurasi import
+
+### 2. **src/lib/testing/test-runner.ts** - 526 lines
+- Engine untuk eksekusi test API
+- Logika kompleks untuk menjalankan berbagai jenis test
+- Handle response validation dan assertion
+
+## 🟡 Large Files (400-500 lines)
+
+### 3. **src/features/endpoints/EndpointBuilder.tsx** - 495 lines
+- Builder interface untuk konfigurasi endpoint
+- UI kompleks untuk setup request parameters
+- Integrasi dengan berbagai HTTP methods dan options
+
+### 4. **src/components/workspace/response-tabs/tests-tab.tsx** - 492 lines
+- Tab untuk menampilkan dan mengelola test results
+- UI untuk test assertion dan validation
+- Complex state management untuk test execution
+
+### 5. **src/components/workspace/request-tabs/RequestParamsTab.tsx** - 470 lines
+- Tab untuk mengelola request parameters
+- Query params, path variables, dan URL encoding
+- Form validation dan parameter management
+
+### 6. **src/lib/history/request-history.ts** - 448 lines
+- Histori request/response management
+- Storage, search, dan filtering functionality
+- State persistence dan caching logic
+
+### 7. **src/components/workspace/request-tabs/body-tab.tsx** - 440 lines
+- Request body configuration interface
+- Support untuk multiple content types (JSON, XML, form-data, dll)
+- Preview dan validation functionality
+
+### 8. **src/components/workspace/response-viewer/ResponseBodyTab.tsx** - 436 lines
+- Response body display dan formatting
+- Syntax highlighting untuk berbagai format
+- Search, download, dan export functionality
+
+### 9. **src/components/workspace/request-tabs/tests-tab.tsx** - 432 lines
+- Test configuration interface
+- Assertion builder dan test script editor
+- Test result visualization
+
+## 🟢 Moderate Files (300-400 lines)
+
+### 10. **src/lib/testing/assertions.tsx** - 423 lines
+- Assertion library untuk API testing
+- Berbagai types of validators dan matchers
+- Custom assertion builders
+
+### 11. **src/components/workspace/response-viewer/ResponseCookiesTab.tsx** - 419 lines
+- Cookie management dan display
+- Cookie editing dan export functionality
+- Security-related cookie information
+
+### 12. **src/components/workspace/response-viewer/ModernResponseViewer.tsx** - 412 lines
+- Comprehensive response viewer component
+- Multiple tabs untuk response data
+- Status information dan metadata display
+
+### 13. **src/components/workspace/response-tabs/body-tab.tsx** - 395 lines
+- Response body visualization
+- Format detection dan syntax highlighting
+- Export dan save functionality
+
+### 14. **src/components/workspace/request-tabs/headers-tab.tsx** - 381 lines
+- HTTP headers configuration interface
+- Common headers templates
+- Header validation dan suggestions
+
+### 15. **src/components/workspace/response-viewer/ResponseConsoleTab.tsx** - 374 lines
+- Console log viewer untuk debugging
+- Error messages dan warnings display
+- Performance metrics visualization
+
+### 16. **src/components/modals/code-generator-modal/utils/template-utils.ts** - 365 lines
+- Code generation templates
+- Multiple language support (curl, JavaScript, Python, dll)
+- Template customization logic
+
+### 17. **src/components/workspace/response-tabs/headers-tab.tsx** - 335 lines
+- Response headers analysis
+- Header categorization dan filtering
+- Security headers information
+
+### 18. **src/lib/utils/http-utils.ts** - 324 lines
+- HTTP utility functions
+- Request/response processing helpers
+- Content type detection dan parsing
+
+### 19. **src/lib/api/direct-client.ts** - 306 lines
+- Direct API client implementation
+- HTTP request handling
+- Error management dan retry logic
+
+### 20. **src/components/workspace/request-tabs/params-tab.tsx** - 304 lines
+- URL parameters management
+- Query string builder
+- Parameter encoding dan validation
+
+## 📊 Summary
+- **Total files > 300 lines:** 19 files
+- **File terbesar:** import-modal.tsx (546 lines)
+- **Area dengan file besar terbanyak:**
+  - Workspace components (8 files)
+  - Response viewer (6 files)
+  - Testing utilities (3 files)
+  - API utilities (2 files)
+
+## 🔧 Refactoring Recommendations
+1. **Extract Components**: Break down large components into smaller, focused sub-components
+2. **Custom Hooks**: Move complex logic into custom hooks
+3. **Utility Functions**: Extract reusable functionality into separate utility files
+4. **Type Definitions**: Move complex types to separate type definition files
+5. **State Management**: Consider using state management library for complex state logic
+
+## ⚠️ Notes
+- All files violate the "clean, maintainable code under 300 lines per file" guideline
+- These files contain core business logic for the API testing application
+- Priority for refactoring: Files > 500 lines should be addressed first
