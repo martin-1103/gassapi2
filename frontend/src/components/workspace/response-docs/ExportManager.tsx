@@ -15,6 +15,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
+import { safePropertyAccess } from '@/lib/security/object-injection-utils';
 
 import { ExportManagerProps } from './types';
 import {
@@ -57,11 +58,22 @@ export function ExportManager({
 
   const getContentType = (): string => {
     // Extract content type dari response headers
-    const contentTypeHeader = Object.keys(response.headers || {}).find(
+    const headers = response.headers || {};
+    const contentTypeHeader = Object.keys(headers).find(
       key => key.toLowerCase() === 'content-type',
     );
+
+    // Validate header key to prevent prototype pollution
+    if (
+      contentTypeHeader === '__proto__' ||
+      contentTypeHeader === 'constructor' ||
+      contentTypeHeader === 'prototype'
+    ) {
+      return 'application/json';
+    }
+
     return contentTypeHeader
-      ? response.headers[contentTypeHeader]
+      ? safePropertyAccess(headers, contentTypeHeader) || 'application/json'
       : 'application/json';
   };
 

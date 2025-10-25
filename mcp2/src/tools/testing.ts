@@ -6,6 +6,7 @@
 import { McpTool, McpToolResponse } from '../types.js';
 import { ConfigManager } from '../config.js';
 import { BackendClient } from '../client/BackendClient.js';
+import { getApiEndpoints } from '../lib/api/endpoints.js';
 
 // HTTP Methods type
 type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' | 'HEAD' | 'OPTIONS';
@@ -114,8 +115,10 @@ function interpolateVariables(text: string, variables: Record<string, string>): 
     return text;
   }
 
-  return text.replace(/\{\{(\w+)\}\}/g, (match, varName) => {
-    return variables[varName] !== undefined ? variables[varName] : match;
+  return text.replace(/\{\{(\w+\.?\w*)\}\}/g, (match, varName) => {
+    // Handle {{env.variable}} pattern by removing the "env." prefix
+    const cleanVarName = varName.startsWith('env.') ? varName.substring(4) : varName;
+    return variables[cleanVarName] !== undefined ? variables[cleanVarName] : match;
   });
 }
 
@@ -312,7 +315,8 @@ export function createTestingToolHandlers(): Record<string, (args: any) => Promi
         console.error(`[TestingTools] Starting endpoint test: ${endpointId} with environment: ${environmentId}`);
 
         // Step 1: Get endpoint configuration
-        const endpointUrl = `/gassapi2/backend/?act=endpoint&id=${encodeURIComponent(endpointId)}`;
+        const apiEndpoints = getApiEndpoints();
+        const endpointUrl = apiEndpoints.getEndpoint('endpointTestDirect', { id: endpointId });
         const endpointFullUrl = `${backendClient.getBaseUrl()}${endpointUrl}`;
 
         console.error(`[TestingTools] Fetching endpoint config from: ${endpointFullUrl}`);

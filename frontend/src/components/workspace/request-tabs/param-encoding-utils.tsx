@@ -41,5 +41,4 @@ export function ParamEncodingUtils({
 }
 
 // Utility functions dipisahkan ke file terpisah untuk Fast Refresh
-// Export komponen saja
-export { ParamEncodingUtils };
+// Komponen sudah di-export di atas

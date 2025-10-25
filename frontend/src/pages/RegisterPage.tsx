@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { toast } from 'sonner';
 
+import { timingSafePasswordCompare } from '@/lib/security/timing-safe-comparison';
 import { useAuthStore } from '@/stores/authStore';
 
 export default function RegisterPage() {
@@ -23,7 +24,7 @@ export default function RegisterPage() {
       return;
     }
 
-    if (password !== confirmPassword) {
+    if (!timingSafePasswordCompare(password, confirmPassword)) {
       toast.error('Password dan konfirmasi password tidak sama');
       return;
     }

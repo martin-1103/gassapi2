@@ -49,6 +49,7 @@ class ApiRoutes {
                 '/project/{id}/flows' => ['handler' => 'flows_list', 'description' => 'List flows for a project'],
                 '/project/{id}/flows/active' => ['handler' => 'flows_active_list', 'description' => 'List active flows for a project'],
                 '/flow/{id}' => ['handler' => 'flow_detail', 'description' => 'Get flow detail'],
+                '/flow/{id}/ui' => ['handler' => 'flow_detail_ui', 'description' => 'Get flow detail for UI (React Flow format)'],
                 '/flow/{id}/activate' => ['handler' => 'flow_activate', 'description' => 'Activate flow'],
                 '/flow/{id}/deactivate' => ['handler' => 'flow_deactivate', 'description' => 'Deactivate flow'],
                 '/flow/{id}/execute' => ['handler' => 'flow_execute', 'description' => 'Execute flow'],
@@ -96,6 +97,7 @@ class ApiRoutes {
                 '/endpoint/{id}' => ['handler' => 'endpoint_update', 'description' => 'Update endpoint'],
                 // Flows
                 '/flow/{id}' => ['handler' => 'flow_update', 'description' => 'Update flow'],
+                '/flow/{id}/ui' => ['handler' => 'flow_update_ui', 'description' => 'Update flow from UI (React Flow format)'],
                 '/flow/{id}/toggle-active' => ['handler' => 'flow_toggle_active', 'description' => 'Toggle flow active status']
             ],
             'DELETE' => [
@@ -306,11 +308,17 @@ class ApiRoutes {
             case 'flow_get': // Alias for flow_detail
                 $flowHandler->getById($id);
                 break;
+            case 'flow_detail_ui': // Get flow for UI (React Flow format)
+                $flowHandler->getByIdForUI($id);
+                break;
             case 'flow_create':
                 $flowHandler->create($id);
                 break;
             case 'flow_update':
                 $flowHandler->update($id);
+                break;
+            case 'flow_update_ui': // Update flow from UI (React Flow format)
+                $flowHandler->updateFromUI($id);
                 break;
             case 'flow_delete':
                 $flowHandler->delete($id);

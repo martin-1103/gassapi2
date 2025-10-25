@@ -56,11 +56,14 @@ abstract class BaseTest {
      * Run all test methods
      */
     public function run() {
+        echo "[DEBUG] BaseTest.run() - calling setUp()\n";
         $this->setUp();
 
         // Get all test methods (methods starting with 'test')
         $methods = get_class_methods($this);
+        echo "[DEBUG] BaseTest.run() - all methods: " . implode(', ', $methods) . "\n";
         $testMethods = array_filter($methods, fn($method) => strpos($method, 'test') === 0);
+        echo "[DEBUG] BaseTest.run() - test methods: " . implode(', ', $testMethods) . "\n";
         sort($testMethods); // Sort alphabetically to ensure predictable order
 
         foreach ($testMethods as $method) {

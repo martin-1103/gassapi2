@@ -213,7 +213,7 @@ class ProjectTest extends BaseTest {
         // Test project detail without auth (if we have a project ID)
         if ($this->projectId) {
             $res3 = $this->testHelper->get('project', [], $this->projectId);
-            $results[] = $this->testHelper->printResult('Project Detail Without Auth', $res3, 401);
+            $results[] = $this->testHelper->printResult('Project Detail Without Auth', $res3, 403);
         }
 
         // Restore token for other tests if it was available

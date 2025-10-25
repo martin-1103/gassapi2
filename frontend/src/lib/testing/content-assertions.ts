@@ -1,3 +1,5 @@
+import { createSafeRegExp } from '@/lib/security/regexp-utils';
+
 import { addAssertion, getLength } from './assertion-utils';
 import { TestContext, JsonValue, Constructor } from './types';
 
@@ -191,30 +193,48 @@ export class ContentAssertions implements IContentAssertions {
 
   toMatch(pattern: string | RegExp, message?: string): AssertionResult {
     let regex: RegExp;
+    let assertionMessage = message;
 
-    if (typeof pattern === 'string') {
-      // Safe regex construction with escaping
-      const escapedPattern = pattern.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-      regex = new RegExp(escapedPattern, 'gi');
-    } else {
-      regex = pattern;
+    try {
+      if (typeof pattern === 'string') {
+        // Use centralized security utility for safe RegExp construction
+        regex = createSafeRegExp(pattern, 'gi', {
+          maxLength: 500,
+          allowComplex: false,
+        });
+      } else {
+        regex = pattern;
+      }
+
+      const passed = regex.test(String(this.actual));
+      assertionMessage =
+        assertionMessage ||
+        (passed ? 'String matches pattern' : 'String does not match pattern');
+
+      return addAssertion(
+        this.context,
+        'to match',
+        {
+          expected: String(pattern),
+          actual: this.actual,
+          passed,
+        },
+        assertionMessage,
+      );
+    } catch (error) {
+      // Jika RegExp creation gagal, return failed assertion
+      return addAssertion(
+        this.context,
+        'to match',
+        {
+          expected: String(pattern),
+          actual: this.actual,
+          passed: false,
+        },
+        assertionMessage ||
+          `Invalid regex pattern: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
     }
-
-    const passed = regex.test(String(this.actual));
-    const assertionMessage =
-      message ||
-      (passed ? 'String matches pattern' : 'String does not match pattern');
-
-    return addAssertion(
-      this.context,
-      'to match',
-      {
-        expected: String(pattern),
-        actual: this.actual,
-        passed,
-      },
-      assertionMessage,
-    );
   }
 
   // Length and Size Assertions

@@ -69,7 +69,9 @@ export function JsonBodyEditor({
         <CodeEditor
           value={rawContent}
           onChange={onRawContentChange}
-          language={getLanguage() as 'json' | 'xml' | 'html' | 'javascript' | 'text'}
+          language={
+            getLanguage() as 'json' | 'xml' | 'html' | 'javascript' | 'text'
+          }
           placeholder='Enter request body...'
           rows={20}
         />

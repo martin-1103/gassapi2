@@ -1,4 +1,5 @@
 import { Trash2 } from 'lucide-react';
+import * as React from 'react';
 
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -11,7 +12,7 @@ interface TestScriptListProps {
   onUpdateScript: (id: string, updates: Partial<TestScript>) => void;
   onDeleteScript: (id: string) => void;
   getTestResult: (scriptId: string) => TestResult | undefined;
-  getTestIcon: (status: string) => string;
+  getTestIcon: (status: string) => React.ReactElement;
 }
 
 export function TestScriptList({

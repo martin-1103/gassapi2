@@ -4,6 +4,7 @@ import * as React from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { safePropertyAccess } from '@/lib/security/object-injection-utils';
 
 import { getLanguageConfig } from './utils/language-configs';
 import type { CodeSnippet } from './utils/template-utils';
@@ -34,7 +35,17 @@ export function TemplateRenderer({
       csharp: <FileText className='w-4 h-4' />,
       powershell: <Terminal className='w-4 h-4' />,
     };
-    return icons[language] || <Code className='w-4 h-4' />;
+
+    // Validate language to prevent prototype pollution
+    if (
+      language === '__proto__' ||
+      language === 'constructor' ||
+      language === 'prototype'
+    ) {
+      return <Code className='w-4 h-4' />;
+    }
+
+    return safePropertyAccess(icons, language) || <Code className='w-4 h-4' />;
   };
 
   if (!currentSnippet) {

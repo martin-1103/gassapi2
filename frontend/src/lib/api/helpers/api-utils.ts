@@ -2,6 +2,8 @@
  * Utility functions for API operations
  */
 
+import { safePropertyAccess } from '@/lib/security/object-injection-utils';
+
 /**
  * Validates if a string is a valid URL
  */
@@ -25,6 +27,19 @@ export function interpolateUrl(
 
   return url.replace(/\{\{([^}]+)\}\}/g, (match, key) => {
     const trimmedKey = key.trim();
-    return variables[trimmedKey] !== undefined ? variables[trimmedKey] : match;
+
+    // Validate key to prevent prototype pollution
+    if (
+      !trimmedKey ||
+      typeof trimmedKey !== 'string' ||
+      trimmedKey === '__proto__' ||
+      trimmedKey === 'constructor' ||
+      trimmedKey === 'prototype'
+    ) {
+      return match;
+    }
+
+    const value = safePropertyAccess(variables, trimmedKey);
+    return value !== undefined ? value : match;
   });
 }

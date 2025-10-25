@@ -1,3 +1,8 @@
+import {
+  safePropertyAssignment,
+  validatePropertyName,
+} from '@/lib/security/object-injection-utils';
+
 import type { ImportResult } from '../types';
 
 /**
@@ -55,14 +60,10 @@ export const parseCurlCommand = async (
     while ((headerMatch = headerRegex.exec(cleanContent)) !== null) {
       const key = headerMatch[2].trim();
       const value = headerMatch[3].trim();
-      // Validate key to prevent prototype pollution
-      if (
-        key &&
-        key !== '__proto__' &&
-        key !== 'constructor' &&
-        key !== 'prototype'
-      ) {
-        headers[key] = value;
+      // Validate key using security utilities
+      const keyValidation = validatePropertyName(key);
+      if (keyValidation.isValid) {
+        safePropertyAssignment(headers, key, value);
       }
     }
 
@@ -81,14 +82,10 @@ export const parseCurlCommand = async (
     while ((formMatch = formRegex.exec(cleanContent)) !== null) {
       const key = formMatch[2].trim();
       const value = formMatch[3].trim();
-      // Validate key to prevent prototype pollution
-      if (
-        key &&
-        key !== '__proto__' &&
-        key !== 'constructor' &&
-        key !== 'prototype'
-      ) {
-        formData[key] = value;
+      // Validate key using security utilities
+      const keyValidation = validatePropertyName(key);
+      if (keyValidation.isValid) {
+        safePropertyAssignment(formData, key, value);
       }
     }
 

@@ -7,10 +7,11 @@ import {
 } from '@/hooks/useParameterManagement';
 
 // Import extracted components
+import { PARAM_TEMPLATES } from './parameter-templates/types';
 import { ParameterActions } from './ParameterActions';
 import { ParameterSearch } from './ParameterSearch';
 import { ParameterTable } from './ParameterTable';
-import { ParameterTemplates, PARAM_TEMPLATES } from './ParameterTemplates';
+import { ParameterTemplates } from './ParameterTemplates';
 import { URLPreview } from './URLPreview';
 
 interface RequestParamsTabProps {

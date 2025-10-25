@@ -3,6 +3,13 @@
  * Menangani variable substitution di URLs, headers, dan body
  */
 
+import { logger } from '@/lib/logger';
+import {
+  safePropertyAccess,
+  safePropertyAssignment,
+  validatePropertyName,
+} from '@/lib/security/object-injection-utils';
+import { createSafeRegExp } from '@/lib/security/regexp-utils';
 import type {
   Environment,
   RequestConfig,
@@ -18,20 +25,33 @@ export class VariableInterpolator {
   interpolate(str: string, variables: Record<string, string>): string {
     if (!str || !variables) return str;
 
-    return str.replace(/\{\{([^}]+)\}\}/g, (match, key) => {
-      const trimmedKey = key.trim();
-      // Validate key to prevent prototype pollution
-      if (
-        trimmedKey === '__proto__' ||
-        trimmedKey === 'constructor' ||
-        trimmedKey === 'prototype'
-      ) {
-        return match;
-      }
-      return variables[trimmedKey] !== undefined
-        ? variables[trimmedKey]
-        : match;
-    });
+    try {
+      // Gunakan safe RegExp untuk variable pattern matching
+      const variableRegex = createSafeRegExp('\\{\\{([^}]+)\\}\\}', 'g', {
+        maxLength: 100,
+        allowComplex: false,
+      });
+
+      return str.replace(variableRegex, (match, key) => {
+        const trimmedKey = key.trim();
+        // Validasi key menggunakan security utilities
+        const keyValidation = validatePropertyName(trimmedKey);
+        if (!keyValidation.isValid) {
+          return match;
+        }
+
+        // Safe property access untuk variables
+        const value = safePropertyAccess(variables, trimmedKey);
+        return value !== undefined ? value : match;
+      });
+    } catch (error) {
+      logger.warn(
+        'Failed to interpolate variables',
+        error,
+        'variable-interpolator',
+      );
+      return str;
+    }
   }
 
   /**
@@ -44,11 +64,15 @@ export class VariableInterpolator {
     const interpolated: Record<string, string> = {};
 
     for (const [key, value] of Object.entries(headers)) {
-      // Validate key to prevent prototype pollution
-      if (key === '__proto__' || key === 'constructor' || key === 'prototype') {
+      // Validasi key menggunakan security utilities
+      const keyValidation = validatePropertyName(key);
+      if (!keyValidation.isValid) {
         continue;
       }
-      interpolated[key] = this.interpolate(value, variables);
+
+      const interpolatedValue = this.interpolate(value, variables);
+      // Safe property assignment
+      safePropertyAssignment(interpolated, key, interpolatedValue);
     }
 
     return interpolated;
@@ -88,19 +112,21 @@ export class VariableInterpolator {
     } else if (typeof obj === 'object' && obj !== null) {
       const result: InterpolatedObject = {};
       for (const [key, value] of Object.entries(obj)) {
-        // Validate key to prevent prototype pollution
-        if (
-          key === '__proto__' ||
-          key === 'constructor' ||
-          key === 'prototype'
-        ) {
+        // Validasi key menggunakan security utilities
+        const keyValidation = validatePropertyName(key);
+        if (!keyValidation.isValid) {
           continue;
         }
+
+        let interpolatedValue: InterpolatableValue;
         if (typeof value === 'string') {
-          result[key] = this.interpolate(value, variables);
+          interpolatedValue = this.interpolate(value, variables);
         } else {
-          result[key] = this.interpolateObject(value, variables);
+          interpolatedValue = this.interpolateObject(value, variables);
         }
+
+        // Safe property assignment
+        safePropertyAssignment(result, key, interpolatedValue);
       }
       return result;
     }
@@ -173,7 +199,12 @@ export class VariableInterpolator {
       environment.variables
         .filter(variable => variable.enabled)
         .forEach(variable => {
-          variables[variable.key] = variable.value;
+          // Validasi key menggunakan security utilities
+          const keyValidation = validatePropertyName(variable.key);
+          if (keyValidation.isValid) {
+            // Safe property assignment
+            safePropertyAssignment(variables, variable.key, variable.value);
+          }
         });
     }
 
@@ -258,8 +289,20 @@ export class VariableInterpolator {
           '{{$randomString}}',
         ];
         if (allowedPatterns.includes(pattern)) {
-          const escapedPattern = pattern.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-          result = result.replace(new RegExp(escapedPattern, 'g'), generator());
+          // Gunakan safe RegExp construction
+          try {
+            const safeRegex = createSafeRegExp(pattern, 'g', {
+              maxLength: 50,
+              allowComplex: false,
+            });
+            result = result.replace(safeRegex, generator());
+          } catch (error) {
+            logger.warn(
+              `Failed to create regex for pattern ${pattern}`,
+              error,
+              'variable-interpolator',
+            );
+          }
         }
       }
     }

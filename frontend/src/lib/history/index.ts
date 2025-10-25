@@ -4,7 +4,9 @@
  */
 
 import { HistoryManager } from './history-manager';
+import { HistorySearch } from './history-search';
 import { HistoryStorage } from './history-storage';
+import { HistoryUtils } from './history-utils';
 import {
   RequestHistoryItem,
   HistoryFilter,
@@ -12,8 +14,6 @@ import {
   HistoryExportData,
   HistoryUpdateAction,
 } from './types';
-import { HistoryUtils } from './history-utils';
-import { HistorySearch } from './history-search';
 
 // Create singleton instance
 export const requestHistory = HistoryManager.getInstance();

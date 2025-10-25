@@ -61,11 +61,9 @@ class FlowRepository extends BaseRepository {
         }
         $data['project_id'] = $projectId;
         
-        // Ensure flow_data is JSON
+        // flow_data should already be JSON encoded by handler
         if (!isset($data['flow_data'])) {
-            $data['flow_data'] = json_encode(['nodes' => [], 'edges' => []]);
-        } elseif (is_array($data['flow_data']) || is_object($data['flow_data'])) {
-            $data['flow_data'] = json_encode($data['flow_data']);
+            $data['flow_data'] = json_encode(['version' => '1.0', 'steps' => [], 'config' => ['delay' => 0, 'retryCount' => 1, 'parallel' => false]]);
         }
 
         // Default is_active to 1 if not set
@@ -77,14 +75,11 @@ class FlowRepository extends BaseRepository {
     }
 
     /**
-     * Update flow with JSON handling
+     * Update flow with dual format handling
      */
     public function updateFlow($id, $data) {
-        // Handle JSON field
-        if (isset($data['flow_data']) && (is_array($data['flow_data']) || is_object($data['flow_data']))) {
-            $data['flow_data'] = json_encode($data['flow_data']);
-        }
-
+        // Data should already be JSON encoded by handler
+        // No need to encode here to avoid double encoding
         return $this->update($id, $data);
     }
 

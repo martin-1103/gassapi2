@@ -8,6 +8,7 @@ import {
   filterArray,
   filterObjectKeys,
 } from '@/lib/response/response-search';
+import { safePropertyAccess } from '@/lib/security/object-injection-utils';
 
 interface JsonResponseViewerProps {
   data: unknown;
@@ -146,25 +147,36 @@ export const JsonResponseViewer = ({
           </button>
           {isExpanded && filteredKeys.length > 0 && (
             <div className='mt-1 border-l-2 border-gray-200 ml-2'>
-              {filteredKeys.map(key => (
-                <div key={key} className='ml-4'>
-                  <span className='text-blue-600 font-mono'>
-                    &quot;
-                    {searchTerm &&
-                    key.toLowerCase().includes(searchTerm.toLowerCase())
-                      ? highlightSearch(key, searchTerm)
-                      : key}
-                    &quot;:
-                  </span>
-                  {renderTreeView(
-                    obj[key],
-                    `${path}.${key}`,
-                    level + 1,
-                    searchTerm,
-                  )}
-                  <span className='text-gray-400'>,</span>
-                </div>
-              ))}
+              {filteredKeys.map(key => {
+                // Validate key to prevent prototype pollution
+                if (
+                  key === '__proto__' ||
+                  key === 'constructor' ||
+                  key === 'prototype'
+                ) {
+                  return null; // Skip dangerous properties
+                }
+
+                return (
+                  <div key={key} className='ml-4'>
+                    <span className='text-blue-600 font-mono'>
+                      &quot;
+                      {searchTerm &&
+                      key.toLowerCase().includes(searchTerm.toLowerCase())
+                        ? highlightSearch(key, searchTerm)
+                        : key}
+                      &quot;:
+                    </span>
+                    {renderTreeView(
+                      safePropertyAccess(obj, key),
+                      `${path}.${key}`,
+                      level + 1,
+                      searchTerm,
+                    )}
+                    <span className='text-gray-400'>,</span>
+                  </div>
+                );
+              })}
             </div>
           )}
         </div>

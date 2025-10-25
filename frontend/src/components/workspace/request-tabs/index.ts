@@ -5,7 +5,8 @@ export { default as RequestParamsTab } from './RequestParamsTab';
 export { ParameterActions } from './ParameterActions';
 export { ParameterSearch } from './ParameterSearch';
 export { ParameterTable } from './ParameterTable';
-export { ParameterTemplates, PARAM_TEMPLATES } from './ParameterTemplates';
+export { ParameterTemplates } from './ParameterTemplates';
+export { PARAM_TEMPLATES } from './parameter-templates/types';
 export { URLPreview } from './URLPreview';
 
 // Export hook

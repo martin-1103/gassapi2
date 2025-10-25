@@ -8,5 +8,35 @@
  * Jangan: import dari file ini langsung
  */
 
-// Re-export dari index untuk menghindari circular import
-export * from './sidebar/index';
+// Re-export komponen saja untuk React Fast Refresh
+export { Sidebar } from './sidebar/index';
+export { SidebarProvider } from './sidebar/index';
+export {
+  SidebarInset,
+  SidebarInput,
+  SidebarHeader,
+  SidebarFooter,
+  SidebarSeparator,
+  SidebarContent,
+} from './sidebar/index';
+export { SidebarTrigger } from './sidebar/index';
+export { SidebarRail } from './sidebar/index';
+export {
+  SidebarGroup,
+  SidebarGroupLabel,
+  SidebarGroupAction,
+  SidebarGroupContent,
+} from './sidebar/index';
+export {
+  SidebarMenu,
+  SidebarMenuItem,
+  SidebarMenuButton,
+  SidebarMenuAction,
+  SidebarMenuBadge,
+} from './sidebar/index';
+export {
+  SidebarMenuSkeleton,
+  SidebarMenuSub,
+  SidebarMenuSubItem,
+  SidebarMenuSubButton,
+} from './sidebar/index';

@@ -1,3 +1,4 @@
 - Write clean, maintainable code under 300 lines per file
 - Use Indonesian casual language in comments and user-facing messages
 - VERY IMPORTANT: Keep it simple and avoid over-engineering
+- kamu selalu menjawab dengan singkat padat jelas, tidak bertele2 dan menggunakan bahasa yang sederhana

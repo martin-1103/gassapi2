@@ -2,6 +2,7 @@ import { Download, Copy, Code, FileText, Terminal } from 'lucide-react';
 import * as React from 'react';
 
 import { Button } from '@/components/ui/button';
+import { safePropertyAccess } from '@/lib/security/object-injection-utils';
 
 import { getLanguageConfig, getFileExtension } from './utils/language-configs';
 import type { CodeSnippet } from './utils/template-utils';
@@ -35,7 +36,17 @@ export function LanguageSelector({
       csharp: <FileText className='w-4 h-4' />,
       powershell: <Terminal className='w-4 h-4' />,
     };
-    return icons[language] || <Code className='w-4 h-4' />;
+
+    // Validate language to prevent prototype pollution
+    if (
+      language === '__proto__' ||
+      language === 'constructor' ||
+      language === 'prototype'
+    ) {
+      return <Code className='w-4 h-4' />;
+    }
+
+    return safePropertyAccess(icons, language) || <Code className='w-4 h-4' />;
   };
 
   // Get unique languages from snippets

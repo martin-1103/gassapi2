@@ -89,6 +89,11 @@ export function sanitizeParamKey(key: string): string {
  * Sanitizes a parameter value to make it URL-safe
  */
 export function sanitizeParamValue(value: string): string {
+  // Validate input to prevent injection
+  if (!value || typeof value !== 'string') {
+    return '';
+  }
+
   // Remove control characters but preserve other characters
   // Use character code filtering instead of regex with control characters
   let result = '';

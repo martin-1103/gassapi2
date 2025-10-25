@@ -7,6 +7,7 @@ import {
   formatData as formatResponseData,
   isJsonData,
 } from '@/lib/response/formatting-utils';
+import { safePropertyAccess } from '@/lib/security/object-injection-utils';
 
 interface ResponseData {
   status: number;
@@ -92,7 +93,19 @@ export const useResponseBodyState = ({
       markdown: 'language-markdown',
       text: 'language-text',
     };
-    return langMap[language] || 'language-text';
+
+    // Validate language to prevent prototype pollution
+    if (
+      !language ||
+      typeof language !== 'string' ||
+      language === '__proto__' ||
+      language === 'constructor' ||
+      language === 'prototype'
+    ) {
+      return 'language-text';
+    }
+
+    return safePropertyAccess(langMap, language) || 'language-text';
   }, [language]);
 
   // UI Actions

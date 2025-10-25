@@ -1,8 +1,10 @@
 import { CheckCircle, XCircle, AlertCircle, Clock } from 'lucide-react';
-// import * as React from 'react'; // Removed unused React import
 
 import Badge from '@/components/ui/badge';
+import { safePropertyAccess } from '@/lib/security/object-injection-utils';
 import { cn } from '@/lib/utils/index';
+
+// import * as React from 'react'; // Removed unused React import
 
 interface StatusBadgeProps {
   status: number;
@@ -69,7 +71,7 @@ export function StatusBadge({
       <Badge
         variant={variant}
         className={cn(
-          sizeClasses[validSize],
+          safePropertyAccess(sizeClasses, validSize) || sizeClasses.md,
           className,
           'flex items-center gap-1',
         )}

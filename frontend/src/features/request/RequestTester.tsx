@@ -20,6 +20,8 @@ import {
 } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useDirectApi } from '@/hooks/use-direct-api';
+import { logger } from '@/lib/logger';
+import { safePropertyAssignment } from '@/lib/security/object-injection-utils';
 import {
   formatResponseTime,
   formatResponseSize,
@@ -159,18 +161,46 @@ export function RequestTester() {
                   placeholder='Key'
                   value={header.key}
                   onChange={e => {
+                    // Validate index to prevent array injection
+                    if (index < 0 || index >= headers.length) {
+                      logger.warn(
+                        'Invalid header index',
+                        { index },
+                        'RequestTester',
+                      );
+                      return;
+                    }
                     const newHeaders = [...headers];
-                    newHeaders[index].key = e.target.value;
-                    setHeaders(newHeaders);
+                    const headerItem = newHeaders[index];
+                    if (headerItem) {
+                      safePropertyAssignment(headerItem, 'key', e.target.value);
+                      setHeaders(newHeaders);
+                    }
                   }}
                 />
                 <Input
                   placeholder='Value'
                   value={header.value}
                   onChange={e => {
+                    // Validate index to prevent array injection
+                    if (index < 0 || index >= headers.length) {
+                      logger.warn(
+                        'Invalid header index',
+                        { index },
+                        'RequestTester',
+                      );
+                      return;
+                    }
                     const newHeaders = [...headers];
-                    newHeaders[index].value = e.target.value;
-                    setHeaders(newHeaders);
+                    const headerItem = newHeaders[index];
+                    if (headerItem) {
+                      safePropertyAssignment(
+                        headerItem,
+                        'value',
+                        e.target.value,
+                      );
+                      setHeaders(newHeaders);
+                    }
                   }}
                 />
                 <Button

@@ -66,7 +66,12 @@ export const useWorkspaceStore = create<WorkspaceStore>()(
           const closedIndex = openTabs.findIndex(t => t.id === tabId);
           if (newTabs.length > 0) {
             const newIndex = closedIndex > 0 ? closedIndex - 1 : 0;
-            newActiveId = newTabs[newIndex]?.id || null;
+            // Validate array index to prevent injection
+            if (newIndex >= 0 && newIndex < newTabs.length) {
+              newActiveId = newTabs[newIndex]?.id || null;
+            } else {
+              newActiveId = newTabs[0]?.id || null;
+            }
           } else {
             newActiveId = null;
           }

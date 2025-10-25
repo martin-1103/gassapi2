@@ -70,7 +70,7 @@ export function RequestHeadersTab({
                 <Button
                   size='sm'
                   variant='outline'
-                  onClick={copyAsCurl}
+                  onClick={() => copyAsCurl()}
                   disabled={enabledHeadersCount === 0}
                 >
                   Copy as cURL

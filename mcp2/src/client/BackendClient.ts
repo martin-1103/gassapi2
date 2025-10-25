@@ -78,15 +78,15 @@ export interface UnifiedEnvironment {
  */
 export class BackendClient {
   private baseUrl: string;
-  private token: string;
+  private mcpToken: string;
   private defaultHeaders: Record<string, string>;
 
-  constructor(baseUrl: string, token: string) {
+  constructor(baseUrl: string, mcpToken: string) {
     this.baseUrl = baseUrl.replace(/\/$/, ''); // Remove trailing slash
-    this.token = token;
+    this.mcpToken = mcpToken;
 
     this.defaultHeaders = {
-      'Authorization': `Bearer ${this.token}`,
+      'Authorization': `Bearer ${this.mcpToken}`,
       'Content-Type': 'application/json',
       'User-Agent': 'GASSAPI-MCP/1.0.0'
     };
@@ -104,7 +104,11 @@ export class BackendClient {
     try {
       const url = `${this.baseUrl}${endpoint}`;
       const method = options.method || 'GET';
-      const headers = { ...this.defaultHeaders, ...options.headers };
+
+      const headers = {
+        ...this.defaultHeaders,
+        ...options.headers
+      };
       const timeout = options.timeout || 30000;
 
       // Create AbortController for timeout
@@ -199,7 +203,7 @@ export class BackendClient {
     return {
       connected: true,
       server_url: this.baseUrl,
-      token_configured: !!this.token,
+      token_configured: !!this.mcpToken,
       token_expired: false // Simple check - in real app would check expiry
     };
   }
@@ -211,10 +215,18 @@ export class BackendClient {
     return this.baseUrl;
   }
 
+  
   /**
-   * Get token
+   * Get MCP token
+   */
+  getMcpToken(): string {
+    return this.mcpToken;
+  }
+
+  /**
+   * Get current active token
    */
   getToken(): string {
-    return this.token;
+    return this.mcpToken;
   }
 }

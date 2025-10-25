@@ -6,6 +6,7 @@
 import { McpTool, McpToolResponse } from '../types.js';
 import { ConfigManager } from '../config.js';
 import { BackendClient } from '../client/BackendClient.js';
+import { getApiEndpoints } from '../lib/api/endpoints.js';
 
 // API Response Interfaces
 interface ListEnvironmentsResponse {
@@ -140,7 +141,8 @@ export function createEnvironmentToolHandlers(): Record<string, (args: any) => P
         }
 
         // Call backend to get environments
-        const endpoint = `/gassapi2/backend/?act=project_environments&id=${encodeURIComponent(projectId)}`;
+        const apiEndpoints = getApiEndpoints();
+        const endpoint = apiEndpoints.getEndpoint('projectEnvironments', { id: projectId });
         const fullUrl = `${backendClient.getBaseUrl()}${endpoint}`;
 
         console.error(`[EnvironmentTools] Requesting environments from: ${fullUrl}`);
@@ -222,7 +224,8 @@ export function createEnvironmentToolHandlers(): Record<string, (args: any) => P
         }
 
         // Call backend to get environment details
-        const endpoint = `/gassapi2/backend/?act=environment&id=${encodeURIComponent(environmentId)}`;
+        const apiEndpoints = getApiEndpoints();
+        const endpoint = apiEndpoints.getEndpoint('environmentDetails', { id: environmentId });
         const fullUrl = `${backendClient.getBaseUrl()}${endpoint}`;
 
         console.error(`[EnvironmentTools] Requesting environment details from: ${fullUrl}`);
@@ -321,7 +324,8 @@ export function createEnvironmentToolHandlers(): Record<string, (args: any) => P
         }
 
         // Get current environment details first
-        const getEndpoint = `/gassapi2/backend/?act=environment&id=${encodeURIComponent(environmentId)}`;
+        const apiEndpoints = getApiEndpoints();
+        const getEndpoint = apiEndpoints.getEndpoint('environmentDetails', { id: environmentId });
         const getFullUrl = `${backendClient.getBaseUrl()}${getEndpoint}`;
 
         const getResult = await fetch(getFullUrl, {
@@ -363,7 +367,7 @@ export function createEnvironmentToolHandlers(): Record<string, (args: any) => P
         }
 
         // Update environment with new variables
-        const updateEndpoint = `/gassapi2/backend/?act=environment_update&id=${encodeURIComponent(environmentId)}`;
+        const updateEndpoint = apiEndpoints.getEndpoint('environmentUpdate', { id: environmentId });
         const updateFullUrl = `${backendClient.getBaseUrl()}${updateEndpoint}`;
 
         console.error(`[EnvironmentTools] Updating environment variables at: ${updateFullUrl}`);

@@ -77,6 +77,17 @@ export function moveParam(
 
   const newParams = [...params];
   const targetIndex = direction === 'up' ? index - 1 : index + 1;
+
+  // Validate indices to prevent array injection
+  if (
+    index < 0 ||
+    index >= newParams.length ||
+    targetIndex < 0 ||
+    targetIndex >= newParams.length
+  ) {
+    return params;
+  }
+
   [newParams[index], newParams[targetIndex]] = [
     newParams[targetIndex],
     newParams[index],

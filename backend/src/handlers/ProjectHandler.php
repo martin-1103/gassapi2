@@ -5,19 +5,23 @@ use App\Helpers\ResponseHelper;
 use App\Helpers\ValidationHelper;
 use App\Helpers\MessageHelper;
 use App\Helpers\AuthHelper;
+use App\Helpers\JwtHelper;
 use App\Repositories\ProjectRepository;
 use App\Repositories\EnvironmentRepository;
 use App\Repositories\CollectionRepository;
+use App\Services\AuthService;
 
 class ProjectHandler {
     private $projects;
     private $envs;
     private $collections;
+    private $authService;
 
     public function __construct() {
         $this->projects = new ProjectRepository();
         $this->envs = new EnvironmentRepository();
         $this->collections = new CollectionRepository();
+        $this->authService = new AuthService();
     }
 
     /**

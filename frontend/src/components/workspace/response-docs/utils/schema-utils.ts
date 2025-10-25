@@ -1,5 +1,7 @@
 // Utilitas untuk pembuatan dan formatting schema dari response API
 
+import { safePropertyAssignment } from '@/lib/security/object-injection-utils';
+
 export interface SchemaProperty {
   type:
     | 'string'
@@ -49,7 +51,16 @@ export function generateSchemaFromResponse(data: unknown): SchemaProperty {
     const required: string[] = [];
 
     Object.entries(data).forEach(([key, value]) => {
-      properties[key] = generateSchemaFromResponse(value);
+      // Validate key to prevent prototype pollution
+      if (key === '__proto__' || key === 'constructor' || key === 'prototype') {
+        return; // Skip dangerous properties
+      }
+
+      safePropertyAssignment(
+        properties,
+        key,
+        generateSchemaFromResponse(value),
+      );
       // Consider common required fields
       if (key.toLowerCase() !== 'id' && key.toLowerCase() !== 'name') {
         required.push(key);
@@ -64,7 +75,7 @@ export function generateSchemaFromResponse(data: unknown): SchemaProperty {
     };
   }
 
-  return { type: 'string', description: 'Unknown type' };
+  return { type: 'string', description: 'Unknown data type' };
 }
 
 /**

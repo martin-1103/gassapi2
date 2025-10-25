@@ -6,6 +6,7 @@
 import { McpTool, McpToolResponse } from '../types.js';
 import { ConfigManager } from '../config.js';
 import { BackendClient } from '../client/BackendClient.js';
+import { getApiEndpoints } from '../lib/api/endpoints.js';
 
 // HTTP Methods type
 type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' | 'HEAD' | 'OPTIONS';
@@ -326,9 +327,10 @@ export function createEndpointToolHandlers(): Record<string, (args: any) => Prom
         const method = args.method as HttpMethod | undefined;
 
         // Build query parameters for endpoint_list
+        const apiEndpoints = getApiEndpoints();
         const endpoint = collectionId
-          ? `/gassapi2/backend/?act=endpoint_list&id=${encodeURIComponent(collectionId)}`
-          : `/gassapi2/backend/?act=endpoints`; // Fallback for project-wide listing
+          ? apiEndpoints.getEndpoint('endpointList', { collection_id: collectionId })
+          : '/gassapi2/backend/?act=endpoints'; // Fallback for project-wide listing
         const fullUrl = `${backendClient.getBaseUrl()}${endpoint}`;
 
         console.error(`[EndpointTools] Requesting endpoints from: ${fullUrl}`);
@@ -436,7 +438,8 @@ export function createEndpointToolHandlers(): Record<string, (args: any) => Prom
         }
 
         // Get endpoint details
-        const endpoint = `/gassapi2/backend/?act=endpoint&id=${encodeURIComponent(endpointId)}`;
+        const apiEndpoints = getApiEndpoints();
+        const endpoint = apiEndpoints.getEndpoint('endpointDetails', { id: endpointId });
         const fullUrl = `${backendClient.getBaseUrl()}${endpoint}`;
 
         console.error(`[EndpointTools] Requesting endpoint details from: ${fullUrl}`);
@@ -546,7 +549,8 @@ export function createEndpointToolHandlers(): Record<string, (args: any) => Prom
         }
 
         // Create endpoint
-        const endpoint = `/gassapi2/backend/?act=endpoint_create&id=${encodeURIComponent(collectionId)}`;
+        const apiEndpoints = getApiEndpoints();
+        const endpoint = apiEndpoints.getEndpoint('endpointCreate', { id: collectionId });
         const fullUrl = `${backendClient.getBaseUrl()}${endpoint}`;
 
         console.error(`[EndpointTools] Creating endpoint at: ${fullUrl}`);
@@ -647,7 +651,8 @@ export function createEndpointToolHandlers(): Record<string, (args: any) => Prom
         }
 
         // Update endpoint
-        const endpoint = `/gassapi2/backend/?act=endpoint_update&id=${encodeURIComponent(endpointId)}`;
+        const apiEndpoints = getApiEndpoints();
+        const endpoint = apiEndpoints.getEndpoint('endpointUpdate', { id: endpointId });
         const fullUrl = `${backendClient.getBaseUrl()}${endpoint}`;
 
         console.error(`[EndpointTools] Updating endpoint at: ${fullUrl}`);
@@ -726,7 +731,8 @@ export function createEndpointToolHandlers(): Record<string, (args: any) => Prom
         }
 
         // Move endpoint (using update endpoint with collection_id)
-        const endpoint = `/gassapi2/backend/?act=endpoint_update&id=${encodeURIComponent(endpointId)}`;
+        const apiEndpoints = getApiEndpoints();
+        const endpoint = apiEndpoints.getEndpoint('endpointUpdate', { id: endpointId });
         const fullUrl = `${backendClient.getBaseUrl()}${endpoint}`;
 
         console.error(`[EndpointTools] Moving endpoint at: ${fullUrl}`);

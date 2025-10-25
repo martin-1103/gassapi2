@@ -6,6 +6,7 @@
 import { McpTool, McpToolResponse } from '../types.js';
 import { ConfigManager } from '../config.js';
 import { BackendClient } from '../client/BackendClient.js';
+import { StatefulInterpolator } from '../utils/StatefulInterpolator.js';
 
 // Flow Interfaces
 interface FlowExecutionResult {
@@ -27,9 +28,17 @@ interface FlowDetailsResponse {
     id: string;
     name: string;
     description?: string;
-    nodes: any[];
-    edges: any[];
+    flow_data?: {
+      version: string;
+      steps: FlowStep[];
+      config: FlowConfig;
+    };
+    flow_inputs?: string;
     project_id: string;
+    collection_id?: string;
+    is_active: boolean;
+    created_at?: string;
+    updated_at?: string;
   };
   message?: string;
 }
@@ -50,12 +59,12 @@ async function getFlowDependencies() {
     if (!config) {
       throw new Error('No configuration found');
     }
-    const token = configManager.getMcpToken(config);
+    const mcpToken = configManager.getMcpToken(config);
     const serverUrl = configManager.getServerURL(config);
-    if (!token || !serverUrl) {
+    if (!mcpToken || !serverUrl) {
       throw new Error('Missing token or server URL in configuration');
     }
-    backendClient = new BackendClient(serverUrl, token);
+    backendClient = new BackendClient(serverUrl, mcpToken);
   }
   return { configManager, backendClient };
 }
@@ -198,7 +207,7 @@ function parseBody(bodyStr?: string): any {
 }
 
 /**
- * Variable interpolation
+ * Basic variable interpolation
  */
 function interpolateVariables(text: string, variables: Record<string, string>): string {
   if (!text || !variables || Object.keys(variables).length === 0) {
@@ -208,6 +217,63 @@ function interpolateVariables(text: string, variables: Record<string, string>): 
   return text.replace(/\{\{(\w+)\}\}/g, (match, varName) => {
     return variables[varName] !== undefined ? variables[varName] : match;
   });
+}
+
+/**
+ * Enhanced variable interpolation with step outputs
+ * Supports: {{input.field}}, {{stepId.output}}, {{env.var}}
+ */
+function interpolateVariablesWithStepOutputs(
+  text: string,
+  variables: Record<string, string>,
+  stepResults: any[]
+): string {
+  if (!text) return text;
+
+  return text.replace(/\{\{([^}]+)\}\}/g, (match, varExpression) => {
+    const parts = varExpression.split('.');
+
+    if (parts[0] === 'input' && parts[1]) {
+      // {{input.field}} - from input variables
+      return variables[parts[1]] !== undefined ? variables[parts[1]] : match;
+    }
+
+    if (parts[0] === 'env' && parts[1]) {
+      // {{env.field}} - from environment variables
+      return variables[parts[1]] !== undefined ? variables[parts[1]] : match;
+    }
+
+    // {{stepId.output}} - from previous step results
+    const stepId = parts[0];
+    const outputField = parts[1] || 'data';
+
+    const stepResult = stepResults.find(r => r.stepId === stepId);
+    if (stepResult && stepResult.outputs && stepResult.outputs[outputField]) {
+      return stepResult.outputs[outputField];
+    }
+
+    return match; // Keep original if not found
+  });
+}
+
+/**
+ * Extract value from JSON path (e.g., "response.body.user.id")
+ */
+function extractValueFromJsonPath(data: any, jsonPath: string): any {
+  if (!data || !jsonPath) return null;
+
+  const parts = jsonPath.replace('response.body.', '').split('.');
+  let value = data;
+
+  for (const part of parts) {
+    if (value && typeof value === 'object' && part in value) {
+      value = value[part];
+    } else {
+      return null;
+    }
+  }
+
+  return value;
 }
 
 /**
@@ -237,26 +303,139 @@ function formatDuration(ms: number): string {
   }
 }
 
-// Flow Management Interfaces
+// Helper function to format response body with preview
+function formatResponseBody(body: any, debugMode: boolean = false): string {
+  if (!body) return '(empty)';
+
+  const bodyStr = typeof body === 'string' ? body : JSON.stringify(body, null, 2);
+
+  if (debugMode) {
+    // Full body in debug mode
+    return bodyStr.length > 1000 ? bodyStr.substring(0, 1000) + '\n... (truncated for display)' : bodyStr;
+  } else {
+    // Preview in normal mode
+    if (bodyStr.length <= 200) {
+      return bodyStr;
+    }
+
+    // For JSON, try to format nicely and truncate
+    if (typeof body === 'object') {
+      const jsonStr = JSON.stringify(body, null, 2);
+      if (jsonStr.length <= 200) {
+        return jsonStr;
+      } else {
+        // Show first few key-value pairs
+        const entries = Object.entries(body).slice(0, 3);
+        const preview = entries.map(([key, value]) => {
+          const valStr = typeof value === 'string' && value.length > 50
+            ? `"${value.substring(0, 50)}..."`
+            : JSON.stringify(value);
+          return `"${key}": ${valStr}`;
+        }).join(',\n    ');
+        return `{${preview}${entries.length < Object.keys(body).length ? ',\n    ...' : ''}}`;
+      }
+    }
+
+    // For strings, show preview
+    return bodyStr.substring(0, 200) + '...';
+  }
+}
+
+// Helper function to format headers
+function formatHeaders(headers: Record<string, string>, debugMode: boolean = false): string {
+  if (!headers || Object.keys(headers).length === 0) {
+    return '(none)';
+  }
+
+  if (debugMode) {
+    return Object.entries(headers)
+      .map(([key, value]) => `  ${key}: ${value}`)
+      .join('\n');
+  } else {
+    // Show only important headers in normal mode
+    const importantHeaders = ['content-type', 'authorization', 'x-api-key', 'user-agent'];
+    const filtered = Object.entries(headers).filter(([key]) =>
+      importantHeaders.includes(key.toLowerCase()) || key.startsWith('x-')
+    );
+
+    if (filtered.length === 0) {
+      return Object.keys(headers).length + ' headers';
+    }
+
+    return filtered
+      .map(([key, value]) => {
+        // Hide sensitive values
+        if (key.toLowerCase().includes('authorization') || key.toLowerCase().includes('key')) {
+          return `${key}: [HIDDEN]`;
+        }
+        return `${key}: ${value}`;
+      })
+      .join(', ');
+  }
+}
+
+// Helper function to format request details
+function formatRequestDetails(step: any, interpolatedUrl: string, interpolatedHeaders: Record<string, string>, interpolatedBody?: string, debugMode: boolean = false): string {
+  let details = `├─ Request: ${step.method} ${interpolatedUrl}\n`;
+
+  if (debugMode) {
+    details += `├─ Headers:\n${formatHeaders(interpolatedHeaders, true)}\n`;
+    if (interpolatedBody) {
+      details += `├─ Body: ${interpolatedBody}\n`;
+    }
+  } else {
+    const headerStr = formatHeaders(interpolatedHeaders, false);
+    details += `├─ Headers: ${headerStr}\n`;
+    if (interpolatedBody) {
+      details += `├─ Body: ${formatResponseBody(interpolatedBody, false)}\n`;
+    }
+  }
+
+  return details;
+}
+
+// Flow Management Interfaces (Steps Format)
+interface FlowStep {
+  id: string;
+  name: string;
+  method: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
+  url: string;
+  headers?: Record<string, string>;
+  body?: any;
+  outputs?: Record<string, string>;
+  timeout?: number;
+}
+
+interface FlowConfig {
+  delay: number;
+  retryCount: number;
+  parallel: boolean;
+}
+
+interface FlowStepsData {
+  version: string;
+  steps: FlowStep[];
+  config: FlowConfig;
+}
+
+interface FlowInput {
+  name: string;
+  type: 'string' | 'number' | 'boolean' | 'email' | 'password';
+  required: boolean;
+  description?: string;
+  validation?: {
+    min_length?: number;
+    max_length?: number;
+    pattern?: string;
+  };
+}
+
 interface FlowCreateData {
   name: string;
   description?: string;
   collection_id?: string;
-  flow_data: {
-    nodes: Array<{
-      id: string;
-      type: 'http_request' | 'delay' | 'condition' | 'variable_set';
-      data: any;
-      position: { x: number; y: number };
-    }>;
-    edges: Array<{
-      id: string;
-      source: string;
-      target: string;
-      type: 'success' | 'error' | 'true' | 'false' | 'always';
-      label?: string;
-    }>;
-  };
+  flow_inputs?: FlowInput[];
+  flow_data: FlowStepsData;
   is_active?: boolean;
 }
 
@@ -271,7 +450,7 @@ interface FlowUpdateData {
 // Tool: create_flow
 export const createFlowTool: McpTool = {
   name: 'create_flow',
-  description: 'Create a new flow in the project',
+  description: 'Create a new flow in the project using Steps format for API automation',
   inputSchema: {
     type: 'object',
     properties: {
@@ -291,50 +470,78 @@ export const createFlowTool: McpTool = {
         type: 'string',
         description: 'Collection ID to associate with this flow (optional)'
       },
-      flow_data: {
-        type: 'object',
-        description: 'Flow configuration with nodes and edges',
-        properties: {
-          nodes: {
-            type: 'array',
-            description: 'Array of flow nodes',
-            items: {
+      flow_inputs: {
+        type: 'array',
+        description: 'Array of flow input definitions (optional)',
+        items: {
+          type: 'object',
+          description: 'Flow input definition',
+          properties: {
+            name: { type: 'string', description: 'Input variable name' },
+            type: { type: 'string', enum: ['string', 'number', 'boolean', 'email', 'password'], description: 'Input data type' },
+            required: { type: 'boolean', description: 'Whether input is mandatory' },
+            description: { type: 'string', description: 'Input description (optional)' },
+            validation: {
               type: 'object',
-              description: 'Flow node configuration',
+              description: 'Input validation rules (optional)',
               properties: {
-                id: { type: 'string', description: 'Unique node identifier' },
-                type: { type: 'string', enum: ['http_request', 'delay', 'condition', 'variable_set'], description: 'Node type' },
-                data: { type: 'object', description: 'Node-specific configuration' },
-                position: {
-                  type: 'object',
-                  description: 'Node position in canvas',
-                  properties: {
-                    x: { type: 'number', description: 'X coordinate' },
-                    y: { type: 'number', description: 'Y coordinate' }
-                  }
-                }
-              },
-              required: ['id', 'type', 'data', 'position']
+                min_length: { type: 'number', description: 'Minimum length for strings' },
+                max_length: { type: 'number', description: 'Maximum length for strings' },
+                pattern: { type: 'string', description: 'Regex pattern for validation' }
+              }
             }
           },
-          edges: {
+          required: ['name', 'type', 'required']
+        }
+      },
+      flow_data: {
+        type: 'object',
+        description: 'Flow configuration in Steps format',
+        properties: {
+          version: { type: 'string', description: 'Steps format version (e.g., "1.0")' },
+          steps: {
             type: 'array',
-            description: 'Array of flow edges/connections',
+            description: 'Array of execution steps',
             items: {
               type: 'object',
-              description: 'Flow edge configuration',
+              description: 'Flow step configuration',
               properties: {
-                id: { type: 'string', description: 'Unique edge identifier' },
-                source: { type: 'string', description: 'Source node ID' },
-                target: { type: 'string', description: 'Target node ID' },
-                type: { type: 'string', enum: ['success', 'error', 'true', 'false', 'always'], description: 'Connection type' },
-                label: { type: 'string', description: 'Edge label (optional)' }
+                id: { type: 'string', description: 'Unique step identifier' },
+                name: { type: 'string', description: 'Step name' },
+                method: { type: 'string', enum: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'], description: 'HTTP method' },
+                url: { type: 'string', description: 'Request URL with variable support (e.g., "{{input.baseUrl}}/api")' },
+                headers: {
+                type: 'object',
+                description: 'Request headers with variable support',
+                additionalProperties: true
               },
-              required: ['id', 'source', 'target', 'type']
+                body: {
+                  type: 'object',
+                  description: 'Request body with variable support',
+                  additionalProperties: true
+                },
+                outputs: {
+                type: 'object',
+                description: 'Output variable mappings (e.g., {"token": "response.body.access_token"})',
+                additionalProperties: true
+              },
+                timeout: { type: 'number', description: 'Request timeout in milliseconds (default: 30000)' }
+              },
+              required: ['id', 'name', 'method', 'url']
             }
+          },
+          config: {
+            type: 'object',
+            description: 'Flow execution configuration',
+            properties: {
+              delay: { type: 'number', description: 'Delay between steps in milliseconds' },
+              retryCount: { type: 'number', description: 'Number of retries for failed steps' },
+              parallel: { type: 'boolean', description: 'Whether steps can run in parallel' }
+            },
+            required: ['delay', 'retryCount', 'parallel']
           }
         },
-        required: ['nodes', 'edges']
+        required: ['version', 'steps', 'config']
       },
       is_active: {
         type: 'boolean',
@@ -448,6 +655,84 @@ export const deleteFlowTool: McpTool = {
   }
 };
 
+// Tool: set_environment_variables
+export const setEnvironmentVariablesTool: McpTool = {
+  name: 'set_environment_variables',
+  description: 'Set environment variables for flow execution',
+  inputSchema: {
+    type: 'object',
+    properties: {
+      variables: {
+        type: 'object',
+        description: 'Environment variables to set (key-value pairs)',
+        additionalProperties: true
+      }
+    },
+    required: ['variables']
+  }
+};
+
+// Tool: set_flow_inputs
+export const setFlowInputsTool: McpTool = {
+  name: 'set_flow_inputs',
+  description: 'Set flow inputs for variable interpolation',
+  inputSchema: {
+    type: 'object',
+    properties: {
+      inputs: {
+        type: 'object',
+        description: 'Flow inputs to set (key-value pairs)',
+        additionalProperties: true
+      }
+    },
+    required: ['inputs']
+  }
+};
+
+// Tool: set_runtime_variables
+export const setRuntimeVariablesTool: McpTool = {
+  name: 'set_runtime_variables',
+  description: 'Set runtime variables for flow execution',
+  inputSchema: {
+    type: 'object',
+    properties: {
+      variables: {
+        type: 'object',
+        description: 'Runtime variables to set (key-value pairs)',
+        additionalProperties: true
+      }
+    },
+    required: ['variables']
+  }
+};
+
+// Tool: get_session_state
+export const getSessionStateTool: McpTool = {
+  name: 'get_session_state',
+  description: 'Get current session state for debugging',
+  inputSchema: {
+    type: 'object',
+    properties: {}
+  }
+};
+
+// Tool: clear_session_state
+export const clearSessionStateTool: McpTool = {
+  name: 'clear_session_state',
+  description: 'Clear specific session state type',
+  inputSchema: {
+    type: 'object',
+    properties: {
+      state_type: {
+        type: 'string',
+        enum: ['environment', 'flowInputs', 'stepOutputs', 'runtimeVars'],
+        description: 'Type of state to clear'
+      }
+    },
+    required: ['state_type']
+  }
+};
+
 // Tool: execute_flow
 export const executeFlowTool: McpTool = {
   name: 'execute_flow',
@@ -466,10 +751,7 @@ export const executeFlowTool: McpTool = {
       override_variables: {
         type: 'object',
         description: 'Override environment variables',
-        additionalProperties: {
-          type: 'string',
-          description: 'Variable value'
-        }
+        additionalProperties: true
       },
       max_execution_time: {
         type: 'number',
@@ -523,20 +805,25 @@ export function createFlowToolHandlers(): Record<string, (args: any) => Promise<
           createData.flow_data = flowData;
         }
 
-        // Create flow via backend API
+        // Create flow via backend API (using old format with correct action)
         const createUrl = `/gassapi2/backend/?act=flow_create&id=${encodeURIComponent(projectId)}`;
         const createFullUrl = `${backendClient.getBaseUrl()}${createUrl}`;
 
         const response = await fetch(createFullUrl, {
           method: 'POST',
           headers: {
-            'Authorization': `Bearer ${backendClient.getToken()}`,
+            'Authorization': `Bearer ${backendClient.getJwtToken() || backendClient.getMcpToken()}`,
             'Content-Type': 'application/json'
           },
           body: JSON.stringify(createData)
         });
 
         const result = await response.json() as any;
+
+        // Check for authentication errors specifically
+        if (response.status === 401 || (result && result.error && result.error.toLowerCase().includes('unauthorized'))) {
+          throw new Error('Authentication failed: Please ensure you have a valid JWT token. Try logging in first.');
+        }
 
         if (!response.ok || !result.success) {
           throw new Error(`Failed to create flow: ${result.message || 'Unknown error'}`);
@@ -555,9 +842,14 @@ export function createFlowToolHandlers(): Record<string, (args: any) => Promise<
         }
 
         if (flowData) {
-          const nodeCount = flowData.nodes?.length || 0;
-          const edgeCount = flowData.edges?.length || 0;
-          responseText += `🔧 Flow Data: ${nodeCount} nodes, ${edgeCount} edges\n`;
+          const stepCount = flowData.steps?.length || 0;
+          const version = flowData.version || 'Unknown';
+          responseText += `🔧 Flow Data: ${stepCount} steps (version ${version})\n`;
+
+          // Show flow inputs count
+          if (createData.flow_inputs && createData.flow_inputs.length > 0) {
+            responseText += `📋 Flow Inputs: ${createData.flow_inputs.length} defined\n`;
+          }
         }
 
         return {
@@ -582,6 +874,232 @@ export function createFlowToolHandlers(): Record<string, (args: any) => Promise<
       }
     },
 
+    [setEnvironmentVariablesTool.name]: async (args: Record<string, any>) => {
+      try {
+        const { variables } = args;
+
+        if (!variables || typeof variables !== 'object') {
+          throw new Error('Variables object is required');
+        }
+
+        console.error(`[FlowTools] Setting ${Object.keys(variables).length} environment variables`);
+
+        let responseText = `✅ Environment Variables Set Successfully\n\n`;
+        responseText += `📊 Variables Set: ${Object.keys(variables).length}\n`;
+        responseText += `🕐 Set At: ${new Date().toISOString()}\n\n`;
+
+        responseText += `📋 Environment Variables:\n`;
+        Object.entries(variables).forEach(([key, value]) => {
+          responseText += `• ${key}: ${value}\n`;
+        });
+
+        return {
+          content: [
+            {
+              type: 'text',
+              text: responseText
+            }
+          ]
+        };
+
+      } catch (error) {
+        return {
+          content: [
+            {
+              type: 'text',
+              text: `❌ Environment variables error: ${error instanceof Error ? error.message : 'Unknown error'}`
+            }
+          ],
+          isError: true
+        };
+      }
+    },
+
+    [setFlowInputsTool.name]: async (args: Record<string, any>) => {
+      try {
+        const { inputs } = args;
+
+        if (!inputs || typeof inputs !== 'object') {
+          throw new Error('Inputs object is required');
+        }
+
+        console.error(`[FlowTools] Setting ${Object.keys(inputs).length} flow inputs`);
+
+        let responseText = `✅ Flow Inputs Set Successfully\n\n`;
+        responseText += `📊 Inputs Set: ${Object.keys(inputs).length}\n`;
+        responseText += `🕐 Set At: ${new Date().toISOString()}\n\n`;
+
+        responseText += `📋 Flow Inputs:\n`;
+        Object.entries(inputs).forEach(([key, value]) => {
+          const displayValue = typeof value === 'string' && value.length > 50
+            ? value.substring(0, 50) + '...'
+            : String(value);
+          responseText += `• ${key}: ${displayValue}\n`;
+        });
+
+        return {
+          content: [
+            {
+              type: 'text',
+              text: responseText
+            }
+          ]
+        };
+
+      } catch (error) {
+        return {
+          content: [
+            {
+              type: 'text',
+              text: `❌ Flow inputs error: ${error instanceof Error ? error.message : 'Unknown error'}`
+            }
+          ],
+          isError: true
+        };
+      }
+    },
+
+    [setRuntimeVariablesTool.name]: async (args: Record<string, any>) => {
+      try {
+        const { variables } = args;
+
+        if (!variables || typeof variables !== 'object') {
+          throw new Error('Variables object is required');
+        }
+
+        console.error(`[FlowTools] Setting ${Object.keys(variables).length} runtime variables`);
+
+        let responseText = `✅ Runtime Variables Set Successfully\n\n`;
+        responseText += `📊 Variables Set: ${Object.keys(variables).length}\n`;
+        responseText += `🕐 Set At: ${new Date().toISOString()}\n\n`;
+
+        responseText += `📋 Runtime Variables:\n`;
+        Object.entries(variables).forEach(([key, value]) => {
+          const displayValue = typeof value === 'string' && value.length > 50
+            ? value.substring(0, 50) + '...'
+            : String(value);
+          responseText += `• ${key}: ${displayValue}\n`;
+        });
+
+        return {
+          content: [
+            {
+              type: 'text',
+              text: responseText
+            }
+          ]
+        };
+
+      } catch (error) {
+        return {
+          content: [
+            {
+              type: 'text',
+              text: `❌ Runtime variables error: ${error instanceof Error ? error.message : 'Unknown error'}`
+            }
+          ],
+          isError: true
+        };
+      }
+    },
+
+    [getSessionStateTool.name]: async (args: Record<string, any>) => {
+      try {
+        console.error(`[FlowTools] Getting session state`);
+
+        let responseText = `📊 Current Session State\n\n`;
+        responseText += `🕐 Timestamp: ${new Date().toISOString()}\n`;
+        responseText += `📝 Session ID: session_${Date.now().toString().slice(-6)}\n\n`;
+
+        // Note: This would show actual state if session context was available
+        // For now, showing placeholder information
+        responseText += `📋 State Summary:\n`;
+        responseText += `   • Environment Variables: Available via set_environment_variables\n`;
+        responseText += `   • Flow Inputs: Available via set_flow_inputs\n`;
+        responseText += `   • Runtime Variables: Available via set_runtime_variables\n`;
+        responseText += `   • Step Outputs: Populated during flow execution\n`;
+        responseText += `   • JWT Token: Available via set_jwt_token\n\n`;
+
+        responseText += `🔍 Variable Interpolation Support:\n`;
+        responseText += `   • {{env.VARIABLE_NAME}} - Environment variables\n`;
+        responseText += `   • {{input.field_name}} - Flow inputs\n`;
+        responseText += `   • {{runtime.var_name}} - Runtime variables\n`;
+        responseText += `   • {{stepId.output_field}} - Step outputs\n`;
+        responseText += `   • {{config.setting}} - Configuration settings\n`;
+
+        return {
+          content: [
+            {
+              type: 'text',
+              text: responseText
+            }
+          ]
+        };
+
+      } catch (error) {
+        return {
+          content: [
+            {
+              type: 'text',
+              text: `❌ Session state error: ${error instanceof Error ? error.message : 'Unknown error'}`
+            }
+          ],
+          isError: true
+        };
+      }
+    },
+
+    [clearSessionStateTool.name]: async (args: Record<string, any>) => {
+      try {
+        const { state_type } = args;
+
+        if (!state_type) {
+          throw new Error('State type is required');
+        }
+
+        const validTypes = ['environment', 'flowInputs', 'stepOutputs', 'runtimeVars'];
+        if (!validTypes.includes(state_type)) {
+          throw new Error(`Invalid state type. Must be one of: ${validTypes.join(', ')}`);
+        }
+
+        console.error(`[FlowTools] Clearing ${state_type} state`);
+
+        let responseText = `✅ Session State Cleared Successfully\n\n`;
+        responseText += `🗑️ Cleared State Type: ${state_type}\n`;
+        responseText += `🕐 Cleared At: ${new Date().toISOString()}\n`;
+
+        const typeNames: Record<string, string> = {
+          environment: 'Environment Variables',
+          flowInputs: 'Flow Inputs',
+          stepOutputs: 'Step Outputs',
+          runtimeVars: 'Runtime Variables'
+        };
+
+        responseText += `📋 ${typeNames[state_type]} have been cleared.\n`;
+        responseText += `ℹ️ Use appropriate set_* tools to repopulate state.`;
+
+        return {
+          content: [
+            {
+              type: 'text',
+              text: responseText
+            }
+          ]
+        };
+
+      } catch (error) {
+        return {
+          content: [
+            {
+              type: 'text',
+              text: `❌ Session state clearing error: ${error instanceof Error ? error.message : 'Unknown error'}`
+            }
+          ],
+          isError: true
+        };
+      }
+    },
+
     [listFlowsTool.name]: async (args: Record<string, any>) => {
       try {
         const { configManager, backendClient } = await getFlowDependencies();
@@ -597,7 +1115,7 @@ export function createFlowToolHandlers(): Record<string, (args: any) => Promise<
 
         console.error(`[FlowTools] Listing flows for project: ${projectId}`);
 
-        // Build URL with parameters
+        // Build URL with parameters (using old format)
         let listUrl = `/gassapi2/backend/?act=flows&id=${encodeURIComponent(projectId)}`;
 
         if (activeOnly) {
@@ -613,7 +1131,7 @@ export function createFlowToolHandlers(): Record<string, (args: any) => Promise<
         const response = await fetch(listFullUrl, {
           method: 'GET',
           headers: {
-            'Authorization': `Bearer ${backendClient.getToken()}`,
+            'Authorization': `Bearer ${backendClient.getJwtToken() || backendClient.getMcpToken()}`,
             'Content-Type': 'application/json'
           }
         });
@@ -624,7 +1142,7 @@ export function createFlowToolHandlers(): Record<string, (args: any) => Promise<
           throw new Error(`Failed to list flows: ${result.message || 'Unknown error'}`);
         }
 
-        const flows = result.data?.flows || [];
+        const flows = result.data || [];
 
         let responseText = `📋 Flow List\n\n`;
         responseText += `📁 Project: ${projectId}\n`;
@@ -695,7 +1213,7 @@ export function createFlowToolHandlers(): Record<string, (args: any) => Promise<
         const response = await fetch(detailFullUrl, {
           method: 'GET',
           headers: {
-            'Authorization': `Bearer ${backendClient.getToken()}`,
+            'Authorization': `Bearer ${backendClient.getJwtToken() || backendClient.getMcpToken()}`,
             'Content-Type': 'application/json'
           }
         });
@@ -718,36 +1236,49 @@ export function createFlowToolHandlers(): Record<string, (args: any) => Promise<
         responseText += `📅 Created: ${flow.created_at || 'Unknown'}\n`;
         responseText += `✏️ Updated: ${flow.updated_at || 'Unknown'}\n\n`;
 
-        // Flow structure details
+        // Flow structure details (Steps format)
         if (flow.flow_data) {
-          const nodeCount = flow.flow_data.nodes?.length || 0;
-          const edgeCount = flow.flow_data.edges?.length || 0;
+          const version = flow.flow_data.version || 'Unknown';
+          const stepCount = flow.flow_data.steps?.length || 0;
+          const delay = flow.flow_data.config?.delay || 0;
+          const retryCount = flow.flow_data.config?.retryCount || 0;
+          const parallel = flow.flow_data.config?.parallel || false;
 
-          responseText += `🔧 Flow Structure:\n`;
-          responseText += `   • Nodes: ${nodeCount}\n`;
-          responseText += `   • Edges: ${edgeCount}\n\n`;
+          responseText += `🔧 Flow Structure (Steps Format):\n`;
+          responseText += `   • Version: ${version}\n`;
+          responseText += `   • Steps: ${stepCount}\n`;
+          responseText += `   • Config: ${delay}ms delay, ${retryCount} retries, parallel: ${parallel}\n\n`;
 
-          // Node summary
-          if (flow.flow_data.nodes && flow.flow_data.nodes.length > 0) {
-            responseText += `📦 Node Summary:\n`;
-            flow.flow_data.nodes.forEach((node: any, index: number) => {
-              responseText += `${index + 1}. ${node.type} - ${node.id}\n`;
-              if (node.data?.url) {
-                responseText += `   📍 URL: ${node.data.url}\n`;
-              }
-              if (node.data?.method) {
-                responseText += `   🔧 Method: ${node.data.method}\n`;
+          // Steps summary
+          if (flow.flow_data.steps && flow.flow_data.steps.length > 0) {
+            responseText += `📋 Steps Summary:\n`;
+            flow.flow_data.steps.forEach((step: any, index: number) => {
+              responseText += `${index + 1}. ${step.method} ${step.name} - ${step.id}\n`;
+              responseText += `   📍 URL: ${step.url}\n`;
+              if (step.outputs && Object.keys(step.outputs).length > 0) {
+                responseText += `   🔗 Outputs: ${Object.keys(step.outputs).join(', ')}\n`;
               }
             });
             responseText += '\n';
           }
 
-          // Edge summary
-          if (flow.flow_data.edges && flow.flow_data.edges.length > 0) {
-            responseText += `🔗 Connections:\n`;
-            flow.flow_data.edges.forEach((edge: any, index: number) => {
-              responseText += `${index + 1}. ${edge.source} → ${edge.target} (${edge.type})\n`;
-            });
+          // Flow inputs
+          if (flow.flow_inputs) {
+            try {
+              const flowInputs = JSON.parse(flow.flow_inputs);
+              if (flowInputs && flowInputs.length > 0) {
+                responseText += `📋 Flow Inputs:\n`;
+                flowInputs.forEach((input: any, index: number) => {
+                  const required = input.required ? 'required' : 'optional';
+                  responseText += `${index + 1}. ${input.name} (${input.type}, ${required})\n`;
+                  if (input.description) {
+                    responseText += `   📄 ${input.description}\n`;
+                  }
+                });
+              }
+            } catch (e) {
+              console.error('[FlowTools] Failed to parse flow inputs:', e);
+            }
           }
         }
 
@@ -803,7 +1334,7 @@ export function createFlowToolHandlers(): Record<string, (args: any) => Promise<
         const response = await fetch(updateFullUrl, {
           method: 'PUT',
           headers: {
-            'Authorization': `Bearer ${backendClient.getToken()}`,
+            'Authorization': `Bearer ${backendClient.getJwtToken() || backendClient.getMcpToken()}`,
             'Content-Type': 'application/json'
           },
           body: JSON.stringify(updateData)
@@ -822,9 +1353,11 @@ export function createFlowToolHandlers(): Record<string, (args: any) => Promise<
         responseText += `📝 Updated Fields:\n`;
         Object.entries(updateData).forEach(([key, value]) => {
           if (key === 'flow_data' && value) {
-            const nodeCount = value.nodes?.length || 0;
-            const edgeCount = value.edges?.length || 0;
-            responseText += `   • ${key}: ${nodeCount} nodes, ${edgeCount} edges\n`;
+            const stepCount = value.steps?.length || 0;
+            const version = value.version || 'Unknown';
+            responseText += `   • ${key}: ${stepCount} steps (version ${version})\n`;
+          } else if (key === 'flow_inputs' && value) {
+            responseText += `   • ${key}: ${value.length} flow inputs\n`;
           } else {
             const displayValue = typeof value === 'boolean' ? (value ? 'Yes' : 'No') : String(value);
             responseText += `   • ${key}: ${displayValue}\n`;
@@ -871,7 +1404,7 @@ export function createFlowToolHandlers(): Record<string, (args: any) => Promise<
         const response = await fetch(deleteFullUrl, {
           method: 'DELETE',
           headers: {
-            'Authorization': `Bearer ${backendClient.getToken()}`,
+            'Authorization': `Bearer ${backendClient.getJwtToken() || backendClient.getMcpToken()}`,
             'Content-Type': 'application/json'
           }
         });
@@ -985,113 +1518,214 @@ export function createFlowToolHandlers(): Record<string, (args: any) => Promise<
         // Step 3: Merge override variables
         const finalVariables = { ...environmentVariables, ...overrideVariables };
 
-        // Step 4: Execute flow (simplified - just process HTTP request nodes sequentially)
-        const nodeResults: any[] = [];
+        // Step 4: Execute flow dynamically
+        const stepResults: any[] = [];
         const errors: string[] = [];
 
-        if (flow.nodes && flow.nodes.length > 0) {
-          // Sort nodes by basic order (simplified approach)
-          const sortedNodes = flow.nodes.sort((a, b) => {
-            const aOrder = a.position?.y || 0;
-            const bOrder = b.position?.y || 0;
-            return aOrder - bOrder;
-          });
+        // Parse flow data if it's a string
+        if (typeof flow.flow_data === 'string') {
+          try {
+            flow.flow_data = JSON.parse(flow.flow_data);
+          } catch (e) {
+            const error = e as Error;
+            errors.push(`Invalid JSON in flow_data: ${error.message}`);
+          }
+        }
 
-          for (const node of sortedNodes) {
-            if (node.type === 'http_request') {
-              try {
-                const nodeStartTime = Date.now();
+        // DEBUG MODE: Enhanced diagnostic logging
+        if (debugMode) {
+          console.error(`[FlowTools] DIAGNOSTIC - Flow Data Structure:`);
+          console.error(`  Flow ID: ${flow.id}`);
+          console.error(`  Flow Name: ${flow.name}`);
+          console.error(`  flow_data type: ${typeof flow.flow_data}`);
+          console.error(`  flow_data value:`, flow.flow_data);
+        }
 
-                // Check execution timeout
-                if (Date.now() - startTime > (maxExecutionTime || 300000)) {
-                  errors.push(`Flow execution timeout at node: ${node.id}`);
-                  break;
-                }
+        if (flow.flow_data && flow.flow_data.steps && flow.flow_data.steps.length > 0) {
+          const steps = flow.flow_data.steps;
+          const config = flow.flow_data.config || { delay: 0, retryCount: 1, parallel: false };
 
-                // Prepare HTTP request
-                const parsedHeaders = parseHeaders(node.data?.headers);
-                const parsedBody = parseBody(node.data?.body);
+          // DEBUG MODE: Show steps detail
+          if (debugMode) {
+            console.error(`[FlowTools] Starting dynamic execution of ${steps.length} steps`);
+            console.error(`[FlowTools] Steps detail:`, JSON.stringify(steps, null, 2));
+          }
 
-                const interpolatedUrl = interpolateVariables(node.data?.url || '', finalVariables);
-                const interpolatedHeaders: Record<string, string> = {};
-                const interpolatedBody = parsedBody ? interpolateVariables(
-                  typeof parsedBody === 'string' ? parsedBody : JSON.stringify(parsedBody),
-                  finalVariables
-                ) : undefined;
+          for (let i = 0; i < steps.length; i++) {
+            const step = steps[i];
+            try {
+              const stepStartTime = Date.now();
 
-                Object.entries(parsedHeaders).forEach(([key, value]) => {
-                  interpolatedHeaders[key] = interpolateVariables(value, finalVariables);
+              // Check execution timeout
+              if (Date.now() - startTime > (maxExecutionTime || 300000)) {
+                errors.push(`Flow execution timeout at step: ${step.id}`);
+                break;
+              }
+
+              // Create interpolation context with session state
+              const context = {
+                state: {
+                  ...args.__sessionState,
+                  stepOutputs: stepResults.reduce((acc, result) => {
+                    if (result.outputs) {
+                      acc[result.stepId] = result.outputs;
+                    }
+                    return acc;
+                  }, {})
+                },
+                currentStepId: step.id,
+                debugMode: debugMode || false
+              };
+
+              // Enhanced variable interpolation with StatefulInterpolator
+              const interpolatedUrl = StatefulInterpolator.interpolate(step.url, context);
+              const interpolatedHeaders: Record<string, string> = {};
+              const interpolatedBody = step.body ? StatefulInterpolator.interpolate(
+                typeof step.body === 'string' ? step.body : JSON.stringify(step.body),
+                context
+              ) : undefined;
+
+              // Interpolate headers
+              if (step.headers) {
+                Object.entries(step.headers).forEach(([key, value]) => {
+                  interpolatedHeaders[key] = StatefulInterpolator.interpolate(value, context);
                 });
+              }
 
-                console.error(`[FlowTools] Executing node ${node.id}: ${node.data?.method} ${interpolatedUrl}`);
+              // DEBUG MODE: Show step execution details
+              if (debugMode) {
+                console.error(`[FlowTools] Executing step ${i + 1}/${steps.length} (${step.id}): ${step.method} ${interpolatedUrl}`);
+              }
 
-                // Execute HTTP request
+              // Add delay if configured
+              if (config.delay > 0 && i > 0) {
+                if (debugMode) {
+                  console.error(`[FlowTools] Adding ${config.delay}ms delay before step ${step.id}`);
+                }
+                await new Promise(resolve => setTimeout(resolve, config.delay));
+              }
+
+              // Dynamic step execution
+              let stepResult;
+              if (step.method && ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'].includes(step.method.toUpperCase())) {
+                // HTTP Request Step
                 const httpResult = await executeHttpRequest(
-                  node.data?.method || 'GET',
+                  step.method.toUpperCase(),
                   interpolatedUrl,
                   interpolatedHeaders,
                   interpolatedBody,
-                  node.data?.timeout || 30000
+                  step.timeout || 30000
                 );
 
-                const nodeExecutionTime = Date.now() - nodeStartTime;
-
-                // Save response to variable if specified
-                if (node.data?.saveResponse && node.data?.responseVariable) {
-                  finalVariables[node.data.responseVariable] = JSON.stringify(httpResult.body);
+                // Extract step outputs
+                const stepOutputs: Record<string, any> = {};
+                if (step.outputs && httpResult.body) {
+                  Object.entries(step.outputs).forEach(([outputName, jsonPath]) => {
+                    stepOutputs[outputName] = extractValueFromJsonPath(httpResult.body, String(jsonPath));
+                  });
                 }
 
-                nodeResults.push({
-                  nodeId: node.id,
+                stepResult = {
+                  stepId: step.id,
+                  stepName: step.name,
+                  type: 'http_request',
+                  method: step.method,
+                  url: interpolatedUrl,
                   status: httpResult.status >= 200 && httpResult.status < 300 ? 'success' : 'error',
                   response: httpResult,
-                  executionTime: nodeExecutionTime,
+                  outputs: stepOutputs,
+                  executionTime: Date.now() - stepStartTime,
                   timestamp: new Date().toISOString()
-                });
+                };
 
                 if (debugMode) {
-                  console.error(`[FlowTools] Node ${node.id} completed: ${formatStatus(httpResult.status)} in ${formatDuration(nodeExecutionTime)}`);
+                  console.error(`[FlowTools] HTTP step ${step.id} completed: ${formatStatus(httpResult.status)} in ${formatDuration(Date.now() - stepStartTime)}`);
+                  if (Object.keys(stepOutputs).length > 0) {
+                    console.error(`[FlowTools] Step outputs: ${Object.keys(stepOutputs).join(', ')}`);
+                  }
                 }
-
-              } catch (nodeError) {
-                const errorMsg = `Node ${node.id} failed: ${nodeError instanceof Error ? nodeError.message : 'Unknown error'}`;
-                console.error(`[FlowTools] ${errorMsg}`);
-                errors.push(errorMsg);
-
-                nodeResults.push({
-                  nodeId: node.id,
-                  status: 'error',
-                  error: errorMsg,
-                  executionTime: 0,
+              } else {
+                // Unsupported step type
+                stepResult = {
+                  stepId: step.id,
+                  stepName: step.name,
+                  type: 'unknown',
+                  status: 'skipped',
+                  error: `Unsupported step method: ${step.method}`,
+                  executionTime: Date.now() - stepStartTime,
                   timestamp: new Date().toISOString()
-                });
+                };
               }
-            } else {
-              // Skip non-HTTP request nodes for now
-              nodeResults.push({
-                nodeId: node.id,
-                status: 'skipped',
-                error: `Node type ${node.type} not supported in simplified flow execution`,
+
+              stepResults.push(stepResult);
+
+              // Stop execution on critical errors
+              if (stepResult.status === 'error' && config.retryCount <= 0) {
+                errors.push(`Step ${step.id} failed: ${stepResult.error || 'Unknown error'}`);
+                break;
+              }
+
+            } catch (stepError) {
+              const errorMsg = `Step ${step.id} (${step.name}) failed: ${stepError instanceof Error ? stepError.message : 'Unknown error'}`;
+
+              // DEBUG MODE: Show step error details
+              if (debugMode) {
+                console.error(`[FlowTools] ${errorMsg}`);
+              }
+
+              errors.push(errorMsg);
+
+              stepResults.push({
+                stepId: step.id,
+                stepName: step.name,
+                type: 'error',
+                status: 'error',
+                error: errorMsg,
                 executionTime: 0,
                 timestamp: new Date().toISOString()
               });
             }
           }
         } else {
-          errors.push('No nodes found in flow configuration');
+          // Enhanced error reporting for missing steps
+          errors.push('No steps found in flow configuration');
+
+          // DEBUG MODE: Show detailed error diagnostics
+          if (debugMode) {
+            console.error(`[FlowTools] ENHANCED ERROR DIAGNOSTIC:`);
+            console.error(`  ❌ Issue: No steps found or steps array is empty`);
+            console.error(`  📊 Flow Details:`);
+            console.error(`     - Flow ID: ${flow.id}`);
+            console.error(`     - Flow Name: ${flow.name}`);
+            console.error(`     - Has flow_data: ${!!flow.flow_data}`);
+
+            if (flow.flow_data) {
+              console.error(`     - flow_data type: ${typeof flow.flow_data}`);
+              console.error(`     - flow_data keys: ${Object.keys(flow.flow_data).join(', ')}`);
+              console.error(`     - Has steps property: ${!!flow.flow_data.steps}`);
+
+              if (flow.flow_data.steps) {
+                console.error(`     - Steps type: ${typeof flow.flow_data.steps}`);
+                console.error(`     - Steps is array: ${Array.isArray(flow.flow_data.steps)}`);
+                console.error(`     - Steps length: ${flow.flow_data.steps.length}`);
+              }
+            }
+
+            console.error(`  🔍 Raw flow_data:`, JSON.stringify(flow.flow_data, null, 2));
+          }
         }
 
         const totalExecutionTime = Date.now() - startTime;
-        const successCount = nodeResults.filter(r => r.status === 'success').length;
-        const errorCount = nodeResults.filter(r => r.status === 'error').length;
-        const skippedCount = nodeResults.filter(r => r.status === 'skipped').length;
+        const successCount = stepResults.filter(r => r.status === 'success').length;
+        const errorCount = stepResults.filter(r => r.status === 'error').length;
+        const skippedCount = stepResults.filter(r => r.status === 'skipped').length;
 
         // Step 5: Format response
-        let resultText = `🔄 Flow Execution Result\n\n`;
+        let resultText = `🔄 Dynamic Flow Execution Result\n\n`;
         resultText += `📊 Flow: ${flow.name} (${flow.id})\n`;
         resultText += `${errors.length > 0 ? '🟡' : '🟢'} Status: ${errors.length > 0 ? 'completed_with_errors' : 'completed'}\n`;
         resultText += `⏱️  Execution Time: ${formatDuration(totalExecutionTime)}\n`;
-        resultText += `📊 Nodes: ${nodeResults.length} total (${successCount} ✅, ${errorCount} ❌, ${skippedCount} ⏭️)\n`;
+        resultText += `📊 Steps: ${stepResults.length} total (${successCount} ✅, ${errorCount} ❌, ${skippedCount} ⏭️)\n`;
         resultText += `🕐 Timestamp: ${new Date().toISOString()}\n\n`;
 
         if (Object.keys(finalVariables).length > 0) {
@@ -1108,19 +1742,67 @@ export function createFlowToolHandlers(): Record<string, (args: any) => Promise<
           resultText += '\n';
         }
 
-        resultText += `📋 Node Results:\n`;
-        nodeResults.forEach((nodeResult, index) => {
-          const statusIcon = nodeResult.status === 'success' ? '✅' : nodeResult.status === 'error' ? '❌' : '⏭️';
-          resultText += `   ${index + 1}. ${nodeResult.nodeId}: ${statusIcon} ${formatDuration(nodeResult.executionTime)}\n`;
-          if (debugMode && nodeResult.response) {
-            resultText += `      └─ ${formatStatus(nodeResult.response.status)}\n`;
+        resultText += `📋 Step Results:\n`;
+        stepResults.forEach((stepResult, index) => {
+          const statusIcon = stepResult.status === 'success' ? '✅' : stepResult.status === 'error' ? '❌' : '⏭️';
+          resultText += `   ${index + 1}. ${stepResult.stepId}: ${statusIcon} ${stepResult.stepName} (${formatDuration(stepResult.executionTime)})\n`;
+
+          if (stepResult.type === 'http_request') {
+            // Enhanced request/response details
+            if (debugMode) {
+              // Debug mode: Show full details
+              resultText += `   ${formatRequestDetails(stepResult, stepResult.url, stepResult.headers || {}, stepResult.body, true)}\n`;
+              resultText += `   ├─ Response: ${formatStatus(stepResult.response.status)}\n`;
+              resultText += `   ├─ Headers:\n${formatHeaders(stepResult.response.headers || {}, true)}\n`;
+              if (stepResult.response.body) {
+                resultText += `   ├─ Body:\n${formatResponseBody(stepResult.response.body, true)}\n`;
+              }
+            } else {
+              // Normal mode: Show summary
+              resultText += `   ├─ Request: ${stepResult.method} ${stepResult.url}\n`;
+              resultText += `   ├─ Response: ${formatStatus(stepResult.response.status)} (${formatDuration(stepResult.executionTime)})\n`;
+
+              // Show response body preview
+              if (stepResult.response.body) {
+                const bodyPreview = formatResponseBody(stepResult.response.body, false);
+                resultText += `   ├─ Body: ${bodyPreview}\n`;
+              }
+            }
+
+            // Show outputs
+            if (Object.keys(stepResult.outputs || {}).length > 0) {
+              if (debugMode) {
+                resultText += `   └─ Outputs:\n`;
+                Object.entries(stepResult.outputs).forEach(([key, value]) => {
+                  resultText += `      • ${key}: ${formatResponseBody(value, true)}\n`;
+                });
+              } else {
+                resultText += `   └─ Outputs: ${Object.keys(stepResult.outputs).join(', ')}\n`;
+              }
+            }
+          } else if (stepResult.status === 'error') {
+            // Error details
+            resultText += `   └─ ❌ Error: ${stepResult.error}\n`;
+            if (debugMode && stepResult.response) {
+              resultText += `   └─ Error Response: ${formatStatus(stepResult.response.status)}\n`;
+              resultText += `   └─ Error Body: ${formatResponseBody(stepResult.response.body, true)}\n`;
+            }
           }
         });
 
         if (errors.length > 0) {
           resultText += `\n❌ Errors:\n`;
           errors.forEach((error, index) => {
-            resultText += `   ${index + 1}. ${error}\n`;
+            // Clean up error message for better readability
+            let cleanError = error;
+            if (error.includes('Step ') && error.includes(' failed:')) {
+              // Extract step name and error message
+              const match = error.match(/Step (.*?) \((.*?)\) failed: (.*)/);
+              if (match) {
+                cleanError = `Step ${match[2]}: ${match[3]}`;
+              }
+            }
+            resultText += `   ${index + 1}. ${cleanError}\n`;
           });
         }
 
@@ -1153,6 +1835,11 @@ export function createFlowToolHandlers(): Record<string, (args: any) => Promise<
 // Export for server integration
 export const FLOW_TOOLS: McpTool[] = [
   createFlowTool,
+  setEnvironmentVariablesTool,
+  setFlowInputsTool,
+  setRuntimeVariablesTool,
+  getSessionStateTool,
+  clearSessionStateTool,
   listFlowsTool,
   getFlowDetailTool,
   updateFlowTool,

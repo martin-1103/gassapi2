@@ -37,7 +37,7 @@ export function ResponseDocsTab({
             content: {
               'application/json': {
                 schema: {
-                  type: 'object',
+                  type: 'object' as const,
                   properties: {},
                 },
               },

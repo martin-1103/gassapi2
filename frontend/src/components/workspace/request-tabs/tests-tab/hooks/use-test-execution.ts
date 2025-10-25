@@ -62,7 +62,7 @@ export function useTestExecution() {
             return {
               status: 'fail' as const,
               duration,
-              message: error.message,
+              message: error instanceof Error ? error.message : 'Unknown error',
             };
           }
         }),
@@ -96,7 +96,7 @@ export function useTestExecution() {
     } catch (error) {
       toast({
         title: 'Script Invalid',
-        description: `Syntax error: ${error.message}`,
+        description: `Syntax error: ${error instanceof Error ? error.message : 'Unknown error'}`,
         variant: 'destructive',
       });
       return false;

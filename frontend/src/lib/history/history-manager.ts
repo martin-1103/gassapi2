@@ -4,6 +4,10 @@
  */
 
 import { logger } from '@/lib/logger';
+import {
+  validatePropertyName,
+  safeObjectMerge,
+} from '@/lib/security/object-injection-utils';
 
 import { HistorySearch } from './history-search';
 import { HistoryStorage } from './history-storage';
@@ -135,7 +139,60 @@ export class HistoryManager {
 
       if (index === -1) return false;
 
-      history[index] = { ...history[index], ...updates };
+      // Additional bounds validation for array access
+      if (index < 0 || index >= history.length) {
+        logger.warn(
+          'Invalid array index detected',
+          { index, historyLength: history.length },
+          'history-manager',
+        );
+        return false;
+      }
+
+      // Validate updates to prevent prototype pollution
+      const safeUpdates: Partial<RequestHistoryItem> = {};
+
+      // Define allowed keys for type-safe assignment
+      const validKeys: Array<keyof RequestHistoryItem> = [
+        'id',
+        'name',
+        'method',
+        'url',
+        'headers',
+        'body',
+        'status',
+        'response',
+        'duration',
+        'timestamp',
+        'projectId',
+        'collectionId',
+        'endpointId',
+        'environment',
+        'tags',
+      ];
+
+      // Type-safe assignment menggunakan security utilities
+      Object.entries(updates).forEach(([key, value]) => {
+        // Validasi key menggunakan security utilities
+        const keyValidation = validatePropertyName(key);
+        if (!keyValidation.isValid) {
+          return;
+        }
+
+        // Only assign if key is valid and value is defined
+        if (
+          validKeys.includes(key as keyof RequestHistoryItem) &&
+          value !== undefined
+        ) {
+          // Gunakan safe object merge untuk assignment
+          const merged = safeObjectMerge(safeUpdates, { [key]: value });
+          if (merged) {
+            Object.assign(safeUpdates, merged);
+          }
+        }
+      });
+
+      history[index] = { ...history[index], ...safeUpdates };
       await this.storage.saveHistory(history);
       this.dispatchUpdate({ action: 'updated', item: history[index] });
 

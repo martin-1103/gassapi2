@@ -1,3 +1,7 @@
+import {
+  validatePropertyName,
+  safePropertyAssignment,
+} from '@/lib/security/object-injection-utils';
 import { ImportResult } from '@/types/import-types';
 
 // Type definitions for better type safety
@@ -112,7 +116,10 @@ export const importPostmanCollection = async (
                   endpoint.request?.header?.reduce(
                     (acc: Record<string, string>, header: PostmanHeader) => {
                       if (header.key && header.value && !header.disabled) {
-                        acc[header.key] = header.value;
+                        const keyValidation = validatePropertyName(header.key);
+                        if (keyValidation.isValid) {
+                          safePropertyAssignment(acc, header.key, header.value);
+                        }
                       }
                       return acc;
                     },
@@ -173,7 +180,14 @@ export const importOpenAPISpec = async (
                 ?.filter((p: OpenAPIParameter) => p.in === 'header')
                 .reduce((acc: Record<string, string>, p: OpenAPIParameter) => {
                   if (p.name) {
-                    acc[p.name] = p.schema?.example || '';
+                    const keyValidation = validatePropertyName(p.name);
+                    if (keyValidation.isValid) {
+                      safePropertyAssignment(
+                        acc,
+                        p.name,
+                        p.schema?.example || '',
+                      );
+                    }
                   }
                   return acc;
                 }, {}) || {},
@@ -246,8 +260,12 @@ export const importCurlCommand = async (
               .substring(separatorIndex + 1)
               .trim()
               .replace(/^['"]|['"]$/g, '');
-            if (key && value) {
-              headers[key] = value;
+
+            // Validate key menggunakan security utilities
+            const keyValidation = validatePropertyName(key);
+            if (key && value && keyValidation.isValid) {
+              // Safe property assignment
+              safePropertyAssignment(headers, key, value);
             }
           }
         }

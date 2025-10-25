@@ -1,6 +1,11 @@
 /**
  * Header analysis logic untuk categorization dan filtering
  */
+import {
+  validatePropertyName,
+  safePropertyAccess,
+  safePropertyAssignment,
+} from '@/lib/security/object-injection-utils';
 
 export const STANDARD_HEADERS = [
   'content-type',
@@ -93,11 +98,32 @@ export const filterHeaders = (
 export const groupHeadersByCategory = (
   filteredHeaders: Array<[string, string]>,
 ): Record<string, Array<[string, string]>> => {
+  const allowedCategories = [
+    'Content',
+    'Cache',
+    'Authentication',
+    'CORS',
+    'Security',
+    'Custom',
+    'General',
+  ];
+
   return filteredHeaders.reduce(
     (acc, [key, value]) => {
       const category = categorizeHeader(key);
-      if (!acc[category]) acc[category] = [];
-      acc[category].push([key, value]);
+      // Validate category menggunakan security utilities
+      const categoryValidation = validatePropertyName(category);
+      if (allowedCategories.includes(category) && categoryValidation.isValid) {
+        // Safe property access dan assignment
+        const existingHeaders = safePropertyAccess(acc, category);
+        if (!existingHeaders) {
+          safePropertyAssignment(acc, category, []);
+        }
+        const currentHeaders = safePropertyAccess(acc, category) as Array<
+          [string, string]
+        >;
+        currentHeaders.push([key, value]);
+      }
       return acc;
     },
     {} as Record<string, Array<[string, string]>>,

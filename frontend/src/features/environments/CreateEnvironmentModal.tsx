@@ -4,6 +4,12 @@ import React, { useState } from 'react';
 import { toast } from 'sonner';
 
 import { environmentsApi } from '@/lib/api/endpoints';
+import { logger } from '@/lib/logger';
+import {
+  safePropertyAssignment,
+  safePropertyAccess,
+  validatePropertyName,
+} from '@/lib/security/object-injection-utils';
 
 interface CreateEnvironmentModalProps {
   projectId: string;
@@ -45,21 +51,39 @@ export default function CreateEnvironmentModal({
 
   const addVariable = () => {
     if (variableInput.key.trim() && variableInput.value.trim()) {
+      const newVariables = { ...formData.variables };
+      safePropertyAssignment(
+        newVariables,
+        variableInput.key,
+        variableInput.value,
+      );
       setFormData({
         ...formData,
-        variables: {
-          ...formData.variables,
-          [variableInput.key]: variableInput.value,
-        },
+        variables: newVariables,
       });
       setVariableInput({ key: '', value: '' });
     }
   };
 
   const removeVariable = (key: string) => {
+    // Validate key using security utilities
+    const validation = validatePropertyName(key);
+    if (!validation.isValid) {
+      logger.warn(
+        `Invalid variable key, skipping removal: ${validation.reason}`,
+        { key },
+        'CreateEnvironmentModal',
+      );
+      return;
+    }
+
     const newVars = { ...formData.variables };
-    delete newVars[key];
-    setFormData({ ...formData, variables: newVars });
+    const value = safePropertyAccess(newVars, key);
+    if (value !== undefined) {
+      // Safe deletion using validated property name
+      delete newVars[key];
+      setFormData({ ...formData, variables: newVars });
+    }
   };
 
   return (

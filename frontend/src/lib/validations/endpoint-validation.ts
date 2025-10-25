@@ -134,7 +134,7 @@ export const validateRequestBody = (
     };
   }
 
-  if (contentType.includes('application/json')) {
+  if (contentType.includes('application/json') && body) {
     try {
       JSON.parse(body);
     } catch {
@@ -168,7 +168,7 @@ export const validateAuth = (
 
   switch (authData.type) {
     case 'bearer':
-      if (!authData.bearer.token) {
+      if (!authData.bearer?.token) {
         errors.push({
           field: 'auth.bearer.token',
           message: 'Bearer token is required',
@@ -176,7 +176,7 @@ export const validateAuth = (
       }
       break;
     case 'basic':
-      if (!authData.basic.username || !authData.basic.password) {
+      if (!authData.basic?.username || !authData.basic?.password) {
         errors.push({
           field: 'auth.basic',
           message: 'Username and password are required for basic auth',
@@ -184,7 +184,7 @@ export const validateAuth = (
       }
       break;
     case 'apikey':
-      if (!authData.apikey.key || !authData.apikey.value) {
+      if (!authData.apikey?.key || !authData.apikey?.value) {
         errors.push({
           field: 'auth.apikey',
           message: 'API key and value are required',
@@ -192,7 +192,7 @@ export const validateAuth = (
       }
       break;
     case 'oauth2':
-      if (!authData.oauth2.clientId || !authData.oauth2.clientSecret) {
+      if (!authData.oauth2?.clientId || !authData.oauth2?.clientSecret) {
         errors.push({
           field: 'auth.oauth2',
           message: 'Client ID and Client Secret are required for OAuth2',

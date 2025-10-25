@@ -6,6 +6,7 @@
 import { McpTool, McpToolResponse } from '../types.js';
 import { ConfigManager } from '../config.js';
 import { BackendClient } from '../client/BackendClient.js';
+import { getApiEndpoints } from '../lib/api/endpoints.js';
 
 // API Response Interfaces
 interface CollectionListResponse {
@@ -263,7 +264,8 @@ export function createCollectionToolHandlers(): Record<string, (args: any) => Pr
         const flatten = args.flatten === true;
 
         // Call backend to get collections
-        const endpoint = `/gassapi2/backend/?act=project_collections&id=${encodeURIComponent(projectId)}`;
+        const apiEndpoints = getApiEndpoints();
+        const endpoint = apiEndpoints.getEndpoint('projectCollections', { id: projectId });
         const fullUrl = `${backendClient.getBaseUrl()}${endpoint}`;
 
         console.error(`[CollectionTools] Requesting collections from: ${fullUrl}`);
@@ -362,7 +364,8 @@ export function createCollectionToolHandlers(): Record<string, (args: any) => Pr
         }
 
         // Create collection
-        const endpoint = `/gassapi2/backend/?act=collection_create&id=${encodeURIComponent(projectId)}`;
+        const apiEndpoints = getApiEndpoints();
+        const endpoint = apiEndpoints.getEndpoint('collectionCreate', { id: projectId });
         const fullUrl = `${backendClient.getBaseUrl()}${endpoint}`;
 
         console.error(`[CollectionTools] Creating collection at: ${fullUrl}`);
@@ -447,7 +450,8 @@ export function createCollectionToolHandlers(): Record<string, (args: any) => Pr
         }
 
         // Move collection (using update endpoint with parent_id)
-        const endpoint = `/gassapi2/backend/?act=collection_update&id=${encodeURIComponent(collectionId)}`;
+        const apiEndpoints = getApiEndpoints();
+        const endpoint = apiEndpoints.getEndpoint('collectionUpdate', { id: collectionId });
         const fullUrl = `${backendClient.getBaseUrl()}${endpoint}`;
 
         console.error(`[CollectionTools] Moving collection at: ${fullUrl}`);
@@ -524,7 +528,11 @@ export function createCollectionToolHandlers(): Record<string, (args: any) => Pr
         }
 
         // Delete collection
-        const endpoint = `/gassapi2/backend/?act=collection_delete&id=${encodeURIComponent(collectionId)}&force=${force ? 'true' : 'false'}`;
+        const apiEndpoints = getApiEndpoints();
+        const endpoint = apiEndpoints.getEndpoint('collectionDelete', {
+          id: collectionId,
+          force: force ? 'true' : 'false'
+        });
         const fullUrl = `${backendClient.getBaseUrl()}${endpoint}`;
 
         console.error(`[CollectionTools] Deleting collection at: ${fullUrl}`);

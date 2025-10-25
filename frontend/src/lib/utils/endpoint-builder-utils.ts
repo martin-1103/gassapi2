@@ -113,7 +113,10 @@ export function buildRequestBody(
   }
 
   // Kalau bodyData sudah string atau object, return as-is
-  if (typeof bodyData === 'string' || typeof bodyData === 'object') {
+  if (
+    typeof bodyData === 'string' ||
+    (typeof bodyData === 'object' && bodyData !== null)
+  ) {
     return bodyData;
   }
 

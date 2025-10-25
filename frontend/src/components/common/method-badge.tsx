@@ -1,7 +1,8 @@
-// import * as React from 'react'; // Removed unused React import
-
 import Badge from '@/components/ui/badge';
+import { safePropertyAccess } from '@/lib/security/object-injection-utils';
 import { cn } from '@/lib/utils/index';
+
+// import * as React from 'react'; // Removed unused React import
 
 interface MethodBadgeProps {
   method: string;
@@ -71,7 +72,7 @@ export function MethodBadge({ method, size = 'md' }: MethodBadgeProps) {
       className={cn(
         'font-mono font-semibold',
         config.className,
-        sizeClasses[validSize],
+        safePropertyAccess(sizeClasses, validSize) || sizeClasses.md,
       )}
     >
       {method.toUpperCase()}

@@ -66,6 +66,7 @@ $allowedActions = [
     // Flows
     'flows', 'flows_active', 'flow', 'flow_update', 'flow_delete', 'flow_create', 'flow_toggle_active', 'flow_duplicate',
     'flow_list', 'flow_get', 'flow_activate', 'flow_deactivate', 'flow_execute',
+    'flow_detail_ui', 'flow_update_ui', // UI endpoints for React Flow format
     // MCP
     'mcp_validate', 'mcp_generate_config'
 ];
@@ -148,6 +149,7 @@ function resolveRoutePath($action, $id = null) {
         'flow_duplicate' => $id ? "/flow/$id/duplicate" : '/flow/duplicate',
         'flow_list' => $id ? "/project/$id/flows" : '/project/flows',
         'flow_get' => $id ? "/flow/$id" : '/flow',
+        'flow_detail_ui' => $id ? "/flow/$id/ui" : '/flow/ui',
         'flow_activate' => $id ? "/flow/$id/activate" : '/flow/activate',
         'flow_deactivate' => $id ? "/flow/$id/deactivate" : '/flow/deactivate',
         'flow_execute' => $id ? "/flow/$id/execute" : '/flow/execute',

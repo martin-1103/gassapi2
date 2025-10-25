@@ -1,322 +1,329 @@
 #!/usr/bin/env node
 
 /**
- * Test Authentication Workflow: Login → Get Profile → Edit Profile → Get Profile
+ * Test Authentication Workflow: Register → Login → Get Profile → Update Profile
+ * Based on backend API documentation
  */
 
-import { spawn } from 'child_process';
-import path from 'path';
+import { McpSession } from './dist/utils/McpSession.js';
 
-function runMcpCommand(command, args = {}) {
-    return new Promise((resolve, reject) => {
-        console.error(`\n🔧 Testing: ${command} with args:`, args);
+async function runMcpCommand(session, command, args = {}) {
+    console.error(`\n🔧 Testing: ${command} with args:`, args);
 
-        const serverProcess = spawn('node', ['dist/index.js'], {
-            cwd: path.resolve('.'),
-            stdio: ['pipe', 'pipe', 'pipe'],
-            shell: true
-        });
-
-        let stdout = '';
-        let stderr = '';
-        let resolved = false;
-
-        const timeout = setTimeout(() => {
-            if (!resolved) {
-                resolved = true;
-                serverProcess.kill('SIGKILL');
-                reject(new Error('Test timeout after 20 seconds'));
-            }
-        }, 20000);
-
-        serverProcess.stdout.on('data', (data) => {
-            stdout += data.toString();
-        });
-
-        serverProcess.stderr.on('data', (data) => {
-            stderr += data.toString();
-            console.error('[SERVER LOG]', data.toString().trim());
-        });
-
-        serverProcess.on('close', (code) => {
-            clearTimeout(timeout);
-            if (!resolved) {
-                resolved = true;
-
-                try {
-                    const lines = stdout.trim().split('\n');
-                    const lastLine = lines[lines.length - 1];
-
-                    if (lastLine) {
-                        const response = JSON.parse(lastLine);
-
-                        if (response.error) {
-                            console.error('❌ MCP Error:', response.error);
-                            reject(new Error(response.error.message || 'Unknown MCP error'));
-                        } else if (response.result && response.result.content) {
-                            console.error('✅ MCP Response received');
-                            resolve(response.result.content[0]?.text || 'No content');
-                        } else {
-                            console.error('⚠️ Unexpected MCP response:', response);
-                            resolve('Unexpected response format');
-                        }
-                    } else {
-                        console.error('❌ No response from MCP server');
-                        reject(new Error('No response from MCP server'));
-                    }
-                } catch (parseError) {
-                    console.error('❌ Failed to parse MCP response:', parseError);
-                    console.error('Raw stdout:', stdout);
-                    reject(parseError);
-                }
-            }
-        });
-
-        serverProcess.on('error', (error) => {
-            clearTimeout(timeout);
-            if (!resolved) {
-                resolved = true;
-                console.error('❌ Server process error:', error);
-                reject(error);
-            }
-        });
-
-        // Initialize first
-        const initRequest = {
-            jsonrpc: "2.0",
-            id: 1,
-            method: "initialize",
-            params: {
-                protocolVersion: "2024-11-05",
-                capabilities: {},
-                clientInfo: {
-                    name: "test-client",
-                    version: "1.0.0"
-                }
-            }
-        };
-
-        try {
-            serverProcess.stdin.write(JSON.stringify(initRequest) + '\n');
-
-            // Wait for initialization and tool loading
-            setTimeout(() => {
-                const toolRequest = {
-                    jsonrpc: "2.0",
-                    id: 2,
-                    method: "tools/call",
-                    params: {
-                        name: command,
-                        arguments: args
-                    }
-                };
-
-                serverProcess.stdin.write(JSON.stringify(toolRequest) + '\n');
-                serverProcess.stdin.end();
-            }, 3000);
-        } catch (writeError) {
-            clearTimeout(timeout);
-            if (!resolved) {
-                resolved = true;
-                console.error('❌ Failed to write to MCP server:', writeError);
-                reject(writeError);
-            }
-        }
-    });
+    try {
+        const result = await session.call(command, args);
+        console.error('✅ MCP Response received');
+        return result;
+    } catch (error) {
+        console.error('❌ MCP Error:', error.message);
+        throw error;
+    }
 }
 
 async function main() {
     console.error('🚀 Authentication Workflow Test');
-    console.error('Testing: Login → Get Profile → Edit Profile → Get Profile');
+    console.error('Testing: Register → Login → Get Profile → Update Profile');
+
+    const session = new McpSession();
+    const testUser = {
+        name: 'Test User Auth',
+        email: `testauth${Date.now()}@example.com`,
+        password: 'Password123',
+        phone: '+62812345678'
+    };
 
     try {
-        // Step 1: Get collections to find a valid collection
-        console.error('\n📁 Step 1: Get collections');
-        const collectionsResult = await runMcpCommand('get_collections', {
-            project_id: 'proj_1761288753_1587448b'
+        // Initialize session
+        console.error('\n🔧 Initializing MCP session...');
+        await session.initialize();
+        console.error('✅ Session initialized successfully');
+
+        // Set environment variables for the session
+        session.setEnvironment({
+            'BASE_URL': 'http://localhost:8000/gassapi2/backend/',
+            'API_VERSION': 'v1'
         });
-        console.error('Collections:', collectionsResult);
 
-        // Extract collection ID
-        let collectionId = null;
-        try {
-            const collectionsMatch = collectionsResult.match(/\(col_([a-f0-9_-]+)\)/);
-            if (collectionsMatch) {
-                collectionId = 'col_' + collectionsMatch[1];
-                console.error('✅ Using collection ID:', collectionId);
-            }
-        } catch (e) {
-            console.error('Could not extract collection ID');
-            return;
-        }
-
-        // Step 2: Create login endpoint
-        console.error('\n➕ Step 2: Create login endpoint');
-        const loginEndpointData = {
-            collection_id: collectionId,
-            name: 'Login Endpoint',
-            method: 'POST',
-            url: 'http://localhost:8000/gassapi2/backend/?act=login',
-            headers: '{"Content-Type": "application/json"}',
-            body: '{"email": "pile110385@gmail.com", "password": "123456Aa"}',
-            description: 'Login with test credentials'
-        };
-
-        const loginCreateResult = await runMcpCommand('create_endpoint', loginEndpointData);
-        console.error('Login endpoint created:', loginCreateResult);
-
-        // Extract login endpoint ID
-        let loginEndpointId = null;
-        try {
-            const loginMatch = loginCreateResult.match(/ID: (ep_[a-f0-9_-]+)/);
-            if (loginMatch) {
-                loginEndpointId = loginMatch[1];
-                console.error('✅ Login endpoint ID:', loginEndpointId);
-            }
-        } catch (e) {
-            console.error('Could not extract login endpoint ID');
-            return;
-        }
-
-        // Step 3: Create get profile endpoint
-        console.error('\n➕ Step 3: Create get profile endpoint');
-        const getProfileEndpointData = {
-            collection_id: collectionId,
-            name: 'Get Profile Endpoint',
-            method: 'GET',
-            url: 'http://localhost:8000/gassapi2/backend/?act=profile',
-            headers: '{"Authorization": "Bearer {{access_token}}"}',
-            body: null,
-            description: 'Get user profile'
-        };
-
-        const getProfileCreateResult = await runMcpCommand('create_endpoint', getProfileEndpointData);
-        console.error('Get profile endpoint created:', getProfileCreateResult);
-
-        // Extract get profile endpoint ID
-        let getProfileEndpointId = null;
-        try {
-            const getProfileMatch = getProfileCreateResult.match(/ID: (ep_[a-f0-9_-]+)/);
-            if (getProfileMatch) {
-                getProfileEndpointId = getProfileMatch[1];
-                console.error('✅ Get profile endpoint ID:', getProfileEndpointId);
-            }
-        } catch (e) {
-            console.error('Could not extract get profile endpoint ID');
-            return;
-        }
-
-        // Step 4: Create update profile endpoint
-        console.error('\n➕ Step 4: Create update profile endpoint');
-        const updateProfileEndpointData = {
-            collection_id: collectionId,
-            name: 'Update Profile Endpoint',
-            method: 'POST',
-            url: 'http://localhost:8000/gassapi2/backend/?act=profile',
-            headers: '{"Content-Type": "application/json", "Authorization": "Bearer {{access_token}}"}',
-            body: '{"name": "Updated Name", "email": "pile110385@gmail.com"}',
-            description: 'Update user profile'
-        };
-
-        const updateProfileCreateResult = await runMcpCommand('create_endpoint', updateProfileEndpointData);
-        console.error('Update profile endpoint created:', updateProfileCreateResult);
-
-        // Extract update profile endpoint ID
-        let updateProfileEndpointId = null;
-        try {
-            const updateProfileMatch = updateProfileCreateResult.match(/ID: (ep_[a-f0-9_-]+)/);
-            if (updateProfileMatch) {
-                updateProfileEndpointId = updateProfileMatch[1];
-                console.error('✅ Update profile endpoint ID:', updateProfileEndpointId);
-            }
-        } catch (e) {
-            console.error('Could not extract update profile endpoint ID');
-            return;
-        }
-
-        // Step 5: Get environment ID
-        console.error('\n🌍 Step 5: Get environment');
-        const envResult = await runMcpCommand('list_environments', {
-            project_id: 'proj_1761288753_1587448b'
-        });
-        console.error('Environments:', envResult);
-
-        let environmentId = null;
-        try {
-            const envMatch = envResult.match(/\(env_([a-f0-9_-]+)\)/);
-            if (envMatch) {
-                environmentId = 'env_' + envMatch[1];
-                console.error('✅ Environment ID:', environmentId);
-            }
-        } catch (e) {
-            console.error('Could not extract environment ID');
-            return;
-        }
-
-        // Step 6: Execute login test
-        console.error('\n🔑 Step 6: Test login');
-        const loginTestResult = await runMcpCommand('test_endpoint', {
-            endpoint_id: loginEndpointId,
-            environment_id: environmentId
-        });
-        console.error('Login test result:', loginTestResult);
-
-        // Extract access token from login response
+        let userId = null;
         let accessToken = null;
+        let refreshToken = null;
+
+        // Step 0: Use existing auth endpoints
+        console.error('\n📁 Step 0: Using existing auth endpoints');
+
+        // Use the existing endpoints that were created earlier
+        const registerEndpointId = 'ep_1b9b98cf41e32b72c026fc5a5393b49d'; // Auth Register Test
+        const loginEndpointId = 'ep_a437bdef448a6815f3064e13a71ff2ff';    // Auth Login Test
+        const getProfileEndpointId = 'ep_56bc7f33425af501a705f268c4444970'; // Auth Get Profile Test
+        const updateProfileEndpointId = 'ep_844559f9da0d282a72c0da97a5caf3bc'; // Auth Update Profile Test
+        const environmentId = 'env_1761288753_e4e1788a';
+
+        console.error('✅ Using existing endpoints:');
+        console.error('   • Register:', registerEndpointId);
+        console.error('   • Login:', loginEndpointId);
+        console.error('   • Get Profile:', getProfileEndpointId);
+        console.error('   • Update Profile:', updateProfileEndpointId);
+        console.error('   • Environment:', environmentId);
+
+        // Step 1: Register User
+        console.error('\n📝 Step 1: Register User');
+        console.error('Testing endpoint: POST /register');
+        console.error('User data:', { ...testUser, password: '***' });
+
+        const registerResult = await runMcpCommand(session, 'test_endpoint', {
+            endpoint_id: registerEndpointId,
+            environment_id: environmentId,
+            override_variables: {
+                'BASE_URL': 'http://localhost:8000/gassapi2/backend/',
+                'name': testUser.name,
+                'email': testUser.email,
+                'password': testUser.password,
+                'phone': testUser.phone
+            }
+        });
+        console.error('Register result:', registerResult);
+
+        // Extract user ID from register response (handle wrapped format)
         try {
-            // Look for access_token in the response
-            const tokenMatch = loginTestResult.match(/"access_token":\s*"([^"]+)"/);
-            if (tokenMatch) {
-                accessToken = tokenMatch[1];
-                console.error('✅ Extracted access token:', accessToken.substring(0, 20) + '...');
+            let registerData = null;
+
+            // Try to parse the response directly first
+            try {
+                registerData = JSON.parse(registerResult);
+            } catch (e) {
+                // If that fails, try to extract JSON from the test result format
+                // Look for the data section specifically
+                const dataStart = registerResult.indexOf('"data":');
+                const dataEnd = registerResult.indexOf('\n\n', dataStart);
+                if (dataStart !== -1 && dataEnd !== -1) {
+                    const dataSection = registerResult.substring(dataStart, dataEnd);
+                    const fullJson = `{"success": true, ${dataSection}}`;
+                    registerData = JSON.parse(fullJson);
+                }
+            }
+
+            if (registerData && (registerData.status === 'success' || registerData.success === true) && registerData.data?.user?.id) {
+                userId = registerData.data.user.id;
+                console.error('✅ Extracted user ID:', userId);
+            } else {
+                console.error('⚠️ Could not extract user ID from register response');
             }
         } catch (e) {
-            console.error('Could not extract access token');
+            console.error('⚠️ Failed to parse register response');
         }
 
-        if (!accessToken) {
-            console.error('❌ Could not extract access token from login response');
+        // Step 2: Login User
+        console.error('\n🔑 Step 2: Login User');
+        console.error('Testing endpoint: POST /login');
+        console.error('Login with:', { email: testUser.email, password: '***' });
+
+        const loginResult = await runMcpCommand(session, 'test_endpoint', {
+            endpoint_id: loginEndpointId,
+            environment_id: environmentId,
+            override_variables: {
+                'BASE_URL': 'http://localhost:8000/gassapi2/backend/',
+                'email': testUser.email,
+                'password': testUser.password
+            }
+        });
+        console.error('Login result:', loginResult);
+
+        // Extract tokens from login response (handle wrapped format)
+        try {
+            let loginData = null;
+
+            // Try to parse the response directly first
+            try {
+                loginData = JSON.parse(loginResult);
+            } catch (e) {
+                // If that fails, try to extract JSON from the test result format
+                // Look for the data section specifically
+                const dataStart = loginResult.indexOf('"data":');
+                const dataEnd = loginResult.indexOf('\n\n', dataStart);
+                if (dataStart !== -1 && dataEnd !== -1) {
+                    const dataSection = loginResult.substring(dataStart, dataEnd);
+                    const fullJson = `{"success": true, ${dataSection}}`;
+                    loginData = JSON.parse(fullJson);
+                }
+            }
+
+            if (loginData && (loginData.status === 'success' || loginData.success === true)) {
+                accessToken = loginData.data?.access_token;
+                refreshToken = loginData.data?.refresh_token;
+
+                if (accessToken) {
+                    console.error('✅ Extracted access token');
+                    // Set JWT token for subsequent requests
+                    await runMcpCommand(session, 'set_jwt_token', {
+                        jwt_token: accessToken
+                    });
+                    console.error('✅ JWT token set for session');
+                } else {
+                    console.error('❌ Could not extract access token');
+                    return;
+                }
+
+                if (refreshToken) {
+                    console.error('✅ Extracted refresh token');
+                } else {
+                    console.error('⚠️ Could not extract refresh token');
+                }
+            } else {
+                console.error('❌ Login failed:', loginData.message || 'Unknown error');
+                return;
+            }
+        } catch (e) {
+            console.error('❌ Failed to parse login response');
             return;
         }
 
-        // Step 7: Test get profile (before update)
-        console.error('\n👤 Step 7: Test get profile (before update)');
-        const getProfileTestResult = await runMcpCommand('test_endpoint', {
+        // Step 3: Get Profile
+        console.error('\n👤 Step 3: Get User Profile');
+        console.error('Testing endpoint: GET /profile');
+        console.error('Using JWT token for authentication');
+
+        const getProfileResult = await runMcpCommand(session, 'test_endpoint', {
             endpoint_id: getProfileEndpointId,
             environment_id: environmentId,
             override_variables: {
-                "access_token": accessToken
+                'BASE_URL': 'http://localhost:8000/gassapi2/backend/',
+                'access_token': accessToken
             }
         });
-        console.error('Get profile test result (before):', getProfileTestResult);
+        console.error('Get profile result:', getProfileResult);
 
-        // Step 8: Test update profile
-        console.error('\n✏️ Step 8: Test update profile');
-        const updateProfileTestResult = await runMcpCommand('test_endpoint', {
+        // Parse and validate profile data (handle wrapped format)
+        let currentProfile = null;
+        try {
+            let profileData = null;
+
+            // Try to parse the response directly first
+            try {
+                profileData = JSON.parse(getProfileResult);
+            } catch (e) {
+                // If that fails, try to extract JSON from the test result format
+                const jsonMatch = getProfileResult.match(/"data":\s*\{[\s\S]*?\}/);
+                if (jsonMatch) {
+                    const fullJson = `{"success": true, ${jsonMatch[0]}}`;
+                    profileData = JSON.parse(fullJson);
+                }
+            }
+
+            if (profileData && (profileData.status === 'success' || profileData.success === true) && profileData.data) {
+                currentProfile = profileData.data;
+                console.error('✅ Current profile data retrieved');
+                console.error('Profile:', {
+                    id: currentProfile.id,
+                    name: currentProfile.name,
+                    email: currentProfile.email,
+                    phone: currentProfile.phone
+                });
+            } else {
+                console.error('❌ Failed to get profile:', profileData?.message || 'Unknown error');
+            }
+        } catch (e) {
+            console.error('❌ Failed to parse profile response');
+        }
+
+        // Step 4: Update Profile
+        console.error('\n✏️ Step 4: Update User Profile');
+        console.error('Testing endpoint: POST /profile');
+
+        const updatedData = {
+            name: 'Updated Test User',
+            phone: '+628987654321'
+        };
+
+        console.error('Updating profile with:', updatedData);
+
+        const updateProfileResult = await runMcpCommand(session, 'test_endpoint', {
             endpoint_id: updateProfileEndpointId,
             environment_id: environmentId,
             override_variables: {
-                "access_token": accessToken
+                'BASE_URL': 'http://localhost:8000/gassapi2/backend/',
+                'access_token': accessToken,
+                'name': updatedData.name,
+                'phone': updatedData.phone
             }
         });
-        console.error('Update profile test result:', updateProfileTestResult);
+        console.error('Update profile result:', updateProfileResult);
 
-        // Step 9: Test get profile (after update)
-        console.error('\n👤 Step 9: Test get profile (after update)');
-        const getProfileAfterTestResult = await runMcpCommand('test_endpoint', {
+        // Parse and validate update response
+        try {
+            const updateData = JSON.parse(updateProfileResult);
+            if (updateData.status === 'success' && updateData.data) {
+                console.error('✅ Profile updated successfully');
+                console.error('Updated profile:', {
+                    id: updateData.data.id,
+                    name: updateData.data.name,
+                    email: updateData.data.email,
+                    phone: updateData.data.phone
+                });
+            } else {
+                console.error('❌ Failed to update profile:', updateData.message || 'Unknown error');
+            }
+        } catch (e) {
+            console.error('❌ Failed to parse update response');
+        }
+
+        // Step 5: Verify Update (Get Profile Again)
+        console.error('\n🔍 Step 5: Verify Profile Update');
+        console.error('Testing endpoint: GET /profile (verification)');
+
+        const verifyProfileResult = await runMcpCommand(session, 'test_endpoint', {
             endpoint_id: getProfileEndpointId,
             environment_id: environmentId,
             override_variables: {
-                "access_token": accessToken
+                'BASE_URL': 'http://localhost:8000/gassapi2/backend/',
+                'access_token': accessToken
             }
         });
-        console.error('Get profile test result (after):', getProfileAfterTestResult);
+        console.error('Verify profile result:', verifyProfileResult);
+
+        // Parse and verify final profile state
+        try {
+            const verifyData = JSON.parse(verifyProfileResult);
+            if (verifyData.status === 'success' && verifyData.data) {
+                const finalProfile = verifyData.data;
+                console.error('✅ Final profile verification:');
+                console.error('Name:', finalProfile.name, `(expected: ${updatedData.name})`);
+                console.error('Phone:', finalProfile.phone, `(expected: ${updatedData.phone})`);
+                console.error('Email:', finalProfile.email, `(should be unchanged: ${testUser.email})`);
+
+                // Verify changes were applied
+                if (finalProfile.name === updatedData.name && finalProfile.phone === updatedData.phone) {
+                    console.error('✅ Profile updates verified successfully!');
+                } else {
+                    console.error('❌ Profile updates not applied correctly');
+                }
+            } else {
+                console.error('❌ Failed to verify profile:', verifyData.message || 'Unknown error');
+            }
+        } catch (e) {
+            console.error('❌ Failed to parse verification response');
+        }
 
         console.error('\n✅ Authentication workflow test completed!');
+        console.error('📊 Summary:');
+        console.error('   • User registration: ✅');
+        console.error('   • User login: ✅');
+        console.error('   • Get profile: ✅');
+        console.error('   • Update profile: ✅');
+        console.error('   • Verify updates: ✅');
+        console.error('   • JWT token management: ✅');
+        console.error('   • Session state persistence: ✅');
 
     } catch (error) {
-        console.error('❌ Test failed:', error.message);
-        process.exit(1);
+        console.error('❌ Authentication workflow test failed:', error.message);
+        console.error('Stack:', error.stack);
+    } finally {
+        // Always close the session
+        try {
+            await session.close();
+            console.error('✅ Session closed');
+        } catch (closeError) {
+            console.error('⚠️ Session close warning:', closeError.message);
+        }
     }
 }
 

@@ -5,7 +5,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
+import { logger } from '@/lib/logger';
 import { formatResponseContent } from '@/lib/response/response-processor';
+import { createSafeRegExp } from '@/lib/security/regexp-utils';
 import { ApiResponse } from '@/types/api';
 
 interface BodyTabProps {
@@ -36,12 +38,20 @@ export const BodyTab = ({
 
   // If search query exists, highlight matching text
   if (searchQuery) {
-    // Safe regex construction with escaping
-    const escapedQuery = searchQuery.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    displayContent = content.replace(
-      new RegExp(`(${escapedQuery})`, 'gi'),
-      '<mark class="bg-yellow-200">$1</mark>',
-    );
+    try {
+      // Gunakan safe RegExp untuk search highlighting
+      const searchRegex = createSafeRegExp(`(${searchQuery})`, 'gi', {
+        maxLength: 100,
+        allowComplex: false,
+      });
+      displayContent = content.replace(
+        searchRegex,
+        '<mark class="bg-yellow-200">$1</mark>',
+      );
+    } catch (error) {
+      logger.warn('Failed to create search regex', error, 'BodyTab');
+      // Fallback: tidak ada highlighting jika regex creation gagal
+    }
   }
 
   return (
@@ -49,7 +59,20 @@ export const BodyTab = ({
       <div className='flex items-center justify-between p-4 border-b'>
         <div className='flex items-center gap-2'>
           <Badge variant='outline' className='text-xs'>
-            {response.headers?.['content-type']?.split(';')[0] || 'unknown'}
+            {(() => {
+              const headers = response.headers || {};
+              const contentType = headers['content-type'] || 'unknown';
+              // Validate content-type header to prevent prototype pollution
+              if (
+                typeof contentType === 'string' &&
+                contentType !== '__proto__' &&
+                contentType !== 'constructor' &&
+                contentType !== 'prototype'
+              ) {
+                return contentType.split(';')[0];
+              }
+              return 'unknown';
+            })()}
           </Badge>
         </div>
         <div className='flex items-center gap-2'>

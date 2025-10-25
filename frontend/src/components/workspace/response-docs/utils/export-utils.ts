@@ -7,7 +7,7 @@ import { formatSchema } from './schema-utils';
 export interface DocumentationData {
   endpoint: ApiEndpoint;
   response: ApiResponse;
-  request: RequestInfo;
+  request?: RequestInfo;
   generatedAt: string;
 }
 

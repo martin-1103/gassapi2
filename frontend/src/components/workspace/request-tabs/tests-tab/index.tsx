@@ -257,8 +257,8 @@ export default function TestsTab({
       <div className='px-4 pt-4'>
         <Tabs
           value={activeTab}
-          onValueChange={(value: 'pre-request' | 'post-response') =>
-            setActiveTab(value)
+          onValueChange={(value: string) =>
+            setActiveTab(value as 'pre-request' | 'post-response')
           }
         >
           <TabsList className='grid w-full grid-cols-2'>
@@ -301,7 +301,6 @@ export default function TestsTab({
           selectedScript={selectedScript}
           onUpdateScript={updateScript}
           onDuplicateScript={duplicateScript}
-          onDeleteScript={deleteScript}
           onValidateScript={validateScript}
           onFormatScript={formatScript}
           templates={templates}

@@ -3,6 +3,7 @@ import { Globe } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
+import { safePropertyAccess } from '@/lib/security/object-injection-utils';
 
 import { ApiEndpoint, ApiResponse } from './types';
 
@@ -19,11 +20,22 @@ export function OverviewTab({ endpoint, response }: OverviewTabProps) {
   const hasRequestBody = endpoint.requestBody;
 
   const getContentType = (): string => {
-    const contentTypeHeader = Object.keys(response.headers || {}).find(
+    const headers = response.headers || {};
+    const contentTypeHeader = Object.keys(headers).find(
       key => key.toLowerCase() === 'content-type',
     );
+
+    // Validate header key to prevent prototype pollution
+    if (
+      contentTypeHeader === '__proto__' ||
+      contentTypeHeader === 'constructor' ||
+      contentTypeHeader === 'prototype'
+    ) {
+      return 'application/json';
+    }
+
     return contentTypeHeader
-      ? response.headers[contentTypeHeader]
+      ? safePropertyAccess(headers, contentTypeHeader) || 'application/json'
       : 'application/json';
   };
 

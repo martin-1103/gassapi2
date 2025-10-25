@@ -2,140 +2,47 @@
 
 /**
  * Test Flow Lifecycle: Create → Execute → Edit → Execute → Delete
+ * Using stateful McpSession for persistent connection
  */
 
-import { spawn } from 'child_process';
-import path from 'path';
+import { McpSession } from './dist/utils/McpSession.js';
 
-function runMcpCommand(command, args = {}) {
-    return new Promise((resolve, reject) => {
-        console.error(`\n🔧 Testing: ${command} with args:`, args);
+async function runMcpCommand(session, command, args = {}) {
+    console.error(`\n🔧 Testing: ${command} with args:`, args);
 
-        const serverProcess = spawn('node', ['dist/index.js'], {
-            cwd: path.resolve('.'),
-            stdio: ['pipe', 'pipe', 'pipe'],
-            shell: true
-        });
-
-        let stdout = '';
-        let stderr = '';
-        let resolved = false;
-
-        const timeout = setTimeout(() => {
-            if (!resolved) {
-                resolved = true;
-                serverProcess.kill('SIGKILL');
-                reject(new Error('Test timeout after 20 seconds'));
-            }
-        }, 20000);
-
-        serverProcess.stdout.on('data', (data) => {
-            stdout += data.toString();
-        });
-
-        serverProcess.stderr.on('data', (data) => {
-            stderr += data.toString();
-            console.error('[SERVER LOG]', data.toString().trim());
-        });
-
-        serverProcess.on('close', (code) => {
-            clearTimeout(timeout);
-            if (!resolved) {
-                resolved = true;
-
-                try {
-                    const lines = stdout.trim().split('\n');
-                    const lastLine = lines[lines.length - 1];
-
-                    if (lastLine) {
-                        const response = JSON.parse(lastLine);
-
-                        if (response.error) {
-                            console.error('❌ MCP Error:', response.error);
-                            reject(new Error(response.error.message || 'Unknown MCP error'));
-                        } else if (response.result && response.result.content) {
-                            console.error('✅ MCP Response received');
-                            resolve(response.result.content[0]?.text || 'No content');
-                        } else {
-                            console.error('⚠️ Unexpected MCP response:', response);
-                            resolve('Unexpected response format');
-                        }
-                    } else {
-                        console.error('❌ No response from MCP server');
-                        reject(new Error('No response from MCP server'));
-                    }
-                } catch (parseError) {
-                    console.error('❌ Failed to parse MCP response:', parseError);
-                    console.error('Raw stdout:', stdout);
-                    reject(parseError);
-                }
-            }
-        });
-
-        serverProcess.on('error', (error) => {
-            clearTimeout(timeout);
-            if (!resolved) {
-                resolved = true;
-                console.error('❌ Server process error:', error);
-                reject(error);
-            }
-        });
-
-        // Initialize first
-        const initRequest = {
-            jsonrpc: "2.0",
-            id: 1,
-            method: "initialize",
-            params: {
-                protocolVersion: "2024-11-05",
-                capabilities: {},
-                clientInfo: {
-                    name: "test-client",
-                    version: "1.0.0"
-                }
-            }
-        };
-
-        try {
-            serverProcess.stdin.write(JSON.stringify(initRequest) + '\n');
-
-            // Wait for initialization and tool loading
-            setTimeout(() => {
-                const toolRequest = {
-                    jsonrpc: "2.0",
-                    id: 2,
-                    method: "tools/call",
-                    params: {
-                        name: command,
-                        arguments: args
-                    }
-                };
-
-                serverProcess.stdin.write(JSON.stringify(toolRequest) + '\n');
-                serverProcess.stdin.end();
-            }, 3000);
-        } catch (writeError) {
-            clearTimeout(timeout);
-            if (!resolved) {
-                resolved = true;
-                console.error('❌ Failed to write to MCP server:', writeError);
-                reject(writeError);
-            }
-        }
-    });
+    try {
+        const result = await session.call(command, args);
+        console.error('✅ MCP Response received');
+        return result;
+    } catch (error) {
+        console.error('❌ MCP Error:', error.message);
+        throw error;
+    }
 }
 
 async function main() {
-    console.error('🚀 Flow Lifecycle Test');
+    console.error('🚀 Flow Lifecycle Test (Stateful Session Version)');
     console.error('Testing: Login → Create → Execute → Edit → Execute → Delete');
 
+    const session = new McpSession();
     let createdFlowId = null;
     let environmentId = 'env_1761288753_e4e1788a'; // Use existing environment
 
     try {
+        // Initialize session
+        console.error('\n🔧 Initializing MCP session...');
+        await session.initialize();
+        console.error('✅ Session initialized successfully');
+
+        // Set environment variables for the flow
+        session.setEnvironment({
+            'BASE_URL': 'http://localhost:8000/gassapi2/backend/',
+            'API_VERSION': 'v1'
+        });
+
         // Step 0: Login to get access token
         console.error('\n🔑 Step 0: Login for access token');
-        const loginResult = await runMcpCommand('test_endpoint', {
+        const loginResult = await runMcpCommand(session, 'test_endpoint', {
             endpoint_id: 'ep_bccaf9721d41924f47e43e771317d873',
             environment_id: environmentId
         });
@@ -157,32 +64,61 @@ async function main() {
             return;
         }
 
+        // Step 0.5: Set JWT token for flow operations
+        console.error('\n🔐 Step 0.5: Setting JWT token for flow operations');
+        const setTokenResult = await runMcpCommand(session, 'set_jwt_token', {
+            jwt_token: accessToken
+        });
+        console.error('Set JWT token result:', setTokenResult);
+
+        // Set flow inputs for the session
+        session.setFlowInputs({
+            'access_token': accessToken,
+            'user_id': '1'
+        });
+
         // Step 1: Create flow
         console.error('\n➕ Step 1: Create flow');
 
         const flowData = {
-            nodes: [
+            version: "1.0",
+            steps: [
                 {
-                    id: 'node_1',
-                    type: 'http_request',
-                    data: {
-                        method: 'GET',
-                        url: 'http://localhost:8000/gassapi2/backend/?act=profile',
-                        headers: '{"Authorization": "Bearer {{access_token}}"}',
-                        timeout: 30000,
-                        saveResponse: true,
-                        responseVariable: 'profile_response'
+                    id: 'get_profile',
+                    name: 'Get User Profile',
+                    method: 'GET',
+                    url: 'https://jsonplaceholder.typicode.com/users/1',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Test-Header': 'Test Value'
                     },
-                    position: { x: 100, y: 100 }
+                    outputs: {
+                        'profileData': 'response.body'
+                    },
+                    timeout: 30000
                 }
             ],
-            edges: []
+            config: {
+                delay: 0,
+                retryCount: 1,
+                parallel: false
+            }
         };
 
-        const createResult = await runMcpCommand('create_flow', {
+        const flowInputs = [
+            {
+                name: 'access_token',
+                type: 'string',
+                required: true,
+                description: 'JWT access token for authentication'
+            }
+        ];
+
+        const createResult = await runMcpCommand(session, 'create_flow', {
             project_id: 'proj_1761288753_1587448b',
-            name: 'Test Flow Lifecycle',
+            name: 'Test Flow Lifecycle ' + Date.now(),
             description: 'Flow for testing lifecycle operations',
+            flow_inputs: flowInputs,
             flow_data: flowData,
             is_active: true
         });
@@ -207,12 +143,15 @@ async function main() {
         // Step 2: Execute flow (first time)
         console.error('\n🔄 Step 2: Execute flow (first time)');
 
-        const executeResult1 = await runMcpCommand('execute_flow', {
+        // Update flow inputs with the access token
+        session.setFlowInputs({
+            'access_token': accessToken,
+            'user_id': '1'
+        });
+
+        const executeResult1 = await runMcpCommand(session, 'execute_flow', {
             flow_id: createdFlowId,
             environment_id: environmentId,
-            override_variables: {
-                "access_token": accessToken
-            },
             debug_mode: true
         });
         console.error('First execution result:', executeResult1);
@@ -221,46 +160,48 @@ async function main() {
         console.error('\n✏️ Step 3: Edit flow');
 
         const updatedFlowData = {
-            nodes: [
+            version: "1.0",
+            steps: [
                 {
-                    id: 'node_1',
-                    type: 'http_request',
-                    data: {
-                        method: 'GET',
-                        url: 'http://localhost:8000/gassapi2/backend/?act=profile',
-                        headers: '{"Authorization": "Bearer {{access_token}}", "X-Test-Header": "Updated"}',
-                        timeout: 30000,
-                        saveResponse: true,
-                        responseVariable: 'profile_response'
+                    id: 'get_profile',
+                    name: 'Get User Profile',
+                    method: 'GET',
+                    url: 'http://localhost:8000/gassapi2/backend/?act=profile',
+                    headers: {
+                        'Authorization': 'Bearer {{input.access_token}}',
+                        'X-Test-Header': 'Updated'
                     },
-                    position: { x: 100, y: 100 }
+                    outputs: {
+                        'profileData': 'response.body'
+                    },
+                    timeout: 30000
                 },
                 {
-                    id: 'node_2',
-                    type: 'http_request',
-                    data: {
-                        method: 'POST',
-                        url: 'http://localhost:8000/gassapi2/backend/?act=profile',
-                        headers: '{"Authorization": "Bearer {{access_token}}", "Content-Type": "application/json"}',
-                        body: '{"name": "Updated via Flow Test"}',
-                        timeout: 30000,
-                        saveResponse: true,
-                        responseVariable: 'update_response'
+                    id: 'update_profile',
+                    name: 'Update Profile Name',
+                    method: 'POST',
+                    url: 'http://localhost:8000/gassapi2/backend/?act=profile',
+                    headers: {
+                        'Authorization': 'Bearer {{input.access_token}}',
+                        'Content-Type': 'application/json'
                     },
-                    position: { x: 300, y: 100 }
+                    body: {
+                        'name': 'Updated via Flow Test'
+                    },
+                    outputs: {
+                        'updateResult': 'response.body'
+                    },
+                    timeout: 30000
                 }
             ],
-            edges: [
-                {
-                    id: 'edge_1',
-                    source: 'node_1',
-                    target: 'node_2',
-                    type: 'success'
-                }
-            ]
+            config: {
+                delay: 1000,
+                retryCount: 2,
+                parallel: false
+            }
         };
 
-        const editResult = await runMcpCommand('update_flow', {
+        const editResult = await runMcpCommand(session, 'update_flow', {
             flow_id: createdFlowId,
             name: 'Test Flow Lifecycle - Updated',
             description: 'Updated flow with additional node',
@@ -270,30 +211,35 @@ async function main() {
 
         // Step 4: Execute flow (second time)
         console.error('\n🔄 Step 4: Execute flow (second time)');
-        const executeResult2 = await runMcpCommand('execute_flow', {
+
+        // Update flow inputs again for the second execution
+        session.setFlowInputs({
+            'access_token': accessToken,
+            'user_id': '1'
+        });
+
+        const executeResult2 = await runMcpCommand(session, 'execute_flow', {
             flow_id: createdFlowId,
             environment_id: environmentId,
-            override_variables: {
-                "access_token": accessToken
-            },
             debug_mode: true
         });
         console.error('Second execution result:', executeResult2);
 
         // Step 5: Delete flow
         console.error('\n🗑️ Step 5: Delete flow');
-        const deleteResult = await runMcpCommand('delete_flow', {
+        const deleteResult = await runMcpCommand(session, 'delete_flow', {
             flow_id: createdFlowId
         });
         console.error('Delete flow result:', deleteResult);
 
         console.error('\n✅ Flow lifecycle test completed successfully!');
         console.error('📊 Summary:');
-        console.error('   • Created flow with 1 node');
-        console.error('   • Executed successfully (1 node)');
-        console.error('   • Updated to 2 nodes with edge connection');
-        console.error('   • Executed successfully (2 nodes sequential)');
+        console.error('   • Created flow with 1 step (get profile)');
+        console.error('   • Executed successfully (1 step)');
+        console.error('   • Updated to 2 steps (get profile + update profile)');
+        console.error('   • Executed successfully (2 steps sequential with delay)');
         console.error('   • Deleted flow for cleanup');
+        console.error('   • Used stateful session throughout entire lifecycle');
 
     } catch (error) {
         console.error('❌ Flow lifecycle test failed:', error.message);
@@ -302,7 +248,7 @@ async function main() {
         if (createdFlowId) {
             console.error('🧹 Attempting to cleanup flow...');
             try {
-                await runMcpCommand('delete_flow', {
+                await runMcpCommand(session, 'delete_flow', {
                     flow_id: createdFlowId
                 });
                 console.error('✅ Cleanup completed');
@@ -311,7 +257,18 @@ async function main() {
             }
         }
 
-        process.exit(1);
+    } finally {
+        // Always close the session
+        try {
+            await session.close();
+            console.error('✅ Session closed');
+        } catch (closeError) {
+            console.error('⚠️ Session close warning:', closeError.message);
+        }
+
+        if (createdFlowId) {
+            process.exit(1);
+        }
     }
 }
 

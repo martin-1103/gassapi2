@@ -196,7 +196,7 @@ class TestRunner {
         echo "  environment     Run environment tests (CRUD environments)\n";
         echo "  collection      Run collection tests (API collection management)\n";
         echo "  endpoint        Run endpoint tests (API endpoint management)\n";
-        echo "  flows           Run flow tests (automation flow management)\n";
+        echo "  flows           Run flow tests (dual format flow management - React Flow UI + Steps execution)\n";
         echo "  mcp             Run MCP integration tests (token validation)\n";
         echo "  system          Run system tests (health check, API help)\n";
         echo "  flow            Run end-to-end user flow tests (integration)\n";
@@ -209,14 +209,14 @@ class TestRunner {
         echo "  environments    Same as 'environment'\n";
         echo "  collections     Same as 'collection'\n";
         echo "  endpoints       Same as 'endpoint'\n";
-        echo "  flows           Same as 'flows' (flow management)\n";
+        echo "  flows           Same as 'flows' (dual format flow management)\n";
         echo "  integration     Same as 'flow' (end-to-end testing)\n\n";
         echo "Examples:\n";
         echo "  php run_tests.php                # Run all tests\n";
         echo "  php run_tests.php auth           # Run auth tests only\n";
         echo "  php run_tests.php collection     # Run collection tests\n";
         echo "  php run_tests.php endpoint       # Run endpoint tests\n";
-        echo "  php run_tests.php flows          # Run flow tests\n";
+        echo "  php run_tests.php flows          # Run flow tests (dual format, UI endpoints, validation)\n";
         echo "  php run_tests.php api            # Run all API testing modules\n";
         echo "  php run_tests.php flow           # Run integration flow tests\n";
         echo "  php run_tests.php profile --debug # Run profile tests with debug\n";
@@ -264,7 +264,11 @@ class TestRunner {
         $testName = $className;
         
         // Check if we should skip this test
-        if ($this->cacheManager->shouldSkip($testName)) {
+        $shouldSkip = $this->cacheManager->shouldSkip($testName);
+        if ($this->debug) {
+            echo "[DEBUG] Should skip $testName? " . ($shouldSkip ? 'YES' : 'NO') . "\n";
+        }
+        if ($shouldSkip) {
             $cached = $this->cacheManager->getCachedResult($testName);
             echo "[SKIP] $testName - Passed in previous run ({$cached['passed']}/{$cached['total']})\n\n";
             
@@ -281,8 +285,24 @@ class TestRunner {
         }
 
         $test = new $className();
+
+        if ($this->debug) {
+            $testMethods = array_filter(get_class_methods($test), function($m) {
+                return strpos($m, 'test') === 0;
+            });
+            echo "[DEBUG] Test instance created, methods: " . implode(', ', $testMethods) . "\n";
+        }
+
+        if ($this->debug) {
+            echo "[DEBUG] About to call test->run()\n";
+        }
+
         $result = $test->run();
         $testResults = $test->getResults();
+
+        if ($this->debug) {
+            echo "[DEBUG] test->run() completed\n";
+        }
         
         // Debug: check what run() returned
         if ($this->debug) {
@@ -436,7 +456,10 @@ class TestRunner {
         } else {
             // Run specific test
             $className = $this->testClasses[$testName];
-            echo "Running $testName tests...\n\n";
+            echo "Running $testName tests (class: $className)...\n\n";
+            if ($this->debug) {
+                echo "[DEBUG] Class exists: " . (class_exists($className) ? 'YES' : 'NO') . "\n";
+            }
             $success = $this->runTest($className);
         }
 

@@ -3,6 +3,11 @@
  * Utility functions untuk date formatting, data transformation, etc.
  */
 
+import {
+  validatePropertyName,
+  safePropertyAssignment,
+} from '@/lib/security/object-injection-utils';
+
 import { RequestHistoryItem, HistoryExportData } from './types';
 
 export class HistoryUtils {
@@ -15,17 +20,25 @@ export class HistoryUtils {
     const sanitized: Record<string, string> = {};
 
     for (const [key, value] of Object.entries(headers)) {
+      // Validate key menggunakan security utilities
+      const keyValidation = validatePropertyName(key);
+      if (!keyValidation.isValid) {
+        continue;
+      }
+
       // Mask sensitive headers
+      let sanitizedValue = value;
       if (
         key.toLowerCase().includes('authorization') ||
         key.toLowerCase().includes('token') ||
         key.toLowerCase().includes('password') ||
         key.toLowerCase().includes('secret')
       ) {
-        sanitized[key] = '***masked***';
-      } else {
-        sanitized[key] = value;
+        sanitizedValue = '***masked***';
       }
+
+      // Safe property assignment
+      safePropertyAssignment(sanitized, key, sanitizedValue);
     }
 
     return sanitized;

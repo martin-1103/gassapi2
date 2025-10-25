@@ -1,3 +1,8 @@
+import {
+  validatePropertyName,
+  safePropertyAccess,
+} from '@/lib/security/object-injection-utils';
+
 import { TestResult, TestContext, JsonValue } from './types';
 
 /**
@@ -50,15 +55,28 @@ export function getValue(
   obj: Record<string, JsonValue> | JsonValue,
   path: string,
 ): JsonValue {
+  // Validasi path input
+  if (typeof path !== 'string' || path.length === 0) {
+    return undefined;
+  }
+
   return path.split('.').reduce((current, key) => {
     if (
       current === null ||
       current === undefined ||
-      current[key] === undefined
+      !(typeof current === 'object')
     ) {
       return undefined;
     }
-    return current[key];
+
+    // Validasi key menggunakan security utilities
+    const keyValidation = validatePropertyName(key);
+    if (!keyValidation.isValid) {
+      return undefined;
+    }
+
+    // Gunakan safe property access
+    return safePropertyAccess(current as Record<string, JsonValue>, key);
   }, obj);
 }
 

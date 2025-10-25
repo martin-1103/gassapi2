@@ -1,5 +1,5 @@
 // Re-export component utama untuk Fast Refresh
-export { CodeGeneratorModal } from './code-generator-modal';
+export { CodeGeneratorModal } from './code-generator-modal/index';
 
 // Export komponen individual secara eksplisit (tanpa wildcard) untuk Fast Refresh
 export { LanguageSelector } from './code-generator-modal/LanguageSelector';

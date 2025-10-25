@@ -1,3 +1,9 @@
+import {
+  validatePropertyName,
+  safePropertyAccess,
+} from '@/lib/security/object-injection-utils';
+import { createSafeRegExp } from '@/lib/security/regexp-utils';
+
 import { TestResult, JsonValue, TestContext, Constructor } from './types';
 
 /**
@@ -141,11 +147,26 @@ export class AssertionBuilder {
 
   // String assertions
   toMatch(pattern: string | RegExp): AssertionBuilder {
-    // Safe regex construction for string patterns
-    const regex =
-      typeof pattern === 'string'
-        ? new RegExp(pattern.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
-        : pattern;
+    // Use centralized security utility for safe RegExp construction
+    let regex: RegExp;
+    try {
+      regex =
+        typeof pattern === 'string'
+          ? createSafeRegExp(pattern, undefined, {
+              maxLength: 500,
+              allowComplex: false,
+            })
+          : pattern;
+    } catch (error) {
+      // Jika RegExp creation gagal, treat sebagai failed assertion
+      return this.addAssertion(
+        'to match',
+        String(pattern),
+        false,
+        `Invalid regex pattern: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
+    }
+
     const passed = regex.test(String(this.actual));
     return this.addAssertion(
       'to match',
@@ -157,10 +178,21 @@ export class AssertionBuilder {
 
   // Object assertions
   toHaveProperty(propertyName: string): AssertionBuilder {
+    // Validasi property name untuk keamanan
+    const keyValidation = validatePropertyName(propertyName);
+    if (!keyValidation.isValid) {
+      return this.addAssertion(
+        'to have property',
+        propertyName,
+        false,
+        `Invalid property name: ${keyValidation.reason}`,
+      );
+    }
+
     const passed =
       this.actual &&
       typeof this.actual === 'object' &&
-      propertyName in this.actual;
+      safePropertyAccess(this.actual, propertyName) !== undefined;
     return this.addAssertion(
       'to have property',
       propertyName,
@@ -335,14 +367,14 @@ export class AssertionBuilder {
         const valueObj = value as Record<string, JsonValue>;
 
         for (const [key, propSchema] of Object.entries(properties)) {
-          // Validate key to prevent prototype pollution
-          if (
-            key !== '__proto__' &&
-            key !== 'constructor' &&
-            key !== 'prototype' &&
-            key in valueObj
-          ) {
-            if (!this.validateAgainstSchema(valueObj[key], propSchema)) {
+          // Validate key to prevent prototype pollution menggunakan security utilities
+          const keyValidation = validatePropertyName(key);
+          if (keyValidation.isValid && key in valueObj) {
+            const propertyValue = safePropertyAccess(valueObj, key);
+            if (
+              propertyValue !== undefined &&
+              !this.validateAgainstSchema(propertyValue, propSchema)
+            ) {
               return false;
             }
           }

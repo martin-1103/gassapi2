@@ -1,7 +1,8 @@
-// import * as React from 'react'; // Removed unused React import
-
 import Badge from '@/components/ui/badge';
+import { safePropertyAccess } from '@/lib/security/object-injection-utils';
 import { cn } from '@/lib/utils/index';
+
+// import * as React from 'react'; // Removed unused React import
 
 interface TimeDisplayProps {
   time: number; // in milliseconds
@@ -59,7 +60,7 @@ export function TimeDisplay({
         <Badge
           variant='outline'
           className={cn(
-            sizeClasses[validSize],
+            safePropertyAccess(sizeClasses, validSize) || sizeClasses.md,
             colorClass,
             'flex items-center gap-1',
           )}
@@ -76,7 +77,11 @@ export function TimeDisplay({
   return (
     <Badge
       variant='outline'
-      className={cn(sizeClasses[validSize], colorClass, 'font-mono')}
+      className={cn(
+        safePropertyAccess(sizeClasses, validSize) || sizeClasses.md,
+        colorClass,
+        'font-mono',
+      )}
     >
       {formatTime(time)}
     </Badge>

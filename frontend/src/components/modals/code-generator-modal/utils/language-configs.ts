@@ -1,3 +1,5 @@
+import { safePropertyAccess } from '@/lib/security/object-injection-utils';
+
 export interface LanguageConfig {
   language: string;
   displayName: string;
@@ -75,12 +77,29 @@ export const LANGUAGE_CONFIGS: Record<string, LanguageConfig> = {
 
 // Dapatkan ekstensi file untuk bahasa tertentu
 export function getFileExtension(language: string): string {
-  return LANGUAGE_CONFIGS[language]?.extension || 'txt';
+  // Validate language to prevent prototype pollution
+  if (
+    language === '__proto__' ||
+    language === 'constructor' ||
+    language === 'prototype'
+  ) {
+    return 'txt';
+  }
+  const config = safePropertyAccess(LANGUAGE_CONFIGS, language);
+  return config?.extension || 'txt';
 }
 
 // Dapatkan konfigurasi bahasa
 export function getLanguageConfig(
   language: string,
 ): LanguageConfig | undefined {
-  return LANGUAGE_CONFIGS[language];
+  // Validate language to prevent prototype pollution
+  if (
+    language === '__proto__' ||
+    language === 'constructor' ||
+    language === 'prototype'
+  ) {
+    return undefined;
+  }
+  return safePropertyAccess(LANGUAGE_CONFIGS, language);
 }

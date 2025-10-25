@@ -1,4 +1,8 @@
 import { logger } from '@/lib/logger';
+import {
+  validatePropertyName,
+  safePropertyAccess,
+} from '@/lib/security/object-injection-utils';
 
 import { AssertionBuilder } from './assertion-builder';
 import type {
@@ -188,9 +192,25 @@ export class TestSandbox {
       // Wrap script dengan proper error handling
       const AsyncFunction = Object.getPrototypeOf(async () => {}).constructor;
 
-      // Extract sandbox globals untuk function parameters
-      const sandboxGlobals = Object.keys(sandbox);
-      const sandboxValues = sandboxGlobals.map(key => sandbox[key]);
+      // Extract sandbox globals untuk function parameters with validation
+      const sandboxGlobals: string[] = [];
+      const sandboxValues: unknown[] = [];
+
+      // Safe enumeration of sandbox properties dengan security utilities
+      for (const key in sandbox) {
+        // Validasi key menggunakan security utilities
+        const keyValidation = validatePropertyName(key);
+        if (!keyValidation.isValid) {
+          continue;
+        }
+
+        // Only include own properties
+        if (Object.prototype.hasOwnProperty.call(sandbox, key)) {
+          sandboxGlobals.push(key);
+          const propertyValue = safePropertyAccess(sandbox, key);
+          sandboxValues.push(propertyValue);
+        }
+      }
 
       // Create dan execute async function
       const fn = new AsyncFunction(...sandboxGlobals, script);

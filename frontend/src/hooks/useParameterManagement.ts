@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react';
 
 import { useToast } from '@/hooks/use-toast';
+import { logger } from '@/lib/logger';
 
 // Interface untuk query parameter
 export interface QueryParam {
@@ -104,6 +105,22 @@ export function useParameterManagement({
 
     const newParams = [...params];
     const targetIndex = direction === 'up' ? index - 1 : index + 1;
+
+    // Validate indices to prevent array injection
+    if (
+      index < 0 ||
+      index >= newParams.length ||
+      targetIndex < 0 ||
+      targetIndex >= newParams.length
+    ) {
+      logger.warn(
+        'Invalid parameter index for move operation',
+        { index, direction },
+        'useParameterManagement',
+      );
+      return;
+    }
+
     [newParams[index], newParams[targetIndex]] = [
       newParams[targetIndex],
       newParams[index],

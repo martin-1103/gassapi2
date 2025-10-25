@@ -1,3 +1,8 @@
+import {
+  validatePropertyName,
+  safePropertyAccess,
+  safePropertyAssignment,
+} from '@/lib/security/object-injection-utils';
 import { ConsoleEntry } from '@/types/console';
 
 export interface ConsoleStats {
@@ -83,11 +88,22 @@ export const exportConsoleLogs = (
 export const groupConsoleEntriesByLevel = (
   entries: ConsoleEntry[],
 ): Record<string, ConsoleEntry[]> => {
+  const allowedLevels = ['info', 'warn', 'error', 'debug', 'log'];
+
   return entries.reduce(
     (acc, entry) => {
       const level = entry.level;
-      if (!acc[level]) acc[level] = [];
-      acc[level].push(entry);
+      // Validate level menggunakan security utilities
+      const levelValidation = validatePropertyName(level);
+      if (allowedLevels.includes(level) && levelValidation.isValid) {
+        // Safe property access dan assignment
+        const existingEntries = safePropertyAccess(acc, level);
+        if (!existingEntries) {
+          safePropertyAssignment(acc, level, []);
+        }
+        const currentEntries = safePropertyAccess(acc, level) as ConsoleEntry[];
+        currentEntries.push(entry);
+      }
       return acc;
     },
     {} as Record<string, ConsoleEntry[]>,
