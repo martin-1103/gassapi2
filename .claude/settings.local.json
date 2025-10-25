@@ -3,7 +3,9 @@
     "allow": [
       "Bash(npm run type-check:*)",
       "WebFetch(domain:katalon.com)",
-      "Bash(curl:*)"
+      "Bash(curl:*)",
+      "Bash(npm run test:environment:*)",
+      "Bash(npm run test:*)"
     ],
     "deny": [],
     "ask": []

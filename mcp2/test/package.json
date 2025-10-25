@@ -1,0 +1,52 @@
+{
+  "name": "gassapi-mcp-tests",
+  "version": "1.0.0",
+  "description": "Modular test suite for GASSAPI MCP v2",
+  "main": "runners/run-all-tests.js",
+  "type": "commonjs",
+  "scripts": {
+    "test": "node runners/run-all-tests.js",
+    "test:auth": "node runners/run-category-tests.js auth",
+    "test:environment": "node runners/run-category-tests.js environment",
+    "test:collections": "node runners/run-category-tests.js collections",
+    "test:endpoints": "node runners/run-category-tests.js endpoints",
+    "test:flows": "node runners/run-category-tests.js flows",
+    "test:testing": "node runners/run-category-tests.js testing",
+    "test:integration": "node runners/run-integration-tests.js",
+    "test:quick": "node runners/run-quick-check.js",
+    "test:debug": "DEBUG=true node runners/run-all-tests.js",
+    "test:ci": "CI=true node runners/run-all-tests.js",
+    "clean": "rm -rf reports/*",
+    "setup": "node scripts/setup-test-env.js",
+    "teardown": "node scripts/cleanup-test-env.js"
+  },
+  "keywords": [
+    "gassapi",
+    "mcp",
+    "testing",
+    "api",
+    "modular"
+  ],
+  "author": "GASSAPI Team",
+  "license": "MIT",
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "chalk": "^4.1.2",
+    "ora": "^5.4.1"
+  },
+  "optionalDependencies": {
+    "chalk": "^4.1.2",
+    "ora": "^5.4.1"
+  },
+  "config": {
+    "test": {
+      "timeout": 30000,
+      "retries": 3,
+      "parallel": false,
+      "verbose": false
+    }
+  }
+}

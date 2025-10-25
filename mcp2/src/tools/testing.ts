@@ -342,7 +342,7 @@ export function createTestingToolHandlers(): Record<string, (args: any) => Promi
         const endpoint = endpointData.data;
 
         // Step 2: Get environment variables
-        const envVarsUrl = `/gassapi2/backend/?act=environment_variables&id=${encodeURIComponent(environmentId)}`;
+        const envVarsUrl = apiEndpoints.getEndpoint('environmentVariablesDirect', { id: environmentId });
         const envVarsFullUrl = `${backendClient.getBaseUrl()}${envVarsUrl}`;
 
         console.error(`[TestingTools] Fetching environment variables from: ${envVarsFullUrl}`);

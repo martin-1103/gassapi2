@@ -1,0 +1,196 @@
+{
+  "suite": "GASSAPI MCP v2 - Complete Test Suite",
+  "startTime": "2025-10-25T05:24:32.682Z",
+  "endTime": "2025-10-25T05:25:22.303Z",
+  "duration": 49621,
+  "tests": [
+    {
+      "name": "Authentication Tests (auth)",
+      "category": "master",
+      "status": "passed",
+      "duration": 0,
+      "message": "5/5 tests passed",
+      "details": {
+        "summary": {
+          "total": 5,
+          "passed": 5,
+          "failed": 0,
+          "skipped": 0,
+          "errors": 0
+        },
+        "config": {
+          "name": "Authentication Tests",
+          "description": "Test authentication and authorization functionality",
+          "required": true,
+          "tests": [
+            "get_project_context"
+          ]
+        }
+      },
+      "error": null,
+      "timestamp": "2025-10-25T05:24:40.528Z"
+    },
+    {
+      "name": "Environment Tests (environment)",
+      "category": "master",
+      "status": "passed",
+      "duration": 0,
+      "message": "5/5 tests passed",
+      "details": {
+        "summary": {
+          "total": 5,
+          "passed": 5,
+          "failed": 0,
+          "skipped": 0,
+          "errors": 0
+        },
+        "config": {
+          "name": "Environment Tests",
+          "description": "Test environment management functionality",
+          "required": true,
+          "tests": [
+            "list_environments",
+            "get_environment_details",
+            "update_environment_variables"
+          ]
+        }
+      },
+      "error": null,
+      "timestamp": "2025-10-25T05:24:47.941Z"
+    },
+    {
+      "name": "Collection Tests (collections)",
+      "category": "master",
+      "status": "passed",
+      "duration": 0,
+      "message": "5/5 tests passed",
+      "details": {
+        "summary": {
+          "total": 5,
+          "passed": 5,
+          "failed": 0,
+          "skipped": 0,
+          "errors": 0
+        },
+        "config": {
+          "name": "Collection Tests",
+          "description": "Test collection management functionality",
+          "required": true,
+          "tests": [
+            "get_collections",
+            "create_collection",
+            "move_collection",
+            "delete_collection"
+          ]
+        }
+      },
+      "error": null,
+      "timestamp": "2025-10-25T05:24:55.064Z"
+    },
+    {
+      "name": "Endpoint Tests (endpoints)",
+      "category": "master",
+      "status": "passed",
+      "duration": 0,
+      "message": "6/6 tests passed",
+      "details": {
+        "summary": {
+          "total": 6,
+          "passed": 6,
+          "failed": 0,
+          "skipped": 0,
+          "errors": 0
+        },
+        "config": {
+          "name": "Endpoint Tests",
+          "description": "Test endpoint management functionality",
+          "required": true,
+          "tests": [
+            "list_endpoints",
+            "get_endpoint_details",
+            "create_endpoint",
+            "update_endpoint",
+            "move_endpoint"
+          ]
+        }
+      },
+      "error": null,
+      "timestamp": "2025-10-25T05:25:03.647Z"
+    },
+    {
+      "name": "Flow Tests (flows)",
+      "category": "master",
+      "status": "passed",
+      "duration": 0,
+      "message": "7/7 tests passed",
+      "details": {
+        "summary": {
+          "total": 7,
+          "passed": 7,
+          "failed": 0,
+          "skipped": 0,
+          "errors": 0
+        },
+        "config": {
+          "name": "Flow Tests",
+          "description": "Test flow management and execution functionality",
+          "required": true,
+          "tests": [
+            "create_flow",
+            "list_flows",
+            "get_flow_detail",
+            "update_flow",
+            "delete_flow",
+            "set_environment_variables",
+            "set_flow_inputs",
+            "set_runtime_variables",
+            "get_session_state",
+            "clear_session_state",
+            "execute_flow"
+          ]
+        }
+      },
+      "error": null,
+      "timestamp": "2025-10-25T05:25:12.993Z"
+    },
+    {
+      "name": "Testing Tools (testing)",
+      "category": "master",
+      "status": "passed",
+      "duration": 0,
+      "message": "7/7 tests passed",
+      "details": {
+        "summary": {
+          "total": 7,
+          "passed": 7,
+          "failed": 0,
+          "skipped": 0,
+          "errors": 0
+        },
+        "config": {
+          "name": "Testing Tools",
+          "description": "Test endpoint testing functionality",
+          "required": true,
+          "tests": [
+            "test_endpoint"
+          ]
+        }
+      },
+      "error": null,
+      "timestamp": "2025-10-25T05:25:22.303Z"
+    }
+  ],
+  "summary": {
+    "total": 35,
+    "passed": 35,
+    "failed": 0,
+    "skipped": 0,
+    "errors": 0
+  },
+  "generatedAt": "2025-10-25T05:25:22.304Z",
+  "environment": {
+    "nodeVersion": "v22.14.0",
+    "platform": "win32",
+    "arch": "x64"
+  }
+}

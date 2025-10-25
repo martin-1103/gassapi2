@@ -7,6 +7,7 @@ import { McpTool, McpToolResponse } from '../types.js';
 import { ConfigManager } from '../config.js';
 import { BackendClient } from '../client/BackendClient.js';
 import { StatefulInterpolator } from '../utils/StatefulInterpolator.js';
+import { getApiEndpoints } from '../lib/api/endpoints.js';
 
 // Flow Interfaces
 interface FlowExecutionResult {
@@ -806,13 +807,14 @@ export function createFlowToolHandlers(): Record<string, (args: any) => Promise<
         }
 
         // Create flow via backend API (using old format with correct action)
-        const createUrl = `/gassapi2/backend/?act=flow_create&id=${encodeURIComponent(projectId)}`;
+        const apiEndpoints = getApiEndpoints();
+        const createUrl = apiEndpoints.getEndpoint('flowCreate', { id: projectId });
         const createFullUrl = `${backendClient.getBaseUrl()}${createUrl}`;
 
         const response = await fetch(createFullUrl, {
           method: 'POST',
           headers: {
-            'Authorization': `Bearer ${backendClient.getJwtToken() || backendClient.getMcpToken()}`,
+            'Authorization': `Bearer ${backendClient.getToken()}`,
             'Content-Type': 'application/json'
           },
           body: JSON.stringify(createData)
@@ -1116,10 +1118,11 @@ export function createFlowToolHandlers(): Record<string, (args: any) => Promise<
         console.error(`[FlowTools] Listing flows for project: ${projectId}`);
 
         // Build URL with parameters (using old format)
-        let listUrl = `/gassapi2/backend/?act=flows&id=${encodeURIComponent(projectId)}`;
+        const apiEndpoints = getApiEndpoints();
+        let listUrl = apiEndpoints.getEndpoint('flowList', { id: projectId });
 
         if (activeOnly) {
-          listUrl = `/gassapi2/backend/?act=flows_active&id=${encodeURIComponent(projectId)}`;
+          listUrl = `/gassapi2/backend/?act=flows_active&id=${encodeURIComponent(projectId)}`; // No centralized endpoint for this yet
         }
 
         if (collectionId) {
@@ -1131,7 +1134,7 @@ export function createFlowToolHandlers(): Record<string, (args: any) => Promise<
         const response = await fetch(listFullUrl, {
           method: 'GET',
           headers: {
-            'Authorization': `Bearer ${backendClient.getJwtToken() || backendClient.getMcpToken()}`,
+            'Authorization': `Bearer ${backendClient.getToken()}`,
             'Content-Type': 'application/json'
           }
         });
@@ -1207,13 +1210,14 @@ export function createFlowToolHandlers(): Record<string, (args: any) => Promise<
 
         console.error(`[FlowTools] Getting flow details: ${flowId}`);
 
-        const detailUrl = `/gassapi2/backend/?act=flow&id=${encodeURIComponent(flowId)}`;
+        const apiEndpoints = getApiEndpoints();
+        const detailUrl = apiEndpoints.getEndpoint('flowDetails', { id: flowId });
         const detailFullUrl = `${backendClient.getBaseUrl()}${detailUrl}`;
 
         const response = await fetch(detailFullUrl, {
           method: 'GET',
           headers: {
-            'Authorization': `Bearer ${backendClient.getJwtToken() || backendClient.getMcpToken()}`,
+            'Authorization': `Bearer ${backendClient.getToken()}`,
             'Content-Type': 'application/json'
           }
         });
@@ -1328,13 +1332,14 @@ export function createFlowToolHandlers(): Record<string, (args: any) => Promise<
 
         console.error(`[FlowTools] Updating flow: ${flowId}`);
 
-        const updateUrl = `/gassapi2/backend/?act=flow_update&id=${encodeURIComponent(flowId)}`;
+        const apiEndpoints = getApiEndpoints();
+        const updateUrl = apiEndpoints.getEndpoint('flowUpdate', { id: flowId });
         const updateFullUrl = `${backendClient.getBaseUrl()}${updateUrl}`;
 
         const response = await fetch(updateFullUrl, {
           method: 'PUT',
           headers: {
-            'Authorization': `Bearer ${backendClient.getJwtToken() || backendClient.getMcpToken()}`,
+            'Authorization': `Bearer ${backendClient.getToken()}`,
             'Content-Type': 'application/json'
           },
           body: JSON.stringify(updateData)
@@ -1398,13 +1403,14 @@ export function createFlowToolHandlers(): Record<string, (args: any) => Promise<
 
         console.error(`[FlowTools] Deleting flow: ${flowId}`);
 
-        const deleteUrl = `/gassapi2/backend/?act=flow_delete&id=${encodeURIComponent(flowId)}`;
+        const apiEndpoints = getApiEndpoints();
+        const deleteUrl = apiEndpoints.getEndpoint('flowDelete', { id: flowId });
         const deleteFullUrl = `${backendClient.getBaseUrl()}${deleteUrl}`;
 
         const response = await fetch(deleteFullUrl, {
           method: 'DELETE',
           headers: {
-            'Authorization': `Bearer ${backendClient.getJwtToken() || backendClient.getMcpToken()}`,
+            'Authorization': `Bearer ${backendClient.getToken()}`,
             'Content-Type': 'application/json'
           }
         });
@@ -1464,7 +1470,8 @@ export function createFlowToolHandlers(): Record<string, (args: any) => Promise<
         const startTime = Date.now();
 
         // Step 1: Get flow configuration
-        const flowUrl = `/gassapi2/backend/?act=flow&id=${encodeURIComponent(flowId)}`;
+        const apiEndpoints = getApiEndpoints();
+        const flowUrl = apiEndpoints.getEndpoint('flowDetails', { id: flowId });
         const flowFullUrl = `${backendClient.getBaseUrl()}${flowUrl}`;
 
         console.error(`[FlowTools] Fetching flow config from: ${flowFullUrl}`);
@@ -1490,7 +1497,7 @@ export function createFlowToolHandlers(): Record<string, (args: any) => Promise<
         const flow = flowData.data;
 
         // Step 2: Get environment variables
-        const envVarsUrl = `/gassapi2/backend/?act=environment_variables&id=${encodeURIComponent(environmentId)}`;
+        const envVarsUrl = apiEndpoints.getEndpoint('environmentVariables', { id: environmentId });
         const envVarsFullUrl = `${backendClient.getBaseUrl()}${envVarsUrl}`;
 
         console.error(`[FlowTools] Fetching environment variables from: ${envVarsFullUrl}`);
