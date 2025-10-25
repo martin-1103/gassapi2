@@ -67,7 +67,7 @@
             "total": 10,
             "last_run": "2025-10-25 00:15:35"
         },
-        "CollectionTest": {
+        "FolderTest": {
             "status": "PASS",
             "passed": 13,
             "total": 13,

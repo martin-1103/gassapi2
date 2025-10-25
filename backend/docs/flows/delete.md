@@ -160,10 +160,10 @@ PUT /gassapi2/backend/?act=flow_update&id=flow_123
 
 ### 2. **Archive Flow**
 ```bash
-# Move to archive collection
+# Move to archive folder
 PUT /gassapi2/backend/?act=flow_update&id=flow_123
 {
-  "collection_id": "col_archive",
+  "folder_id": "fld_archive",
   "name": "[ARCHIVED] User Registration Flow"
 }
 ```

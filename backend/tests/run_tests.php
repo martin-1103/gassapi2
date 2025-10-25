@@ -95,7 +95,7 @@ $testFiles = [
     'McpTest.php',
     'SystemTest.php',
     'UserFlowTest.php',
-    'CollectionTest.php',
+    'FolderTest.php',
     'EndpointTest.php',
     'FlowTest.php'
 ];
@@ -157,7 +157,7 @@ class TestRunner {
             'flow' => class_exists('UserFlowTest') ? 'UserFlowTest' : 'UserTest',
 
             // New API testing modules
-            'collection' => class_exists('CollectionTest') ? 'CollectionTest' : 'UserTest',
+            'folder' => class_exists('FolderTest') ? 'FolderTest' : 'UserTest',
             'endpoint' => class_exists('EndpointTest') ? 'EndpointTest' : 'UserTest',
             'flows' => class_exists('FlowTest') ? 'FlowTest' : 'UserTest',
 
@@ -165,7 +165,7 @@ class TestRunner {
             'users' => class_exists('UserManagementTest') ? 'UserManagementTest' : 'UserTest',
             'projects' => class_exists('ProjectTest') ? 'ProjectTest' : 'UserTest',
             'environments' => class_exists('EnvironmentTest') ? 'EnvironmentTest' : 'UserTest',
-            'collections' => class_exists('CollectionTest') ? 'CollectionTest' : 'UserTest',
+            'folders' => class_exists('FolderTest') ? 'FolderTest' : 'UserTest',
             'endpoints' => class_exists('EndpointTest') ? 'EndpointTest' : 'UserTest',
             'integration' => class_exists('UserFlowTest') ? 'UserFlowTest' : 'UserTest',
 
@@ -194,27 +194,27 @@ class TestRunner {
         echo "  management      Run user management tests (admin functions)\n";
         echo "  project         Run project management tests (CRUD projects)\n";
         echo "  environment     Run environment tests (CRUD environments)\n";
-        echo "  collection      Run collection tests (API collection management)\n";
+        echo "  folder      Run folder tests (API folder management)\n";
         echo "  endpoint        Run endpoint tests (API endpoint management)\n";
         echo "  flows           Run flow tests (dual format flow management - React Flow UI + Steps execution)\n";
         echo "  mcp             Run MCP integration tests (token validation)\n";
         echo "  system          Run system tests (health check, API help)\n";
         echo "  flow            Run end-to-end user flow tests (integration)\n";
         echo "  user            Run legacy user tests (backward compatibility)\n";
-        echo "  api             Run all API testing modules (collections, endpoints, flows)\n";
+        echo "  api             Run all API testing modules (folders, endpoints, flows)\n";
         echo "  all             Run all tests (default)\n\n";
         echo "Aliases:\n";
         echo "  users           Same as 'management' (user CRUD)\n";
         echo "  projects        Same as 'project'\n";
         echo "  environments    Same as 'environment'\n";
-        echo "  collections     Same as 'collection'\n";
+        echo "  folders     Same as 'folder'\n";
         echo "  endpoints       Same as 'endpoint'\n";
         echo "  flows           Same as 'flows' (dual format flow management)\n";
         echo "  integration     Same as 'flow' (end-to-end testing)\n\n";
         echo "Examples:\n";
         echo "  php run_tests.php                # Run all tests\n";
         echo "  php run_tests.php auth           # Run auth tests only\n";
-        echo "  php run_tests.php collection     # Run collection tests\n";
+        echo "  php run_tests.php folder     # Run folder tests\n";
         echo "  php run_tests.php endpoint       # Run endpoint tests\n";
         echo "  php run_tests.php flows          # Run flow tests (dual format, UI endpoints, validation)\n";
         echo "  php run_tests.php api            # Run all API testing modules\n";

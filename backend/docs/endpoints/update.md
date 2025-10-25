@@ -50,7 +50,7 @@ Content-Type: application/json
     "url": "{{base_url}}/api/v2/users/{{user_id}}",
     "headers": "{\"Authorization\":\"Bearer {{token}}\"}",
     "body": null,
-    "collection_id": "col_123",
+    "folder_id": "fld_123",
     "created_by": "user_xyz",
     "created_at": "2025-10-23 10:30:00",
     "updated_at": "2025-10-23 12:00:00"

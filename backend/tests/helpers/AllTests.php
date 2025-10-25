@@ -14,7 +14,7 @@ require_once __DIR__ . '/../cases/ProjectTest.php';
 require_once __DIR__ . '/../cases/EnvironmentTest.php';
 require_once __DIR__ . '/../cases/McpTest.php';
 require_once __DIR__ . '/../cases/SystemTest.php';
-require_once __DIR__ . '/../cases/CollectionTest.php';
+require_once __DIR__ . '/../cases/FolderTest.php';
 require_once __DIR__ . '/../cases/EndpointTest.php';
 require_once __DIR__ . '/../cases/FlowTest.php';
 require_once __DIR__ . '/../cases/UserFlowTest.php';
@@ -45,7 +45,7 @@ class AllTests extends BaseTest {
             'environment' => 'EnvironmentTest',
             'mcp' => 'McpTest',
             'system' => 'SystemTest',
-            'collection' => 'CollectionTest',
+            'folder' => 'FolderTest',
             'endpoint' => 'EndpointTest',
             'flows' => 'FlowTest',
             'flow' => 'UserFlowTest'

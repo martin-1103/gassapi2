@@ -64,23 +64,23 @@ async function testCreateEndpoint() {
   await TestUtils.withTimeout(
     (async () => {
       await withTestClient({ debug: false }, async (client) => {
-        // First create a collection to house the endpoint
-        const collectionResult = await client.call('create_collection', {
-          name: `Test Collection for Endpoint ${Date.now()}`,
-          description: 'Test collection for endpoint creation'
+        // First create a folder to house the endpoint
+        const folderResult = await client.call('create_folder', {
+          name: `Test Folder for Endpoint ${Date.now()}`,
+          description: 'Test folder for endpoint creation'
         });
 
-        validateMcpResponse(collectionResult, 'Collection');
+        validateMcpResponse(folderResult, 'Folder');
 
-        // Extract collection ID from response (simplified approach)
-        const collectionId = 'test-collection'; // In real implementation, parse from response
+        // Extract folder ID from response (simplified approach)
+        const folderId = 'test-folder'; // In real implementation, parse from response
 
         // Create endpoint
         const result = await client.call('create_endpoint', {
           name: testEndpointName,
           method: 'GET',
           url: '/api/test-endpoint',
-          collection_id: collectionId,
+          folder_id: folderId,
           description: 'Test endpoint for automation testing'
         });
 
@@ -116,8 +116,8 @@ async function testGetEndpointDetails() {
           endpoint_id: testEndpointId
         });
 
-        // Validate MCP response format
-        validateMcpResponse(result, 'Endpoint');
+        // Validate MCP response format - check for "Endpoint" or "endpoint" or "Details" or "endpoint details"
+        validateMcpResponse(result, 'endpoint details');
 
         console.log(`✅ Successfully retrieved endpoint details`);
       });
@@ -179,7 +179,7 @@ async function testEndpointInvalidData() {
           // Test create endpoint without required fields
           const result = await client.call('create_endpoint', {
             name: 'Test Endpoint',
-            // Missing method, url, collection_id
+            // Missing method, url, folder_id
           });
 
           // Check if response contains error information

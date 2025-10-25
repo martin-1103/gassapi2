@@ -26,7 +26,7 @@ Format ini digunakan oleh frontend visual flow builder.
 {
   "name": "User Registration Flow",
   "description": "Complete user registration and verification flow",
-  "collection_id": "col_123",
+  "folder_id": "fld_123",
   "flow_inputs": [
     {
       "name": "username",
@@ -113,7 +113,7 @@ Format ini digunakan untuk API automation dan execution engines.
 {
   "name": "API Testing Flow",
   "description": "API testing flow created with steps format",
-  "collection_id": "col_456",
+  "folder_id": "fld_456",
   "flow_inputs": [
     {
       "name": "baseUrl",
@@ -184,7 +184,7 @@ Format ini digunakan untuk API automation dan execution engines.
 ### Fields
 - `name` (required): Nama flow
 - `description` (optional): Deskripsi flow
-- `collection_id` (optional): ID collection yang terkait
+- `folder_id` (optional): ID folder yang terkait
 - `flow_inputs` (optional): Array definisi input dinamis
 - `flow_data` (required): Flow configuration (React Flow atau Steps format)
 - `is_active` (optional): Status aktif flow (default: true)
@@ -228,7 +228,7 @@ Setelah validation dan konversi, sistem menyimpan:
     "name": "User Registration Flow",
     "description": "Complete user registration and verification flow",
     "project_id": "proj_789",
-    "collection_id": "col_123",
+    "folder_id": "fld_123",
     "flow_inputs": "[{\"name\":\"username\",\"type\":\"string\",\"required\":true}]",
     "flow_data": "{\"version\":\"1.0\",\"steps\":[{\"id\":\"register\",\"name\":\"Register User\",\"method\":\"POST\",\"url\":\"{{env.API_URL}}/auth/register\"}]}",
     "ui_data": "{\"nodes\":[{\"id\":\"register\",\"type\":\"apiCall\",\"position\":{\"x\":100,\"y\":100},\"data\":{\"name\":\"Register User\",\"method\":\"POST\",\"url\":\"{{env.API_URL}}/auth/register\"}}],\"edges\":[{\"id\":\"edge-register-verify\",\"source\":\"register\",\"target\":\"verify_email\",\"type\":\"smoothstep\"}]}",
@@ -383,7 +383,7 @@ Content-Type: application/json
     "name": "User Registration Flow",
     "description": "Complete user registration and verification flow",
     "project_id": "proj_123",
-    "collection_id": "col_123",
+    "folder_id": "fld_123",
     "flow_data": "{\"nodes\":[...],\"edges\":[...]}",
     "is_active": 1,
     "created_by": "user_xyz",
@@ -397,7 +397,7 @@ Content-Type: application/json
 ```json
 {
   "status": "error",
-  "message": "Collection does not belong to this project"
+  "message": "Folder does not belong to this project"
 }
 ```
 

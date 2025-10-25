@@ -7,7 +7,7 @@ This directory contains SQL seed files for populating the GASS API database with
 ### Core Data Seeds (ordered by dependencies)
 1. `001_seed_users.sql` - Sample users (admin, test users, regular users)
 2. `002_seed_projects.sql` - Sample API projects (e-commerce, weather, user management, etc.)
-3. `003_seed_collections.sql` - API collections for organizing endpoints
+3. `003_seed_folders.sql` - API folders for organizing endpoints
 4. `004_seed_endpoints.sql` - Sample API endpoints with various methods
 5. `005_seed_environments.sql` - Environment configurations (dev, staging, prod)
 6. `006_seed_flows.sql` - Sample API automation flows
@@ -40,7 +40,7 @@ php seed.php --status
 
 - `UsersSeeder` - Creates admin and test users
 - `ProjectsSeeder` - Creates sample API projects
-- `CollectionsSeeder` - Creates API collections
+- `FoldersSeeder` - Creates API folders
 - `EndpointsSeeder` - Creates sample API endpoints
 - `EnvironmentsSeeder` - Creates environment configurations
 - `FlowsSeeder` - Creates API automation flows
@@ -62,7 +62,7 @@ php seed.php --status
 - **File Storage API**: File upload/download functionality
 - **Analytics Dashboard API**: Business analytics and reporting
 
-### Collections & Endpoints
+### Folders & Endpoints
 - Organized by project and functionality
 - Sample endpoints for CRUD operations
 - Authentication workflows
@@ -137,8 +137,8 @@ php seed.php --status
 
 The seed data creates realistic relationships between entities:
 - Users own projects and are project members
-- Projects contain collections, endpoints, and environments
-- Collections organize related endpoints
+- Projects contain folders, endpoints, and environments
+- Folders organize related endpoints
 - Test flows and automation flows reference real endpoints
 - MCP tokens are associated with projects and creators
 

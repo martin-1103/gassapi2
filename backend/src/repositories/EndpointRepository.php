@@ -10,11 +10,11 @@ class EndpointRepository extends BaseRepository {
     }
 
     /**
-     * List endpoints by collection ID
+     * List endpoints by folder ID
      */
-    public function listByCollection($collectionId, $limit = 100) {
+    public function listByFolder($folderId, $limit = 100) {
         $db = self::getConnection();
-        $db->where('collection_id', $collectionId);
+        $db->where('folder_id', $folderId);
         $db->orderBy('created_at', 'DESC');
         $result = $db->get($this->getTableName(), $limit);
         if ($db->getLastErrno()) {
@@ -24,12 +24,12 @@ class EndpointRepository extends BaseRepository {
     }
 
     /**
-     * List endpoints by project (via collection)
+     * List endpoints by project (via folder)
      */
     public function listByProject($projectId, $limit = 100) {
         $db = self::getConnection();
         $sql = "SELECT e.* FROM endpoints e 
-                INNER JOIN collections c ON e.collection_id = c.id 
+                INNER JOIN folders c ON e.folder_id = c.id 
                 WHERE c.project_id = ? 
                 ORDER BY e.created_at DESC 
                 LIMIT ?";
@@ -41,13 +41,13 @@ class EndpointRepository extends BaseRepository {
     }
 
     /**
-     * Create endpoint for collection
+     * Create endpoint for folder
      */
-    public function createForCollection($collectionId, $data) {
+    public function createForFolder($folderId, $data) {
         if (!isset($data['id'])) {
             $data['id'] = $this->generateId();
         }
-        $data['collection_id'] = $collectionId;
+        $data['folder_id'] = $folderId;
         
         // Ensure JSON fields
         if (!isset($data['headers'])) {
@@ -79,21 +79,21 @@ class EndpointRepository extends BaseRepository {
     }
 
     /**
-     * Check if endpoint belongs to collection
+     * Check if endpoint belongs to folder
      */
-    public function belongsToCollection($endpointId, $collectionId) {
+    public function belongsToFolder($endpointId, $folderId) {
         $endpoint = $this->findById($endpointId);
-        return $endpoint && $endpoint['collection_id'] === $collectionId;
+        return $endpoint && $endpoint['folder_id'] === $folderId;
     }
 
     /**
-     * Get endpoint with collection and project info
+     * Get endpoint with folder and project info
      */
     public function findWithDetails($endpointId) {
         $db = self::getConnection();
-        $sql = "SELECT e.*, c.name as collection_name, c.project_id 
+        $sql = "SELECT e.*, c.name as folder_name, c.project_id 
                 FROM endpoints e 
-                INNER JOIN collections c ON e.collection_id = c.id 
+                INNER JOIN folders c ON e.folder_id = c.id 
                 WHERE e.id = ?";
         $result = $db->rawQueryOne($sql, [$endpointId]);
         if ($db->getLastErrno()) {
@@ -103,10 +103,10 @@ class EndpointRepository extends BaseRepository {
     }
 
     /**
-     * Count endpoints in collection
+     * Count endpoints in folder
      */
-    public function countByCollection($collectionId) {
-        return $this->count(['collection_id' => $collectionId]);
+    public function countByFolder($folderId) {
+        return $this->count(['folder_id' => $folderId]);
     }
 
     /**
@@ -115,7 +115,7 @@ class EndpointRepository extends BaseRepository {
     public function search($projectId, $keyword, $limit = 50) {
         $db = self::getConnection();
         $sql = "SELECT e.* FROM endpoints e 
-                INNER JOIN collections c ON e.collection_id = c.id 
+                INNER JOIN folders c ON e.folder_id = c.id 
                 WHERE c.project_id = ? 
                 AND (e.name LIKE ? OR e.url LIKE ?) 
                 ORDER BY e.created_at DESC 
@@ -129,13 +129,13 @@ class EndpointRepository extends BaseRepository {
     }
 
     /**
-     * Get endpoints grouped by collection
+     * Get endpoints grouped by folder
      */
-    public function listGroupedByCollection($projectId) {
+    public function listGroupedByFolder($projectId) {
         $db = self::getConnection();
-        $sql = "SELECT e.*, c.name as collection_name 
+        $sql = "SELECT e.*, c.name as folder_name 
                 FROM endpoints e 
-                INNER JOIN collections c ON e.collection_id = c.id 
+                INNER JOIN folders c ON e.folder_id = c.id 
                 WHERE c.project_id = ? 
                 ORDER BY c.name, e.created_at DESC";
         $result = $db->rawQuery($sql, [$projectId]);
@@ -143,19 +143,19 @@ class EndpointRepository extends BaseRepository {
             throw new RepositoryException('List grouped endpoints failed: ' . $db->getLastError());
         }
         
-        // Group by collection
+        // Group by folder
         $grouped = [];
         foreach ($result as $endpoint) {
-            $collectionId = $endpoint['collection_id'];
-            if (!isset($grouped[$collectionId])) {
-                $grouped[$collectionId] = [
-                    'collection_id' => $collectionId,
-                    'collection_name' => $endpoint['collection_name'],
+            $folderId = $endpoint['folder_id'];
+            if (!isset($grouped[$folderId])) {
+                $grouped[$folderId] = [
+                    'folder_id' => $folderId,
+                    'folder_name' => $endpoint['folder_name'],
                     'endpoints' => []
                 ];
             }
-            unset($endpoint['collection_name']);
-            $grouped[$collectionId]['endpoints'][] = $endpoint;
+            unset($endpoint['folder_name']);
+            $grouped[$folderId]['endpoints'][] = $endpoint;
         }
         
         return array_values($grouped);

@@ -46,7 +46,7 @@ export interface ProjectContextResponse {
     created_at?: string;
     updated_at?: string;
   }>;
-  collections: Array<{
+  folders: Array<{
     id: string;
     name: string;
     description?: string;
@@ -95,7 +95,7 @@ export class BackendClient {
   /**
    * Make HTTP request with proper error handling
    */
-  private async makeRequest<T>(endpoint: string, options: {
+  public async makeRequest<T>(endpoint: string, options: {
     method?: string;
     headers?: Record<string, string>;
     body?: string;
@@ -172,7 +172,7 @@ export class BackendClient {
   /**
    * Get project context using new dual-token endpoint
    */
-  async getProjectContext(projectId?: string): Promise<ApiResponse<ProjectContextResponse>> {
+  async getProjectContext(projectId: string): Promise<ApiResponse<ProjectContextResponse>> {
     if (!projectId) {
       throw new Error('Project ID is required for project context');
     }

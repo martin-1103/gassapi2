@@ -63,15 +63,10 @@ async function getEnvironmentDependencies() {
 // Tool: list_environments
 export const listEnvironmentsTool: McpTool = {
   name: 'list_environments',
-  description: 'List all environments for the current project',
+  description: 'List all environments for current project',
   inputSchema: {
     type: 'object',
-    properties: {
-      project_id: {
-        type: 'string',
-        description: 'Optional project ID (uses project from config if not provided)'
-      }
-    }
+    properties: {}
   }
 };
 

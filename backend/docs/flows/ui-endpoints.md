@@ -27,7 +27,7 @@ Authorization: Bearer {access_token}
     "name": "User Registration Flow",
     "description": "Complete user registration and verification flow",
     "project_id": "proj_456",
-    "collection_id": "col_789",
+    "folder_id": "fld_789",
     "flow_inputs": [
       {
         "name": "username",
@@ -259,7 +259,7 @@ Content-Type: application/json
     "name": "Updated User Registration Flow",
     "description": "Updated description",
     "project_id": "proj_456",
-    "collection_id": "col_789",
+    "folder_id": "fld_789",
     "flow_inputs": "[{\"name\":\"username\",\"type\":\"string\",\"required\":true}]",
     "flow_data": "{\"version\":\"1.0\",\"steps\":[...]}",
     "ui_data": "{\"nodes\":[...],\"edges\":[...]}",

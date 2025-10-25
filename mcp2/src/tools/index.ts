@@ -6,7 +6,7 @@
 import { McpTool, McpToolResponse } from '../types.js';
 import { AUTH_TOOLS, createAuthToolHandlers } from './auth.js';
 import { ENVIRONMENT_TOOLS, createEnvironmentToolHandlers } from './environment.js';
-import { COLLECTION_TOOLS, createCollectionToolHandlers } from './collections.js';
+import { FOLDER_TOOLS, createFolderToolHandlers } from './folders.js';
 import { ENDPOINT_TOOLS, createEndpointToolHandlers } from './endpoints.js';
 import { TESTING_TOOLS, createTestingToolHandlers } from './testing.js';
 import { FLOW_TOOLS, createFlowToolHandlers } from './flows.js';
@@ -26,12 +26,12 @@ export const CORE_TOOLS: McpTool[] = [
   healthCheckTool
 ];
 
-// All available tools (core + auth + environment + collections + endpoints + testing + flows)
+// All available tools (core + auth + environment + folders + endpoints + testing + flows)
 export const ALL_TOOLS: McpTool[] = [
   ...CORE_TOOLS,
   ...AUTH_TOOLS,
   ...ENVIRONMENT_TOOLS,
-  ...COLLECTION_TOOLS,
+  ...FOLDER_TOOLS,
   ...ENDPOINT_TOOLS,
   ...TESTING_TOOLS,
   ...FLOW_TOOLS
@@ -79,13 +79,13 @@ export function createCoreToolHandlers(): Record<string, (args: any) => Promise<
   };
 }
 
-// All tool handlers (core + auth + environment + collections + endpoints + testing + flows)
+// All tool handlers (core + auth + environment + folders + endpoints + testing + flows)
 export function createAllToolHandlers(): Record<string, (args: any) => Promise<McpToolResponse>> {
   return {
     ...createCoreToolHandlers(),
     ...createAuthToolHandlers(),
     ...createEnvironmentToolHandlers(),
-    ...createCollectionToolHandlers(),
+    ...createFolderToolHandlers(),
     ...createEndpointToolHandlers(),
     ...createTestingToolHandlers(),
     ...createFlowToolHandlers()

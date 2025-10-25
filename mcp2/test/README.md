@@ -20,7 +20,7 @@ test/
 │   │   └── auth-test-runner.js
 │   ├── environment/
 │   │   └── test-list-environments.js
-│   ├── collections/             # TODO: Implement
+│   ├── folders/               # TODO: Implement
 │   ├── endpoints/               # TODO: Implement
 │   ├── flows/                   # TODO: Implement
 │   └── testing/                 # TODO: Implement
@@ -69,7 +69,7 @@ Run tests for a specific tool category:
 cd test
 node runners/run-category-tests.js auth        # Authentication tests
 node runners/run-category-tests.js environment  # Environment tests
-node runners/run-category-tests.js collections  # Collection tests
+node runners/run-category-tests.js folders      # Folder tests
 node runners/run-category-tests.js endpoints    # Endpoint tests
 node runners/run-category-tests.js flows        # Flow tests
 node runners/run-category-tests.js testing      # Testing tool tests
@@ -91,7 +91,7 @@ npm run test:quick         # Quick health check
 |----------|-------------|---------|-------|
 | **auth** | Authentication and authorization | ✅ Implemented | get_project_context |
 | **environment** | Environment management | 🚧 In Progress | list_environments, get_environment_details, update_environment_variables |
-| **collections** | Collection management | ⏳ Planned | get_collections, create_collection, move_collection, delete_collection |
+| **folders** | Folder management | ⏳ Planned | get_folders, create_folder, move_folder, delete_folder |
 | **endpoints** | Endpoint management | ⏳ Planned | list_endpoints, get_endpoint_details, create_endpoint, update_endpoint, move_endpoint |
 | **flows** | Flow management and execution | ⏳ Planned | create_flow, list_flows, get_flow_detail, update_flow, delete_flow, execute_flow, etc. |
 | **testing** | Testing tools functionality | ⏳ Planned | test_endpoint |

@@ -36,7 +36,7 @@ interface FlowDetailsResponse {
     };
     flow_inputs?: string;
     project_id: string;
-    collection_id?: string;
+    folder_id?: string;
     is_active: boolean;
     created_at?: string;
     updated_at?: string;
@@ -48,27 +48,6 @@ interface FlowDetailsResponse {
 let configManager: ConfigManager | null = null;
 let backendClient: BackendClient | null = null;
 
-/**
- * Initialize flow dependencies
- */
-async function getFlowDependencies() {
-  if (!configManager) {
-    configManager = new ConfigManager();
-  }
-  if (!backendClient) {
-    const config = await configManager.detectProjectConfig();
-    if (!config) {
-      throw new Error('No configuration found');
-    }
-    const mcpToken = configManager.getMcpToken(config);
-    const serverUrl = configManager.getServerURL(config);
-    if (!mcpToken || !serverUrl) {
-      throw new Error('Missing token or server URL in configuration');
-    }
-    backendClient = new BackendClient(serverUrl, mcpToken);
-  }
-  return { configManager, backendClient };
-}
 
 /**
  * Execute HTTP request (reused from testing.ts)
@@ -434,7 +413,7 @@ interface FlowInput {
 interface FlowCreateData {
   name: string;
   description?: string;
-  collection_id?: string;
+  folder_id?: string;
   flow_inputs?: FlowInput[];
   flow_data: FlowStepsData;
   is_active?: boolean;
@@ -443,7 +422,7 @@ interface FlowCreateData {
 interface FlowUpdateData {
   name?: string;
   description?: string;
-  collection_id?: string;
+  folder_id?: string;
   flow_data?: any;
   is_active?: boolean;
 }
@@ -467,9 +446,9 @@ export const createFlowTool: McpTool = {
         type: 'string',
         description: 'Flow description (optional)'
       },
-      collection_id: {
+      folder_id: {
         type: 'string',
-        description: 'Collection ID to associate with this flow (optional)'
+        description: 'Folder ID to associate with this flow (optional)'
       },
       flow_inputs: {
         type: 'array',
@@ -550,7 +529,7 @@ export const createFlowTool: McpTool = {
         default: true
       }
     },
-    required: ['project_id', 'name']
+    required: ['name']
   }
 };
 
@@ -561,10 +540,6 @@ export const listFlowsTool: McpTool = {
   inputSchema: {
     type: 'object',
     properties: {
-      project_id: {
-        type: 'string',
-        description: 'Project ID to list flows from (required)'
-      },
       active_only: {
         type: 'boolean',
         description: 'List only active flows (default: false)',
@@ -575,12 +550,11 @@ export const listFlowsTool: McpTool = {
         description: 'Include inactive flows in results (default: true)',
         default: true
       },
-      collection_id: {
+      folder_id: {
         type: 'string',
-        description: 'Filter flows by collection ID (optional)'
+        description: 'Filter flows by folder ID (optional)'
       }
-    },
-    required: ['project_id']
+    }
   }
 };
 
@@ -619,9 +593,9 @@ export const updateFlowTool: McpTool = {
         type: 'string',
         description: 'Updated flow description (optional)'
       },
-      collection_id: {
+      folder_id: {
         type: 'string',
-        description: 'Updated collection ID (optional)'
+        description: 'Updated folder ID (optional)'
       },
       flow_data: {
         type: 'object',
@@ -773,20 +747,48 @@ export const executeFlowTool: McpTool = {
  * Flow tool handlers
  */
 export function createFlowToolHandlers(): Record<string, (args: any) => Promise<McpToolResponse>> {
+  /**
+   * Initialize flow dependencies
+   */
+  async function getFlowDependencies() {
+    if (!configManager) {
+      configManager = new ConfigManager();
+    }
+    if (!backendClient) {
+      const config = await configManager.detectProjectConfig();
+      if (!config) {
+        throw new Error('No configuration found');
+      }
+      const mcpToken = configManager.getMcpToken(config);
+      const serverUrl = configManager.getServerURL(config);
+      if (!mcpToken || !serverUrl) {
+        throw new Error('Missing token or server URL in configuration');
+      }
+      backendClient = new BackendClient(serverUrl, mcpToken);
+    }
+    return { configManager, backendClient };
+  }
+
   return {
     [createFlowTool.name]: async (args: Record<string, any>) => {
       try {
         const { configManager, backendClient } = await getFlowDependencies();
 
-        const projectId = args.project_id as string;
+        // Get project ID from config
+        const config = await configManager.detectProjectConfig();
+        const projectId = config?.project?.id;
+        if (!projectId) {
+          throw new Error('Project ID not found in config');
+        }
+
         const name = args.name as string;
         const description = args.description as string | undefined;
-        const collectionId = args.collection_id as string | undefined;
+        const folderId = args.folder_id as string | undefined;
         const flowData = args.flow_data as any;
         const isActive = args.is_active as boolean | undefined;
 
-        if (!projectId || !name) {
-          throw new Error('Project ID and name are required');
+        if (!name) {
+          throw new Error('Flow name is required');
         }
 
         console.error(`[FlowTools] Creating flow: ${name} in project: ${projectId}`);
@@ -798,44 +800,58 @@ export function createFlowToolHandlers(): Record<string, (args: any) => Promise<
           is_active: isActive !== undefined ? isActive : true
         };
 
-        if (collectionId) {
-          createData.collection_id = collectionId;
+        if (folderId) {
+          createData.folder_id = folderId;
         }
 
         if (flowData) {
           createData.flow_data = flowData;
         }
 
-        // Create flow via backend API (using old format with correct action)
+        // Create flow via backend API using BackendClient for consistent authentication
         const apiEndpoints = getApiEndpoints();
         const createUrl = apiEndpoints.getEndpoint('flowCreate', { id: projectId });
-        const createFullUrl = `${backendClient.getBaseUrl()}${createUrl}`;
 
-        const response = await fetch(createFullUrl, {
+        const apiResponse = await backendClient.makeRequest(createUrl, {
           method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${backendClient.getToken()}`,
-            'Content-Type': 'application/json'
-          },
           body: JSON.stringify(createData)
         });
 
-        const result = await response.json() as any;
+        if (!apiResponse.success) {
+          let errorMessage = `Failed to create flow`;
 
-        // Check for authentication errors specifically
-        if (response.status === 401 || (result && result.error && result.error.toLowerCase().includes('unauthorized'))) {
-          throw new Error('Authentication failed: Please ensure you have a valid JWT token. Try logging in first.');
-        }
+          // Provide helpful error messages for common scenarios
+          if (apiResponse.status === 404) {
+            errorMessage = `Project with ID '${projectId}' not found. Cannot create flow.\n\n`;
+            errorMessage += `Please check:\n`;
+            errorMessage += `• Project ID '${projectId}' is correct\n`;
+            errorMessage += `• You have access to this project\n`;
+            errorMessage += `• Project exists in the system\n\n`;
+            errorMessage += `Use get_folders to see available projects, or create a new project first.`;
+          } else if (apiResponse.status === 403) {
+            errorMessage = `Access denied. You don't have permission to create flows in this project.\n\n`;
+            errorMessage += `Please check:\n`;
+            errorMessage += `• You are a member of the project\n`;
+            errorMessage += `• Your account has write permissions for this project`;
+          } else if (apiResponse.status === 400) {
+            errorMessage = `Invalid flow data. Please check:\n`;
+            errorMessage += `• Flow name is not empty\n`;
+            errorMessage += `• Flow data is valid JSON if provided\n`;
+            errorMessage += `• Required fields are properly formatted`;
+          } else if ((apiResponse.data as any) && (apiResponse.data as any).message) {
+            errorMessage += `: ${(apiResponse.data as any).message}`;
+          } else {
+            errorMessage += `: Unknown error occurred while creating flow`;
+          }
 
-        if (!response.ok || !result.success) {
-          throw new Error(`Failed to create flow: ${result.message || 'Unknown error'}`);
+          throw new Error(errorMessage);
         }
 
         let responseText = `✅ Flow Created Successfully\n\n`;
-        responseText += `📝 Name: ${result.data?.name || name}\n`;
-        responseText += `🆔 ID: ${result.data?.id || 'Unknown'}\n`;
+        responseText += `📝 Name: ${(apiResponse.data as any)?.name || name}\n`;
+        responseText += `🆔 ID: ${(apiResponse.data as any)?.id || 'Unknown'}\n`;
         responseText += `📁 Project: ${projectId}\n`;
-        responseText += `🔗 Collection: ${collectionId || 'None'}\n`;
+        responseText += `🔗 Folder: ${folderId || 'None'}\n`;
         responseText += `🟢 Active: ${isActive !== undefined ? isActive : true}\n`;
         responseText += `📅 Created: ${new Date().toISOString()}\n`;
 
@@ -1106,14 +1122,16 @@ export function createFlowToolHandlers(): Record<string, (args: any) => Promise<
       try {
         const { configManager, backendClient } = await getFlowDependencies();
 
-        const projectId = args.project_id as string;
+        // Get project ID from config
+        const config = await configManager.detectProjectConfig();
+        const projectId = config?.project?.id;
+        if (!projectId) {
+          throw new Error('Project ID not found in config');
+        }
+
         const activeOnly = args.active_only as boolean | undefined;
         const includeInactive = args.include_inactive as boolean | undefined;
-        const collectionId = args.collection_id as string | undefined;
-
-        if (!projectId) {
-          throw new Error('Project ID is required');
-        }
+        const folderId = args.folder_id as string | undefined;
 
         console.error(`[FlowTools] Listing flows for project: ${projectId}`);
 
@@ -1125,34 +1143,48 @@ export function createFlowToolHandlers(): Record<string, (args: any) => Promise<
           listUrl = `/gassapi2/backend/?act=flows_active&id=${encodeURIComponent(projectId)}`; // No centralized endpoint for this yet
         }
 
-        if (collectionId) {
-          listUrl += `&collection_id=${encodeURIComponent(collectionId)}`;
+        if (folderId) {
+          listUrl += `&folder_id=${encodeURIComponent(folderId)}`;
         }
 
-        const listFullUrl = `${backendClient.getBaseUrl()}${listUrl}`;
-
-        const response = await fetch(listFullUrl, {
-          method: 'GET',
-          headers: {
-            'Authorization': `Bearer ${backendClient.getToken()}`,
-            'Content-Type': 'application/json'
-          }
+        // Use BackendClient.makeRequest for consistent authentication like get_project_context
+        const apiResponse = await backendClient.makeRequest(listUrl, {
+          method: 'GET'
         });
 
-        const result = await response.json() as any;
+        if (!apiResponse.success) {
+          let errorMessage = `Failed to list flows`;
 
-        if (!response.ok || !result.success) {
-          throw new Error(`Failed to list flows: ${result.message || 'Unknown error'}`);
+          // Provide helpful error messages for common scenarios
+          if (apiResponse.status === 404) {
+            errorMessage = `Project with ID '${projectId}' not found. Cannot list flows.\n\n`;
+            errorMessage += `Please check:\n`;
+            errorMessage += `• Project ID '${projectId}' is correct\n`;
+            errorMessage += `• You have access to this project\n`;
+            errorMessage += `• Project exists in the system\n\n`;
+            errorMessage += `Use get_folders to see available projects and their folders.`;
+          } else if (apiResponse.status === 403) {
+            errorMessage = `Access denied. You don't have permission to view flows in this project.\n\n`;
+            errorMessage += `Please check:\n`;
+            errorMessage += `• You are a member of the project\n`;
+            errorMessage += `• Your account has read permissions for this project`;
+          } else if ((apiResponse.data as any) && (apiResponse.data as any).message) {
+            errorMessage += `: ${(apiResponse.data as any).message}`;
+          } else {
+            errorMessage += `: Unknown error occurred while listing flows`;
+          }
+
+          throw new Error(errorMessage);
         }
 
-        const flows = result.data || [];
+        const flows = (apiResponse.data as any) || [];
 
         let responseText = `📋 Flow List\n\n`;
         responseText += `📁 Project: ${projectId}\n`;
         responseText += `📊 Total flows: ${flows.length}\n`;
 
-        if (collectionId) {
-          responseText += `🔗 Collection: ${collectionId}\n`;
+        if (folderId) {
+          responseText += `🔗 Folder: ${folderId}\n`;
         }
 
         if (activeOnly) {
@@ -1167,12 +1199,12 @@ export function createFlowToolHandlers(): Record<string, (args: any) => Promise<
           responseText += `📝 Flow Details:\n`;
           flows.forEach((flow: any, index: number) => {
             const statusIcon = flow.is_active ? '🟢' : '🔴';
-            responseText += `${index + 1}. ${statusIcon} ${flow.name}\n`;
-            responseText += `   🆔 ID: ${flow.id}\n`;
-            responseText += `   📄 Description: ${flow.description || 'No description'}\n`;
-            responseText += `   🔗 Collection: ${flow.collection_id || 'None'}\n`;
-            responseText += `   📅 Created: ${flow.created_at || 'Unknown'}\n`;
-            responseText += `   ✏️ Updated: ${flow.updated_at || 'Unknown'}\n\n`;
+            responseText += `${index + 1}. ${statusIcon} ${(flow as any).name}\n`;
+            responseText += `   🆔 ID: ${(flow as any).id}\n`;
+            responseText += `   📄 Description: ${(flow as any).description || 'No description'}\n`;
+            responseText += `   🔗 Folder: ${flow.folder_id || 'None'}\n`;
+            responseText += `   📅 Created: ${(flow as any).created_at || 'Unknown'}\n`;
+            responseText += `   ✏️ Updated: ${(flow as any).updated_at || 'Unknown'}\n\n`;
           });
         }
 
@@ -1210,43 +1242,37 @@ export function createFlowToolHandlers(): Record<string, (args: any) => Promise<
 
         console.error(`[FlowTools] Getting flow details: ${flowId}`);
 
+        // Get flow details using BackendClient for consistent authentication
         const apiEndpoints = getApiEndpoints();
         const detailUrl = apiEndpoints.getEndpoint('flowDetails', { id: flowId });
-        const detailFullUrl = `${backendClient.getBaseUrl()}${detailUrl}`;
 
-        const response = await fetch(detailFullUrl, {
-          method: 'GET',
-          headers: {
-            'Authorization': `Bearer ${backendClient.getToken()}`,
-            'Content-Type': 'application/json'
-          }
+        const apiResponse = await backendClient.makeRequest(detailUrl, {
+          method: 'GET'
         });
 
-        const result = await response.json() as any;
-
-        if (!response.ok || !result.success) {
-          throw new Error(`Failed to get flow details: ${result.message || 'Unknown error'}`);
+        if (!apiResponse.success) {
+          throw new Error(`Failed to get flow details: ${apiResponse.error || apiResponse.message || 'Unknown error'}`);
         }
 
-        const flow = result.data;
+        const flow = apiResponse.data;
 
         let responseText = `📄 Flow Details\n\n`;
-        responseText += `📝 Name: ${flow.name}\n`;
-        responseText += `🆔 ID: ${flow.id}\n`;
-        responseText += `📄 Description: ${flow.description || 'No description'}\n`;
-        responseText += `📁 Project: ${flow.project_id}\n`;
-        responseText += `🔗 Collection: ${flow.collection_id || 'None'}\n`;
-        responseText += `🟢 Active: ${flow.is_active ? 'Yes' : 'No'}\n`;
-        responseText += `📅 Created: ${flow.created_at || 'Unknown'}\n`;
-        responseText += `✏️ Updated: ${flow.updated_at || 'Unknown'}\n\n`;
+        responseText += `📝 Name: ${(flow as any).name}\n`;
+        responseText += `🆔 ID: ${(flow as any).id}\n`;
+        responseText += `📄 Description: ${(flow as any).description || 'No description'}\n`;
+        responseText += `📁 Project: ${(flow as any).project_id}\n`;
+        responseText += `🔗 Folder: ${(flow as any).folder_id || 'None'}\n`;
+        responseText += `🟢 Active: ${(flow as any).is_active ? 'Yes' : 'No'}\n`;
+        responseText += `📅 Created: ${(flow as any).created_at || 'Unknown'}\n`;
+        responseText += `✏️ Updated: ${(flow as any).updated_at || 'Unknown'}\n\n`;
 
         // Flow structure details (Steps format)
-        if (flow.flow_data) {
-          const version = flow.flow_data.version || 'Unknown';
-          const stepCount = flow.flow_data.steps?.length || 0;
-          const delay = flow.flow_data.config?.delay || 0;
-          const retryCount = flow.flow_data.config?.retryCount || 0;
-          const parallel = flow.flow_data.config?.parallel || false;
+        if ((flow as any).flow_data) {
+          const version = (flow as any).flow_data.version || 'Unknown';
+          const stepCount = (flow as any).flow_data.steps?.length || 0;
+          const delay = (flow as any).flow_data.config?.delay || 0;
+          const retryCount = (flow as any).flow_data.config?.retryCount || 0;
+          const parallel = (flow as any).flow_data.config?.parallel || false;
 
           responseText += `🔧 Flow Structure (Steps Format):\n`;
           responseText += `   • Version: ${version}\n`;
@@ -1254,9 +1280,9 @@ export function createFlowToolHandlers(): Record<string, (args: any) => Promise<
           responseText += `   • Config: ${delay}ms delay, ${retryCount} retries, parallel: ${parallel}\n\n`;
 
           // Steps summary
-          if (flow.flow_data.steps && flow.flow_data.steps.length > 0) {
+          if ((flow as any).flow_data.steps && (flow as any).flow_data.steps.length > 0) {
             responseText += `📋 Steps Summary:\n`;
-            flow.flow_data.steps.forEach((step: any, index: number) => {
+            (flow as any).flow_data.steps.forEach((step: any, index: number) => {
               responseText += `${index + 1}. ${step.method} ${step.name} - ${step.id}\n`;
               responseText += `   📍 URL: ${step.url}\n`;
               if (step.outputs && Object.keys(step.outputs).length > 0) {
@@ -1267,9 +1293,9 @@ export function createFlowToolHandlers(): Record<string, (args: any) => Promise<
           }
 
           // Flow inputs
-          if (flow.flow_inputs) {
+          if ((flow as any).flow_inputs) {
             try {
-              const flowInputs = JSON.parse(flow.flow_inputs);
+              const flowInputs = JSON.parse((flow as any).flow_inputs);
               if (flowInputs && flowInputs.length > 0) {
                 responseText += `📋 Flow Inputs:\n`;
                 flowInputs.forEach((input: any, index: number) => {
@@ -1318,7 +1344,7 @@ export function createFlowToolHandlers(): Record<string, (args: any) => Promise<
         // Collect optional fields
         if (args.name !== undefined) updateData.name = args.name as string;
         if (args.description !== undefined) updateData.description = args.description as string;
-        if (args.collection_id !== undefined) updateData.collection_id = args.collection_id as string;
+        if (args.folder_id !== undefined) updateData.folder_id = args.folder_id as string;
         if (args.flow_data !== undefined) updateData.flow_data = args.flow_data;
         if (args.is_active !== undefined) updateData.is_active = args.is_active as boolean;
 
@@ -1332,23 +1358,17 @@ export function createFlowToolHandlers(): Record<string, (args: any) => Promise<
 
         console.error(`[FlowTools] Updating flow: ${flowId}`);
 
+        // Update flow using BackendClient for consistent authentication
         const apiEndpoints = getApiEndpoints();
         const updateUrl = apiEndpoints.getEndpoint('flowUpdate', { id: flowId });
-        const updateFullUrl = `${backendClient.getBaseUrl()}${updateUrl}`;
 
-        const response = await fetch(updateFullUrl, {
+        const apiResponse = await backendClient.makeRequest(updateUrl, {
           method: 'PUT',
-          headers: {
-            'Authorization': `Bearer ${backendClient.getToken()}`,
-            'Content-Type': 'application/json'
-          },
           body: JSON.stringify(updateData)
         });
 
-        const result = await response.json() as any;
-
-        if (!response.ok || !result.success) {
-          throw new Error(`Failed to update flow: ${result.message || 'Unknown error'}`);
+        if (!apiResponse.success) {
+          throw new Error(`Failed to update flow: ${apiResponse.error || apiResponse.message || 'Unknown error'}`);
         }
 
         let responseText = `✅ Flow Updated Successfully\n\n`;
@@ -1403,22 +1423,16 @@ export function createFlowToolHandlers(): Record<string, (args: any) => Promise<
 
         console.error(`[FlowTools] Deleting flow: ${flowId}`);
 
+        // Delete flow using BackendClient for consistent authentication
         const apiEndpoints = getApiEndpoints();
         const deleteUrl = apiEndpoints.getEndpoint('flowDelete', { id: flowId });
-        const deleteFullUrl = `${backendClient.getBaseUrl()}${deleteUrl}`;
 
-        const response = await fetch(deleteFullUrl, {
-          method: 'DELETE',
-          headers: {
-            'Authorization': `Bearer ${backendClient.getToken()}`,
-            'Content-Type': 'application/json'
-          }
+        const apiResponse = await backendClient.makeRequest(deleteUrl, {
+          method: 'DELETE'
         });
 
-        const result = await response.json() as any;
-
-        if (!response.ok || !result.success) {
-          throw new Error(`Failed to delete flow: ${result.message || 'Unknown error'}`);
+        if (!apiResponse.success) {
+          throw new Error(`Failed to delete flow: ${apiResponse.error || apiResponse.message || 'Unknown error'}`);
         }
 
         let responseText = `✅ Flow Deleted Successfully\n\n`;
@@ -1471,51 +1485,39 @@ export function createFlowToolHandlers(): Record<string, (args: any) => Promise<
 
         // Step 1: Get flow configuration
         const apiEndpoints = getApiEndpoints();
+        // Get flow configuration using BackendClient for consistent authentication
         const flowUrl = apiEndpoints.getEndpoint('flowDetails', { id: flowId });
-        const flowFullUrl = `${backendClient.getBaseUrl()}${flowUrl}`;
 
-        console.error(`[FlowTools] Fetching flow config from: ${flowFullUrl}`);
+        console.error(`[FlowTools] Fetching flow config from: ${flowUrl}`);
 
-        const flowResult = await fetch(flowFullUrl, {
-          method: 'GET',
-          headers: {
-            'Authorization': `Bearer ${backendClient.getToken()}`,
-            'Content-Type': 'application/json'
-          }
+        const flowApiResponse = await backendClient.makeRequest(flowUrl, {
+          method: 'GET'
         });
 
-        if (!flowResult.ok) {
-          throw new Error(`Failed to get flow configuration: HTTP ${flowResult.status}`);
+        if (!flowApiResponse.success) {
+          throw new Error(`Failed to get flow configuration: ${flowApiResponse.error || flowApiResponse.message || 'Unknown error'}`);
         }
 
-        const flowData = await flowResult.json() as FlowDetailsResponse;
-
-        if (!flowData.success || !flowData.data) {
+        if (!flowApiResponse.data) {
           throw new Error('Flow not found or invalid response');
         }
 
-        const flow = flowData.data;
+        const flow = flowApiResponse.data as any;
 
-        // Step 2: Get environment variables
+        // Step 2: Get environment variables using BackendClient for consistent authentication
         const envVarsUrl = apiEndpoints.getEndpoint('environmentVariables', { id: environmentId });
-        const envVarsFullUrl = `${backendClient.getBaseUrl()}${envVarsUrl}`;
 
-        console.error(`[FlowTools] Fetching environment variables from: ${envVarsFullUrl}`);
+        console.error(`[FlowTools] Fetching environment variables from: ${envVarsUrl}`);
 
-        const envVarsResult = await fetch(envVarsFullUrl, {
-          method: 'GET',
-          headers: {
-            'Authorization': `Bearer ${backendClient.getToken()}`,
-            'Content-Type': 'application/json'
-          }
+        const envVarsApiResponse = await backendClient.makeRequest(envVarsUrl, {
+          method: 'GET'
         });
 
         let environmentVariables: Record<string, string> = {};
-        if (envVarsResult.ok) {
+        if (envVarsApiResponse.success) {
           try {
-            const envData = await envVarsResult.json() as any;
-            if (envData.success && envData.data) {
-              environmentVariables = envData.data.variables || {};
+            if ((envVarsApiResponse.data as any) && (envVarsApiResponse.data as any).variables) {
+              environmentVariables = (envVarsApiResponse.data as any).variables || {};
             }
           } catch (e) {
             console.error('[FlowTools] Failed to parse environment variables JSON:', e);
@@ -1530,9 +1532,9 @@ export function createFlowToolHandlers(): Record<string, (args: any) => Promise<
         const errors: string[] = [];
 
         // Parse flow data if it's a string
-        if (typeof flow.flow_data === 'string') {
+        if (typeof (flow as any).flow_data === 'string') {
           try {
-            flow.flow_data = JSON.parse(flow.flow_data);
+            (flow as any).flow_data = JSON.parse((flow as any).flow_data);
           } catch (e) {
             const error = e as Error;
             errors.push(`Invalid JSON in flow_data: ${error.message}`);
@@ -1542,15 +1544,15 @@ export function createFlowToolHandlers(): Record<string, (args: any) => Promise<
         // DEBUG MODE: Enhanced diagnostic logging
         if (debugMode) {
           console.error(`[FlowTools] DIAGNOSTIC - Flow Data Structure:`);
-          console.error(`  Flow ID: ${flow.id}`);
-          console.error(`  Flow Name: ${flow.name}`);
-          console.error(`  flow_data type: ${typeof flow.flow_data}`);
-          console.error(`  flow_data value:`, flow.flow_data);
+          console.error(`  Flow ID: ${(flow as any).id}`);
+          console.error(`  Flow Name: ${(flow as any).name}`);
+          console.error(`  flow_data type: ${typeof (flow as any).flow_data}`);
+          console.error(`  flow_data value:`, (flow as any).flow_data);
         }
 
-        if (flow.flow_data && flow.flow_data.steps && flow.flow_data.steps.length > 0) {
-          const steps = flow.flow_data.steps;
-          const config = flow.flow_data.config || { delay: 0, retryCount: 1, parallel: false };
+        if ((flow as any).flow_data && (flow as any).flow_data.steps && (flow as any).flow_data.steps.length > 0) {
+          const steps = (flow as any).flow_data.steps;
+          const config = (flow as any).flow_data.config || { delay: 0, retryCount: 1, parallel: false };
 
           // DEBUG MODE: Show steps detail
           if (debugMode) {
@@ -1595,7 +1597,7 @@ export function createFlowToolHandlers(): Record<string, (args: any) => Promise<
               // Interpolate headers
               if (step.headers) {
                 Object.entries(step.headers).forEach(([key, value]) => {
-                  interpolatedHeaders[key] = StatefulInterpolator.interpolate(value, context);
+                  interpolatedHeaders[key] = StatefulInterpolator.interpolate(value as string, context);
                 });
               }
 
@@ -1702,23 +1704,23 @@ export function createFlowToolHandlers(): Record<string, (args: any) => Promise<
             console.error(`[FlowTools] ENHANCED ERROR DIAGNOSTIC:`);
             console.error(`  ❌ Issue: No steps found or steps array is empty`);
             console.error(`  📊 Flow Details:`);
-            console.error(`     - Flow ID: ${flow.id}`);
-            console.error(`     - Flow Name: ${flow.name}`);
-            console.error(`     - Has flow_data: ${!!flow.flow_data}`);
+            console.error(`     - Flow ID: ${(flow as any).id}`);
+            console.error(`     - Flow Name: ${(flow as any).name}`);
+            console.error(`     - Has flow_data: ${!!(flow as any).flow_data}`);
 
-            if (flow.flow_data) {
-              console.error(`     - flow_data type: ${typeof flow.flow_data}`);
-              console.error(`     - flow_data keys: ${Object.keys(flow.flow_data).join(', ')}`);
-              console.error(`     - Has steps property: ${!!flow.flow_data.steps}`);
+            if ((flow as any).flow_data) {
+              console.error(`     - flow_data type: ${typeof (flow as any).flow_data}`);
+              console.error(`     - flow_data keys: ${Object.keys((flow as any).flow_data).join(', ')}`);
+              console.error(`     - Has steps property: ${!!(flow as any).flow_data.steps}`);
 
-              if (flow.flow_data.steps) {
-                console.error(`     - Steps type: ${typeof flow.flow_data.steps}`);
-                console.error(`     - Steps is array: ${Array.isArray(flow.flow_data.steps)}`);
-                console.error(`     - Steps length: ${flow.flow_data.steps.length}`);
+              if ((flow as any).flow_data.steps) {
+                console.error(`     - Steps type: ${typeof (flow as any).flow_data.steps}`);
+                console.error(`     - Steps is array: ${Array.isArray((flow as any).flow_data.steps)}`);
+                console.error(`     - Steps length: ${(flow as any).flow_data.steps.length}`);
               }
             }
 
-            console.error(`  🔍 Raw flow_data:`, JSON.stringify(flow.flow_data, null, 2));
+            console.error(`  🔍 Raw flow_data:`, JSON.stringify((flow as any).flow_data, null, 2));
           }
         }
 
@@ -1729,7 +1731,7 @@ export function createFlowToolHandlers(): Record<string, (args: any) => Promise<
 
         // Step 5: Format response
         let resultText = `🔄 Dynamic Flow Execution Result\n\n`;
-        resultText += `📊 Flow: ${flow.name} (${flow.id})\n`;
+        resultText += `📊 Flow: ${(flow as any).name} (${(flow as any).id})\n`;
         resultText += `${errors.length > 0 ? '🟡' : '🟢'} Status: ${errors.length > 0 ? 'completed_with_errors' : 'completed'}\n`;
         resultText += `⏱️  Execution Time: ${formatDuration(totalExecutionTime)}\n`;
         resultText += `📊 Steps: ${stepResults.length} total (${successCount} ✅, ${errorCount} ❌, ${skippedCount} ⏭️)\n`;

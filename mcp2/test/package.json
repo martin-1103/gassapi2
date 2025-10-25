@@ -8,7 +8,7 @@
     "test": "node runners/run-all-tests.js",
     "test:auth": "node runners/run-category-tests.js auth",
     "test:environment": "node runners/run-category-tests.js environment",
-    "test:collections": "node runners/run-category-tests.js collections",
+    "test:folders": "node runners/run-category-tests.js folders",
     "test:endpoints": "node runners/run-category-tests.js endpoints",
     "test:flows": "node runners/run-category-tests.js flows",
     "test:testing": "node runners/run-category-tests.js testing",

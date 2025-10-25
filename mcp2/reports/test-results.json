@@ -1,0 +1,71 @@
+{
+  "suite": "Authentication Tests - Test authentication and authorization functionality",
+  "startTime": "2025-10-25T09:23:49.141Z",
+  "endTime": "2025-10-25T09:23:57.110Z",
+  "duration": 7969,
+  "tests": [
+    {
+      "name": "testGetProjectContextSuccess",
+      "category": "auth",
+      "status": "passed",
+      "duration": 1593,
+      "message": "Successfully retrieved project context",
+      "details": null,
+      "error": null,
+      "timestamp": "2025-10-25T09:23:50.735Z"
+    },
+    {
+      "name": "testGetProjectContextInvalidId",
+      "category": "auth",
+      "status": "passed",
+      "duration": 1418,
+      "message": "Correctly handled invalid project ID: ❌ Failed to get project context: HTTP 403: Forbidden...",
+      "details": null,
+      "error": null,
+      "timestamp": "2025-10-25T09:23:52.153Z"
+    },
+    {
+      "name": "testGetProjectContextNoId",
+      "category": "auth",
+      "status": "passed",
+      "duration": 1395,
+      "message": "Used default project configuration",
+      "details": null,
+      "error": null,
+      "timestamp": "2025-10-25T09:23:53.549Z"
+    },
+    {
+      "name": "testGetProjectContextDataIntegrity",
+      "category": "auth",
+      "status": "passed",
+      "duration": 1431,
+      "message": "All response data validated successfully",
+      "details": null,
+      "error": null,
+      "timestamp": "2025-10-25T09:23:54.981Z"
+    },
+    {
+      "name": "testGetProjectContextPerformance",
+      "category": "auth",
+      "status": "passed",
+      "duration": 2128,
+      "message": "Performance test completed - 5 iterations",
+      "details": null,
+      "error": null,
+      "timestamp": "2025-10-25T09:23:57.109Z"
+    }
+  ],
+  "summary": {
+    "total": 5,
+    "passed": 5,
+    "failed": 0,
+    "skipped": 0,
+    "errors": 0
+  },
+  "generatedAt": "2025-10-25T09:23:57.110Z",
+  "environment": {
+    "nodeVersion": "v22.14.0",
+    "platform": "win32",
+    "arch": "x64"
+  }
+}

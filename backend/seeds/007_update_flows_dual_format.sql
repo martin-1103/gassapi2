@@ -147,7 +147,7 @@ UPDATE flows SET
     }'
 WHERE id = 'flow-002';
 
--- Flow 3: Weather Data Collection
+-- Flow 3: Weather Data Gathering
 UPDATE flows SET
     flow_inputs = '[
         {

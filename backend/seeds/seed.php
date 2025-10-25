@@ -247,7 +247,7 @@ class Seeder {
         $classMap = [
             'UsersSeeder' => '001_seed_users.sql',
             'ProjectsSeeder' => '002_seed_projects.sql',
-            'CollectionsSeeder' => '003_seed_collections.sql',
+            'FoldersSeeder' => '003_seed_folders.sql',
             'EndpointsSeeder' => '004_seed_endpoints.sql',
             'EnvironmentsSeeder' => '005_seed_environments.sql',
             'FlowsSeeder' => '006_seed_flows.sql',

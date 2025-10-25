@@ -4,7 +4,7 @@
 `DELETE /endpoint/{id}`
 
 ## Description
-Menghapus endpoint dari collection.
+Menghapus endpoint dari folder.
 
 ## Headers
 ```
@@ -46,7 +46,7 @@ Authorization: Bearer {access_token}
 - User harus menjadi member dari project yang memiliki endpoint ini
 
 ## Side Effects
-- Endpoint akan dihapus dari collection
+- Endpoint akan dihapus dari folder
 - Flow yang menggunakan endpoint ini mungkin tidak berfungsi dengan baik
 
 ## Example

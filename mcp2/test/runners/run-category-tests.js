@@ -113,9 +113,9 @@ async function runCategoryTests(category, options) {
         result = await runEnvironmentTests(options);
         break;
 
-      case 'collections':
-        const { runCollectionsTests } = require('../unit/collections/collections-test-runner.js');
-        result = await runCollectionsTests(options);
+      case 'folders':
+        const { runFoldersTests } = require('../unit/folders/folders-test-runner.js');
+        result = await runFoldersTests(options);
         break;
 
       case 'endpoints':

@@ -12,7 +12,7 @@ class EndpointTest extends BaseTest {
     private $authToken = null;
     private $testUserId = null;
     private $projectId = null;
-    private $testCollection = null;
+    private $testFolder = null;
     private $testEndpoints = [];
 
     protected function setUp() {
@@ -23,7 +23,7 @@ class EndpointTest extends BaseTest {
     }
 
     /**
-     * Setup test user, project, and collection
+     * Setup test user, project, and folder
      */
     private function setupTestUser() {
         // Register user
@@ -48,14 +48,14 @@ class EndpointTest extends BaseTest {
             $this->testUserId = $loginResult['data']['user']['id'] ?? null;
         }
 
-        // Create project and collection for endpoint tests
-        $this->setupTestProjectAndCollection();
+        // Create project and folder for endpoint tests
+        $this->setupTestProjectAndFolder();
     }
 
     /**
-     * Setup test project and collection
+     * Setup test project and folder
      */
-    private function setupTestProjectAndCollection() {
+    private function setupTestProjectAndFolder() {
         // Create project
         $projectData = [
             'name' => 'Endpoint Test Project ' . time(),
@@ -66,10 +66,10 @@ class EndpointTest extends BaseTest {
         if ($projectResult['status'] === 201 && isset($projectResult['data']['id'])) {
             $this->projectId = $projectResult['data']['id'];
 
-            // Create collection
-            $collectionData = [
-                'name' => 'Test Collection ' . time(),
-                'description' => 'Collection for endpoint testing',
+            // Create folder
+            $folderData = [
+                'name' => 'Test Folder ' . time(),
+                'description' => 'Folder for endpoint testing',
                 'variables' => [
                     'base_url' => 'https://api.example.com',
                     'api_key' => 'test_api_key_123',
@@ -77,10 +77,10 @@ class EndpointTest extends BaseTest {
                 ]
             ];
 
-            $collectionResult = $this->testHelper->post('collection_create', $collectionData, [], $this->projectId);
-            if ($collectionResult['status'] === 201 && isset($collectionResult['data']['id'])) {
-                $this->testCollection = [
-                    'id' => $collectionResult['data']['id'],
+            $folderResult = $this->testHelper->post('folder_create', $folderData, [], $this->projectId);
+            if ($folderResult['status'] === 201 && isset($folderResult['data']['id'])) {
+                $this->testFolder = [
+                    'id' => $folderResult['data']['id'],
                     'project_id' => $this->projectId
                 ];
             }
@@ -93,8 +93,8 @@ class EndpointTest extends BaseTest {
     protected function testCreateEndpoint() {
         $this->printHeader("Create Endpoint Test");
 
-        if (!$this->testCollection) {
-            return $this->skip("Create Endpoint - No collection available");
+        if (!$this->testFolder) {
+            return $this->skip("Create Endpoint - No folder available");
             
         }
 
@@ -110,13 +110,13 @@ class EndpointTest extends BaseTest {
             'body' => null
         ];
 
-        $result = $this->testHelper->post('endpoint_create', $endpointData, [], $this->testCollection['id']);
+        $result = $this->testHelper->post('endpoint_create', $endpointData, [], $this->testFolder['id']);
         $success = $this->testHelper->printResult("Create Endpoint", $result, 201);
 
         if ($success && isset($result['data']['id'])) {
             $this->testEndpoints[] = [
                 'id' => $result['data']['id'],
-                'collection_id' => $this->testCollection['id']
+                'folder_id' => $this->testFolder['id']
             ];
         }
 
@@ -129,8 +129,8 @@ class EndpointTest extends BaseTest {
     protected function testCreatePostEndpoint() {
         $this->printHeader("Create POST Endpoint Test");
 
-        if (!$this->testCollection) {
-            return $this->skip("Create POST Endpoint - No collection available");
+        if (!$this->testFolder) {
+            return $this->skip("Create POST Endpoint - No folder available");
             
         }
 
@@ -149,13 +149,13 @@ class EndpointTest extends BaseTest {
             ]
         ];
 
-        $result = $this->testHelper->post('endpoint_create', $endpointData, [], $this->testCollection['id']);
+        $result = $this->testHelper->post('endpoint_create', $endpointData, [], $this->testFolder['id']);
         $success = $this->testHelper->printResult("Create POST Endpoint", $result, 201);
 
         if ($success && isset($result['data']['id'])) {
             $this->testEndpoints[] = [
                 'id' => $result['data']['id'],
-                'collection_id' => $this->testCollection['id']
+                'folder_id' => $this->testFolder['id']
             ];
         }
 
@@ -168,12 +168,12 @@ class EndpointTest extends BaseTest {
     protected function testListEndpoints() {
         $this->printHeader("List Endpoints Test");
 
-        if (!$this->testCollection) {
-            return $this->skip("List Endpoints - No collection available");
+        if (!$this->testFolder) {
+            return $this->skip("List Endpoints - No folder available");
             
         }
 
-        $result = $this->testHelper->get('endpoint_list', [], $this->testCollection['id']);
+        $result = $this->testHelper->get('endpoint_list', [], $this->testFolder['id']);
         $success = $this->testHelper->printResult("List Endpoints", $result, 200);
 
         if ($success) {
@@ -306,8 +306,8 @@ class EndpointTest extends BaseTest {
     protected function testCreateEndpointInvalidMethod() {
         $this->printHeader("Create Endpoint Invalid Method Test");
 
-        if (!$this->testCollection) {
-            return $this->skip("Create Endpoint Invalid Method - No collection available");
+        if (!$this->testFolder) {
+            return $this->skip("Create Endpoint Invalid Method - No folder available");
             
         }
 
@@ -319,7 +319,7 @@ class EndpointTest extends BaseTest {
             'body' => null
         ];
 
-        $result = $this->testHelper->post('endpoint_create', $endpointData, [], $this->testCollection['id']);
+        $result = $this->testHelper->post('endpoint_create', $endpointData, [], $this->testFolder['id']);
         $success = $this->testHelper->printResult("Create Endpoint Invalid Method", $result, 400);
 
         if ($result['status'] === 400) {
@@ -335,8 +335,8 @@ class EndpointTest extends BaseTest {
     protected function testCreateEndpointMissingFields() {
         $this->printHeader("Create Endpoint Missing Fields Test");
 
-        if (!$this->testCollection) {
-            return $this->skip("Create Endpoint Missing Fields - No collection available");
+        if (!$this->testFolder) {
+            return $this->skip("Create Endpoint Missing Fields - No folder available");
             
         }
 
@@ -347,7 +347,7 @@ class EndpointTest extends BaseTest {
             'method' => 'GET',
             'url' => '{{base_url}}/test'
         ];
-        $result1 = $this->testHelper->post('endpoint_create', $data1, [], $this->testCollection['id']);
+        $result1 = $this->testHelper->post('endpoint_create', $data1, [], $this->testFolder['id']);
         $results[] = $this->testHelper->printResult("Create Endpoint Missing Name", $result1, 400);
 
         // Test missing method
@@ -355,7 +355,7 @@ class EndpointTest extends BaseTest {
             'name' => 'Test Endpoint',
             'url' => '{{base_url}}/test'
         ];
-        $result2 = $this->testHelper->post('endpoint_create', $data2, [], $this->testCollection['id']);
+        $result2 = $this->testHelper->post('endpoint_create', $data2, [], $this->testFolder['id']);
         $results[] = $this->testHelper->printResult("Create Endpoint Missing Method", $result2, 400);
 
         // Test missing URL
@@ -363,7 +363,7 @@ class EndpointTest extends BaseTest {
             'name' => 'Test Endpoint',
             'method' => 'GET'
         ];
-        $result3 = $this->testHelper->post('endpoint_create', $data3, [], $this->testCollection['id']);
+        $result3 = $this->testHelper->post('endpoint_create', $data3, [], $this->testFolder['id']);
         $results[] = $this->testHelper->printResult("Create Endpoint Missing URL", $result3, 400);
 
         return !in_array(false, $results);
@@ -375,8 +375,8 @@ class EndpointTest extends BaseTest {
     protected function testEndpointVariableSubstitution() {
         $this->printHeader("Endpoint Variable Substitution Test");
 
-        if (!$this->testCollection) {
-            return $this->skip("Variable Substitution - No collection available");
+        if (!$this->testFolder) {
+            return $this->skip("Variable Substitution - No folder available");
             
         }
 
@@ -392,14 +392,14 @@ class EndpointTest extends BaseTest {
             'body' => null
         ];
 
-        $result = $this->testHelper->post('endpoint_create', $endpointData, [], $this->testCollection['id']);
+        $result = $this->testHelper->post('endpoint_create', $endpointData, [], $this->testFolder['id']);
         $success = $this->testHelper->printResult("Create Endpoint with Variables", $result, 201);
 
         if ($success && isset($result['data']['id'])) {
             $endpointId = $result['data']['id'];
             $this->testEndpoints[] = [
                 'id' => $endpointId,
-                'collection_id' => $this->testCollection['id']
+                'folder_id' => $this->testFolder['id']
             ];
 
             // Verify variables are stored correctly
@@ -426,8 +426,8 @@ class EndpointTest extends BaseTest {
     protected function testEndpointUnauthorized() {
         $this->printHeader("Endpoint Without Authentication Test");
 
-        if (!$this->testCollection) {
-            return $this->skip("Endpoint Unauthorized - No collection available");
+        if (!$this->testFolder) {
+            return $this->skip("Endpoint Unauthorized - No folder available");
             
         }
 
@@ -442,11 +442,11 @@ class EndpointTest extends BaseTest {
             'method' => 'GET',
             'url' => 'https://api.example.com/test'
         ];
-        $result1 = $this->testHelper->post('endpoint_create', $endpointData, [], $this->testCollection['id']);
+        $result1 = $this->testHelper->post('endpoint_create', $endpointData, [], $this->testFolder['id']);
         $results[] = $this->testHelper->printResult("Create Endpoint Without Auth", $result1, 401);
 
         // Test list endpoints without auth
-        $result2 = $this->testHelper->get('endpoint_list', [], $this->testCollection['id']);
+        $result2 = $this->testHelper->get('endpoint_list', [], $this->testFolder['id']);
         $results[] = $this->testHelper->printResult("List Endpoints Without Auth", $result2, 401);
 
         // Test get endpoint without auth
@@ -469,8 +469,8 @@ class EndpointTest extends BaseTest {
     protected function testEndpointHttpMethods() {
         $this->printHeader("Endpoint HTTP Methods Test");
 
-        if (!$this->testCollection) {
-            return $this->skip("HTTP Methods - No collection available");
+        if (!$this->testFolder) {
+            return $this->skip("HTTP Methods - No folder available");
             
         }
 
@@ -486,14 +486,14 @@ class EndpointTest extends BaseTest {
                 'body' => in_array($method, ['POST', 'PUT', 'PATCH']) ? ['test' => 'data'] : null
             ];
 
-            $result = $this->testHelper->post('endpoint_create', $endpointData, [], $this->testCollection['id']);
+            $result = $this->testHelper->post('endpoint_create', $endpointData, [], $this->testFolder['id']);
             $success = $this->testHelper->printResult("Create {$method} Endpoint", $result, 201);
             $results[] = $success;
 
             if ($success && isset($result['data']['id'])) {
                 $this->testEndpoints[] = [
                     'id' => $result['data']['id'],
-                    'collection_id' => $this->testCollection['id']
+                    'folder_id' => $this->testFolder['id']
                 ];
             }
         }
@@ -502,7 +502,7 @@ class EndpointTest extends BaseTest {
     }
 
     /**
-     * Test endpoint permission (access other collection's endpoint)
+     * Test endpoint permission (access other folder's endpoint)
      */
     protected function testEndpointPermission() {
         $this->printHeader("Endpoint Permission Test");
@@ -559,8 +559,8 @@ class EndpointTest extends BaseTest {
     protected function testEndpointBodyHandling() {
         $this->printHeader("Endpoint Body Handling Test");
 
-        if (!$this->testCollection) {
-            return $this->skip("Body Handling - No collection available");
+        if (!$this->testFolder) {
+            return $this->skip("Body Handling - No folder available");
             
         }
 
@@ -602,14 +602,14 @@ class EndpointTest extends BaseTest {
                 'body' => $testCase['body']
             ];
 
-            $result = $this->testHelper->post('endpoint_create', $endpointData, [], $this->testCollection['id']);
+            $result = $this->testHelper->post('endpoint_create', $endpointData, [], $this->testFolder['id']);
             $success = $this->testHelper->printResult("Create Endpoint: " . $testCase['name'], $result, 201);
             $results[] = $success;
 
             if ($success && isset($result['data']['id'])) {
                 $this->testEndpoints[] = [
                     'id' => $result['data']['id'],
-                    'collection_id' => $this->testCollection['id']
+                    'folder_id' => $this->testFolder['id']
                 ];
             }
         }
@@ -623,9 +623,9 @@ class EndpointTest extends BaseTest {
             $this->testHelper->delete('endpoint_delete', [], $endpoint['id']);
         }
 
-        // Cleanup: Delete test collection
-        if ($this->testCollection) {
-            $this->testHelper->delete('collection_delete', [], $this->testCollection['id']);
+        // Cleanup: Delete test folder
+        if ($this->testFolder) {
+            $this->testHelper->delete('folder_delete', [], $this->testFolder['id']);
         }
 
         // Cleanup: Delete test project

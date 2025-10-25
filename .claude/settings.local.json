@@ -5,7 +5,8 @@
       "WebFetch(domain:katalon.com)",
       "Bash(curl:*)",
       "Bash(npm run test:environment:*)",
-      "Bash(npm run test:*)"
+      "Bash(npm run test:*)",
+      "mcp__sequential-thinking__sequentialthinking"
     ],
     "deny": [],
     "ask": []

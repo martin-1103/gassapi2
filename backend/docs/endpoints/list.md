@@ -1,10 +1,10 @@
 # List Endpoints
 
 ## Endpoint
-`GET /collection/{id}/endpoints`
+`GET /folder/{id}/endpoints`
 
 ## Description
-Mengambil daftar semua endpoints dalam collection.
+Mengambil daftar semua endpoints dalam folder.
 
 ## Headers
 ```
@@ -12,7 +12,7 @@ Authorization: Bearer {access_token}
 ```
 
 ## Path Parameters
-- `id`: ID collection
+- `id`: ID folder
 
 ## Response
 ### Success (200)
@@ -28,7 +28,7 @@ Authorization: Bearer {access_token}
       "url": "{{base_url}}/users/{{user_id}}",
       "headers": "{\"Authorization\":\"Bearer {{token}}\"}",
       "body": null,
-      "collection_id": "col_123",
+      "folder_id": "fld_123",
       "created_by": "user_xyz",
       "created_at": "2025-10-23 10:30:00",
       "updated_at": "2025-10-23 10:30:00"
@@ -40,7 +40,7 @@ Authorization: Bearer {access_token}
       "url": "{{base_url}}/users",
       "headers": "{\"Content-Type\":\"application/json\"}",
       "body": "{\"name\":\"{{name}}\",\"email\":\"{{email}}\"}",
-      "collection_id": "col_123",
+      "folder_id": "fld_123",
       "created_by": "user_abc",
       "created_at": "2025-10-23 11:00:00",
       "updated_at": "2025-10-23 11:00:00"
@@ -61,7 +61,7 @@ Authorization: Bearer {access_token}
 ```json
 {
   "status": "error",
-  "message": "Collection not found"
+  "message": "Folder not found"
 }
 ```
 
@@ -69,12 +69,12 @@ Authorization: Bearer {access_token}
 ### Get All Endpoints by Project
 `GET /project/{id}/endpoints`
 
-Mengambil semua endpoints dari semua collections dalam project.
+Mengambil semua endpoints dari semua folders dalam project.
 
 ### Get Grouped Endpoints
 `GET /project/{id}/endpoints/grouped`
 
-Mengambil endpoints yang dikelompokkan berdasarkan collection.
+Mengambil endpoints yang dikelompokkan berdasarkan folder.
 
 Response:
 ```json
@@ -83,13 +83,13 @@ Response:
   "message": "Grouped endpoints fetched",
   "data": [
     {
-      "collection_id": "col_123",
-      "collection_name": "User API",
+      "folder_id": "fld_123",
+      "folder_name": "User API",
       "endpoints": [...]
     },
     {
-      "collection_id": "col_456",
-      "collection_name": "Auth API",
+      "folder_id": "fld_456",
+      "folder_name": "Auth API",
       "endpoints": [...]
     }
   ]
@@ -97,10 +97,10 @@ Response:
 ```
 
 ## Authorization
-- User harus menjadi member dari project yang memiliki collection ini
+- User harus menjadi member dari project yang memiliki folder ini
 
 ## Example
 ```bash
-GET /gassapi2/backend/?act=endpoints&id=col_123
+GET /gassapi2/backend/?act=endpoints&id=fld_123
 Authorization: Bearer eyJhbGc...
 ```

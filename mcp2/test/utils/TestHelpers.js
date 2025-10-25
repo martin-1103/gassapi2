@@ -153,8 +153,8 @@ class TestDataGenerator {
     return `proj_${Date.now()}_${Math.random().toString(36).substr(2, 16)}`;
   }
 
-  static generateCollectionId() {
-    return `col_${Date.now()}_${Math.random().toString(36).substr(2, 16)}`;
+  static generateFolderId() {
+    return `fld_${Date.now()}_${Math.random().toString(36).substr(2, 16)}`;
   }
 
   static generateEndpointId() {
@@ -193,10 +193,10 @@ class TestDataGenerator {
     };
   }
 
-  static generateCollectionData() {
+  static generateFolderData() {
     return {
-      name: `Test Collection ${Date.now()}`,
-      description: 'Test collection description',
+      name: `Test Folder ${Date.now()}`,
+      description: 'Test folder description',
       parent_id: null
     };
   }
@@ -381,7 +381,7 @@ class TestUtils {
       testData: TestDataGenerator.generateTestUser(),
       projectIds: [TestDataGenerator.generateProjectId()],
       environmentIds: [TestDataGenerator.generateEnvironmentId()],
-      collectionIds: [TestDataGenerator.generateCollectionId()],
+      folderIds: [TestDataGenerator.generateFolderId()],
       endpointIds: [TestDataGenerator.generateEndpointId()],
       flowIds: [TestDataGenerator.generateFlowId()],
       ...options
@@ -444,7 +444,7 @@ function measureTime() {
 // Export commonly used functions
 const createTestUser = TestDataGenerator.generateTestUser.bind(TestDataGenerator);
 const createEndpointData = TestDataGenerator.generateEndpointData.bind(TestDataGenerator);
-const createCollectionData = TestDataGenerator.generateCollectionData.bind(TestDataGenerator);
+const createFolderData = TestDataGenerator.generateFolderData.bind(TestDataGenerator);
 const createFlowData = TestDataGenerator.generateFlowData.bind(TestDataGenerator);
 const createEnvironmentVariables = TestDataGenerator.generateEnvironmentVariables.bind(TestDataGenerator);
 
@@ -454,7 +454,7 @@ module.exports = {
   TestUtils,
   createTestUser,
   createEndpointData,
-  createCollectionData,
+  createFolderData,
   createFlowData,
   createEnvironmentVariables,
   // Export classes for direct use

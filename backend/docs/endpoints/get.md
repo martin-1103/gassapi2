@@ -4,7 +4,7 @@
 `GET /endpoint/{id}`
 
 ## Description
-Mengambil detail endpoint berdasarkan ID. Response includes collection and project info.
+Mengambil detail endpoint berdasarkan ID. Response includes folder and project info.
 
 ## Headers
 ```
@@ -27,8 +27,8 @@ Authorization: Bearer {access_token}
     "url": "{{base_url}}/users/{{user_id}}",
     "headers": "{\"Authorization\":\"Bearer {{token}}\",\"Accept\":\"application/json\"}",
     "body": null,
-    "collection_id": "col_123",
-    "collection_name": "User API",
+    "folder_id": "fld_123",
+    "folder_name": "User API",
     "project_id": "proj_456",
     "created_by": "user_xyz",
     "created_at": "2025-10-23 10:30:00",

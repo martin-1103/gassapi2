@@ -19,7 +19,7 @@
 
 ### Parameters
 - **Required:** project_id, name
-- **Optional:** description, collection_id, flow_data, flow_inputs, is_active
+- **Optional:** description, folder_id, flow_data, flow_inputs, is_active
 
 ### Usage Example
 ```
@@ -32,7 +32,7 @@ create_flow(
   project_id: "proj_123",
   name: "Complete User Flow",
   description: "Test user management API",
-  collection_id: "col_456",
+  folder_id: "fld_456",
   flow_data: {
     version: "1.0",
     steps: [{
@@ -79,7 +79,7 @@ create_flow(
 
 ### Parameters
 - **Required:** project_id
-- **Optional:** active_only, include_inactive, collection_id
+- **Optional:** active_only, include_inactive, folder_id
 
 ### Usage Example
 ```
@@ -90,7 +90,7 @@ list_flows(
 list_flows(
   project_id: "proj_123",
   active_only: true,
-  collection_id: "col_456"
+  folder_id: "fld_456"
 )
 ```
 
@@ -127,7 +127,7 @@ get_flow_detail(
 
 ### Parameters
 - **Required:** flow_id
-- **Optional:** name, description, collection_id, flow_data, is_active
+- **Optional:** name, description, folder_id, flow_data, is_active
 
 ### Usage Example
 ```

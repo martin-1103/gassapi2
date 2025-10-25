@@ -1,7 +1,7 @@
 -- Seed: Endpoints Table
 -- Description: Insert sample API endpoints for development environment
 -- Environment: Development
--- Dependencies: Collections table (collection_id), Users table (created_by)
+-- Dependencies: Folders table (folder_id), Users table (created_by)
 
 SET FOREIGN_KEY_CHECKS = 0;
 
@@ -10,7 +10,7 @@ DELETE FROM endpoints WHERE name LIKE 'Demo %' OR name LIKE 'Sample %';
 
 -- Insert Sample Endpoints
 INSERT INTO endpoints (
-    id, name, method, url, headers, body, collection_id, created_by,
+    id, name, method, url, headers, body, folder_id, created_by,
     created_at, updated_at
 ) VALUES
 -- E-Commerce Authentication Endpoints
@@ -21,7 +21,7 @@ INSERT INTO endpoints (
     '/auth/login',
     '{"Content-Type": "application/json", "Accept": "application/json"}',
     '{"email": "john.doe@example.com", "password": "{{password}}"}',
-    'coll-001',
+    'fold-001',
     'user-001',
     DATE_SUB(NOW(), INTERVAL 23 DAY),
     NOW()
@@ -33,7 +33,7 @@ INSERT INTO endpoints (
     '/auth/register',
     '{"Content-Type": "application/json", "Accept": "application/json"}',
     '{"name": "{{userName}}", "email": "{{userEmail}}", "password": "{{password}}"}',
-    'coll-001',
+    'fold-001',
     'user-001',
     DATE_SUB(NOW(), INTERVAL 23 DAY),
     NOW()
@@ -45,7 +45,7 @@ INSERT INTO endpoints (
     '/auth/refresh',
     '{"Content-Type": "application/json", "Accept": "application/json"}',
     '{"refreshToken": "{{refreshToken}}"}',
-    'coll-001',
+    'fold-001',
     'user-001',
     DATE_SUB(NOW(), INTERVAL 22 DAY),
     NOW()
@@ -59,7 +59,7 @@ INSERT INTO endpoints (
     '/products?page={{page}}&limit={{limit}}&category={{category}}',
     '{"Content-Type": "application/json", "Accept": "application/json", "Authorization": "Bearer {{authToken}}"}',
     NULL,
-    'coll-002',
+    'fold-002',
     'user-001',
     DATE_SUB(NOW(), INTERVAL 22 DAY),
     NOW()
@@ -71,7 +71,7 @@ INSERT INTO endpoints (
     '/products/{{productId}}',
     '{"Content-Type": "application/json", "Accept": "application/json", "Authorization": "Bearer {{authToken}}"}',
     NULL,
-    'coll-002',
+    'fold-002',
     'user-001',
     DATE_SUB(NOW(), INTERVAL 21 DAY),
     NOW()
@@ -83,7 +83,7 @@ INSERT INTO endpoints (
     '/products',
     '{"Content-Type": "application/json", "Accept": "application/json", "Authorization": "Bearer {{authToken}}"}',
     '{"name": "{{productName}}", "description": "{{description}}", "price": {{price}}, "category": "{{category}}", "stock": {{stock}}}',
-    'coll-002',
+    'fold-002',
     'user-001',
     DATE_SUB(NOW(), INTERVAL 21 DAY),
     NOW()
@@ -97,7 +97,7 @@ INSERT INTO endpoints (
     '/weather/current?city={{cityName}}&units={{units}}',
     '{"Content-Type": "application/json", "Accept": "application/json"}',
     NULL,
-    'coll-004',
+    'fold-004',
     'user-002',
     DATE_SUB(NOW(), INTERVAL 18 DAY),
     NOW()
@@ -109,7 +109,7 @@ INSERT INTO endpoints (
     '/weather/current?lat={{latitude}}&lon={{longitude}}&units={{units}}',
     '{"Content-Type": "application/json", "Accept": "application/json"}',
     NULL,
-    'coll-004',
+    'fold-004',
     'user-002',
     DATE_SUB(NOW(), INTERVAL 17 DAY),
     NOW()
@@ -121,7 +121,7 @@ INSERT INTO endpoints (
     '/weather/forecast?city={{cityName}}&days={{days}}',
     '{"Content-Type": "application/json", "Accept": "application/json"}',
     NULL,
-    'coll-005',
+    'fold-005',
     'user-002',
     DATE_SUB(NOW(), INTERVAL 17 DAY),
     NOW()
@@ -135,7 +135,7 @@ INSERT INTO endpoints (
     '/admin/users?page={{page}}&limit={{limit}}',
     '{"Content-Type": "application/json", "Accept": "application/json", "Authorization": "Bearer {{adminToken}}"}',
     NULL,
-    'coll-006',
+    'fold-006',
     'admin-001',
     DATE_SUB(NOW(), INTERVAL 13 DAY),
     NOW()
@@ -147,7 +147,7 @@ INSERT INTO endpoints (
     '/admin/users/{{userId}}/status',
     '{"Content-Type": "application/json", "Accept": "application/json", "Authorization": "Bearer {{adminToken}}"}',
     '{"isActive": {{isActive}}, "emailVerified": {{emailVerified}}}',
-    'coll-006',
+    'fold-006',
     'admin-001',
     DATE_SUB(NOW(), INTERVAL 12 DAY),
     NOW()
@@ -161,7 +161,7 @@ INSERT INTO endpoints (
     '/files/upload',
     '{"Content-Type": "multipart/form-data", "Accept": "application/json", "Authorization": "Bearer {{storageToken}}"}',
     'file: {{file}}\nfolder: {{folder}}\npublic: {{isPublic}}',
-    'coll-008',
+    'fold-008',
     'user-004',
     DATE_SUB(NOW(), INTERVAL 8 DAY),
     NOW()
@@ -173,7 +173,7 @@ INSERT INTO endpoints (
     '/files/{{fileId}}/download',
     '{"Accept": "application/octet-stream", "Authorization": "Bearer {{storageToken}}"}',
     NULL,
-    'coll-008',
+    'fold-008',
     'user-004',
     DATE_SUB(NOW(), INTERVAL 7 DAY),
     NOW()
@@ -187,7 +187,7 @@ INSERT INTO endpoints (
     '/dashboard/overview?startDate={{startDate}}&endDate={{endDate}}',
     '{"Content-Type": "application/json", "Accept": "application/json", "Authorization": "Bearer {{analyticsToken}}"}',
     NULL,
-    'coll-009',
+    'fold-009',
     'user-001',
     DATE_SUB(NOW(), INTERVAL 3 DAY),
     NOW()
@@ -199,7 +199,7 @@ INSERT INTO endpoints (
     '/reports/generate',
     '{"Content-Type": "application/json", "Accept": "application/json", "Authorization": "Bearer {{analyticsToken}}"}',
     '{"type": "{{reportType}}", "startDate": "{{startDate}}", "endDate": "{{endDate}}", "format": "{{format}}"}',
-    'coll-010',
+    'fold-010',
     'user-001',
     DATE_SUB(NOW(), INTERVAL 2 DAY),
     NOW()

@@ -6,7 +6,7 @@ use App\Handlers\UserHandler;
 use App\Handlers\HealthHandler;
 use App\Handlers\ProjectHandler;
 use App\Handlers\EnvironmentHandler;
-use App\Handlers\CollectionHandler;
+use App\Handlers\FolderHandler;
 use App\Handlers\EndpointHandler;
 use App\Handlers\FlowHandler;
 use App\Handlers\McpHandler;
@@ -31,20 +31,20 @@ class ApiRoutes {
                 // Projects
                 '/projects' => ['handler' => 'projects_list', 'description' => 'List projects'],
                 '/project/{id}' => ['handler' => 'project_detail', 'description' => 'Get project by ID'],
-                '/project/{id}/context' => ['handler' => 'project_context', 'description' => 'Get project context with environments and collections'],
+                '/project/{id}/context' => ['handler' => 'project_context', 'description' => 'Get project context with environments and folders'],
                 // Environments
                 '/project/{id}/environments' => ['handler' => 'environments_list', 'description' => 'List environments for a project'],
                 '/environment/{id}' => ['handler' => 'environment_detail', 'description' => 'Get environment detail'],
-                // Collections
-                '/project/{id}/collections' => ['handler' => 'collections_list', 'description' => 'List collections for a project'],
-                '/collection/{id}' => ['handler' => 'collection_detail', 'description' => 'Get collection detail'],
+                // Folders
+                '/project/{id}/folders' => ['handler' => 'folders_list', 'description' => 'List folders for a project'],
+                '/folder/{id}' => ['handler' => 'folder_detail', 'description' => 'Get folder detail'],
                 // Endpoints
-                '/collection/{id}/endpoints' => ['handler' => 'endpoints_list', 'description' => 'List endpoints for a collection'],
-                '/collection/{id}/endpoints/list' => ['handler' => 'endpoint_list', 'description' => 'List endpoints for a collection (alias)'],
+                '/folder/{id}/endpoints' => ['handler' => 'endpoints_list', 'description' => 'List endpoints for a folder'],
+                '/folder/{id}/endpoints/list' => ['handler' => 'endpoint_list', 'description' => 'List endpoints for a folder (alias)'],
                 '/endpoint/{id}' => ['handler' => 'endpoint_detail', 'description' => 'Get endpoint detail'],
                 '/endpoint/{id}/get' => ['handler' => 'endpoint_get', 'description' => 'Get endpoint detail (alias)'],
                 '/project/{id}/endpoints' => ['handler' => 'project_endpoints_list', 'description' => 'List all endpoints in a project'],
-                '/project/{id}/endpoints/grouped' => ['handler' => 'project_endpoints_grouped', 'description' => 'List endpoints grouped by collection'],
+                '/project/{id}/endpoints/grouped' => ['handler' => 'project_endpoints_grouped', 'description' => 'List endpoints grouped by folder'],
                 // Flows
                 '/project/{id}/flows' => ['handler' => 'flows_list', 'description' => 'List flows for a project'],
                 '/project/{id}/flows/active' => ['handler' => 'flows_active_list', 'description' => 'List active flows for a project'],
@@ -72,10 +72,10 @@ class ApiRoutes {
                 '/project/{id}/members' => ['handler' => 'project_add_member', 'description' => 'Add member to project'],
                 // Environments
                 '/project/{id}/environments' => ['handler' => 'environment_create', 'description' => 'Create environment for a project'],
-                // Collections
-                '/project/{id}/collections' => ['handler' => 'collection_create', 'description' => 'Create collection for a project'],
+                // Folders
+                '/project/{id}/folders' => ['handler' => 'folder_create', 'description' => 'Create folder for a project'],
                 // Endpoints
-                '/collection/{id}/endpoints' => ['handler' => 'endpoint_create', 'description' => 'Create endpoint for a collection'],
+                '/folder/{id}/endpoints' => ['handler' => 'endpoint_create', 'description' => 'Create endpoint for a folder'],
                 // Flows
                 '/project/{id}/flows' => ['handler' => 'flow_create', 'description' => 'Create flow for a project'],
                 '/flow/{id}/duplicate' => ['handler' => 'flow_duplicate', 'description' => 'Duplicate a flow'],
@@ -91,8 +91,8 @@ class ApiRoutes {
                 '/project/{id}' => ['handler' => 'project_update', 'description' => 'Update project'],
                 // Environments
                 '/environment/{id}' => ['handler' => 'environment_update', 'description' => 'Update environment'],
-                // Collections
-                '/collection/{id}' => ['handler' => 'collection_update', 'description' => 'Update collection'],
+                // Folders
+                '/folder/{id}' => ['handler' => 'folder_update', 'description' => 'Update folder'],
                 // Endpoints
                 '/endpoint/{id}' => ['handler' => 'endpoint_update', 'description' => 'Update endpoint'],
                 // Flows
@@ -107,8 +107,8 @@ class ApiRoutes {
                 '/project/{id}' => ['handler' => 'project_delete', 'description' => 'Delete project'],
                 // Environments
                 '/environment/{id}' => ['handler' => 'environment_delete', 'description' => 'Delete environment'],
-                // Collections
-                '/collection/{id}' => ['handler' => 'collection_delete', 'description' => 'Delete collection'],
+                // Folders
+                '/folder/{id}' => ['handler' => 'folder_delete', 'description' => 'Delete folder'],
                 // Endpoints
                 '/endpoint/{id}' => ['handler' => 'endpoint_delete', 'description' => 'Delete endpoint'],
                 // Flows
@@ -120,7 +120,7 @@ class ApiRoutes {
     /**
      * Get route handler based on request method and path
      */
-    public static function resolveRoute($method, $path, $id_or_collectionId = null) {
+    public static function resolveRoute($method, $path, $id_or_folderId = null) {
         $routes = self::getRoutes();
 
         if (!isset($routes[$method])) {
@@ -136,8 +136,8 @@ class ApiRoutes {
 
         // Check pattern match with ID (supports {id} anywhere in pattern)
         foreach ($methodRoutes as $pattern => $route) {
-            if (strpos($pattern, '{id}') !== false && $id_or_collectionId !== null) {
-                $candidate = str_replace('{id}', $id_or_collectionId, $pattern);
+            if (strpos($pattern, '{id}') !== false && $id_or_folderId !== null) {
+                $candidate = str_replace('{id}', $id_or_folderId, $pattern);
                 if ($path === $candidate) {
                     return ['handler' => $route['handler'], 'error' => null];
                 }
@@ -156,7 +156,7 @@ class ApiRoutes {
         $healthHandler = new HealthHandler();
     $projectHandler = new ProjectHandler();
     $environmentHandler = new EnvironmentHandler();
-    $collectionHandler = new CollectionHandler();
+    $folderHandler = new FolderHandler();
     $endpointHandler = new EndpointHandler();
     $flowHandler = new FlowHandler();
         $mcpHandler = new McpHandler();
@@ -254,21 +254,21 @@ class ApiRoutes {
             case 'environment_delete':
                 $environmentHandler->delete($id);
                 break;
-            // Collection management
-            case 'collections_list':
-                $collectionHandler->getAll($id);
+            // Folder management
+            case 'folders_list':
+                $folderHandler->getAll($id);
                 break;
-            case 'collection_detail':
-                $collectionHandler->getById($id);
+            case 'folder_detail':
+                $folderHandler->getById($id);
                 break;
-            case 'collection_create':
-                $collectionHandler->create($id);
+            case 'folder_create':
+                $folderHandler->create($id);
                 break;
-            case 'collection_update':
-                $collectionHandler->update($id);
+            case 'folder_update':
+                $folderHandler->update($id);
                 break;
-            case 'collection_delete':
-                $collectionHandler->delete($id);
+            case 'folder_delete':
+                $folderHandler->delete($id);
                 break;
             // Endpoint management
             case 'endpoints_list':

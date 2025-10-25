@@ -45,16 +45,16 @@ Query format: `?act=endpoint_name&id={id}`
 - [Create Environment](environments/create.md) - POST `/project/{id}/environments`
 - [Get Environment](environments/get.md) - GET `/environment/{id}`
 
-### Collections
-- [List Collections](collections/list.md) - GET `/project/{id}/collections`
-- [Create Collection](collections/create.md) - POST `/project/{id}/collections`
-- [Get Collection](collections/get.md) - GET `/collection/{id}`
-- [Update Collection](collections/update.md) - PUT `/collection/{id}`
-- [Delete Collection](collections/delete.md) - DELETE `/collection/{id}`
+### Folders
+- [List Folders](folders/list.md) - GET `/project/{id}/folders`
+- [Create Folder](folders/create.md) - POST `/project/{id}/folders`
+- [Get Folder](folders/get.md) - GET `/folder/{id}`
+- [Update Folder](folders/update.md) - PUT `/folder/{id}`
+- [Delete Folder](folders/delete.md) - DELETE `/folder/{id}`
 
 ### Endpoints
-- [List Endpoints](endpoints/list.md) - GET `/collection/{id}/endpoints`
-- [Create Endpoint](endpoints/create.md) - POST `/collection/{id}/endpoints`
+- [List Endpoints](endpoints/list.md) - GET `/folder/{id}/endpoints`
+- [Create Endpoint](endpoints/create.md) - POST `/folder/{id}/endpoints`
 - [Get Endpoint](endpoints/get.md) - GET `/endpoint/{id}`
 - [Update Endpoint](endpoints/update.md) - PUT `/endpoint/{id}`
 - [Delete Endpoint](endpoints/delete.md) - DELETE `/endpoint/{id}`

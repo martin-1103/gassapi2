@@ -1,7 +1,7 @@
 -- Seed: Flows Table
 -- Description: Insert sample API automation flows for development environment
 -- Environment: Development
--- Dependencies: Projects table (project_id), Collections table (collection_id), Users table (created_by)
+-- Dependencies: Projects table (project_id), Folders table (folder_id), Users table (created_by)
 
 SET FOREIGN_KEY_CHECKS = 0;
 
@@ -10,7 +10,7 @@ DELETE FROM flows WHERE name LIKE 'Demo %' OR name LIKE 'Sample %';
 
 -- Insert Sample Flows
 INSERT INTO flows (
-    id, name, description, project_id, collection_id, flow_data,
+    id, name, description, project_id, folder_id, flow_data,
     created_by, is_active, created_at, updated_at
 ) VALUES
 (
@@ -18,7 +18,7 @@ INSERT INTO flows (
     'User Authentication Flow',
     'Complete user login and token refresh workflow',
     'proj-001',
-    'coll-001',
+    'fold-001',
     '{
         "version": "1.0",
         "steps": [
@@ -75,7 +75,7 @@ INSERT INTO flows (
     'Product Catalog Management',
     'Create, read, update, and delete products workflow',
     'proj-001',
-    'coll-002',
+    'fold-002',
     '{
         "version": "1.0",
         "steps": [
@@ -124,10 +124,10 @@ INSERT INTO flows (
 ),
 (
     'flow-003',
-    'Weather Data Collection',
+    'Weather Data Gathering',
     'Collect current weather data for multiple cities',
     'proj-002',
-    'coll-004',
+    'fold-004',
     '{
         "version": "1.0",
         "steps": [
@@ -169,7 +169,7 @@ INSERT INTO flows (
     'User Management Workflow',
     'Admin user management workflow for testing user operations',
     'proj-003',
-    'coll-006',
+    'fold-006',
     '{
         "version": "1.0",
         "steps": [
@@ -218,7 +218,7 @@ INSERT INTO flows (
     'File Upload and Processing',
     'Upload file and verify processing workflow',
     'proj-004',
-    'coll-008',
+    'fold-008',
     '{
         "version": "1.0",
         "steps": [

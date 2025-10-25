@@ -31,8 +31,9 @@ class McpTestClient {
 
       this.log('Initializing MCP server...');
 
-      // Change working directory to mcp2 since that's where dist/index.js is located
-      this.serverProcess = spawn('node', ['dist/index.js'], {
+      // Use full path to dist/index.js
+      const serverPath = path.join(__dirname, '../../dist/index.js');
+      this.serverProcess = spawn('node', [serverPath], {
         cwd: path.join(process.cwd(), '..'),
         stdio: ['pipe', 'pipe', 'pipe']
       });

@@ -6,59 +6,59 @@ use App\Helpers\ValidationHelper;
 use App\Helpers\JwtHelper;
 use App\Helpers\AuthHelper;
 use App\Repositories\ProjectRepository;
-use App\Repositories\CollectionRepository;
+use App\Repositories\FolderRepository;
 use App\Repositories\EndpointRepository;
 
 class EndpointHandler {
     private $projects;
-    private $collections;
+    private $folders;
     private $endpoints;
 
     public function __construct() {
         $this->projects = new ProjectRepository();
-        $this->collections = new CollectionRepository();
+        $this->folders = new FolderRepository();
         $this->endpoints = new EndpointRepository();
     }
 
     /**
-     * GET /collection/{id}/endpoints
+     * GET /folder/{id}/endpoints
      */
-    public function getAll($collectionId) {
-        if (!$collectionId) { 
-            ResponseHelper::error('Collection ID is required', 400); 
+    public function getAll($folderId) {
+        if (!$folderId) { 
+            ResponseHelper::error('Folder ID is required', 400); 
         }
         $user = AuthHelper::requireAuth();
         $userId = $user['id'];
         
-        $collection = $this->collections->findById($collectionId);
-        if (!$collection) { 
-            ResponseHelper::error('Collection not found', 404); 
+        $folder = $this->folders->findById($folderId);
+        if (!$folder) { 
+            ResponseHelper::error('Folder not found', 404); 
         }
         
-        if (!$this->projects->isMember($collection['project_id'], $userId)) {
+        if (!$this->projects->isMember($folder['project_id'], $userId)) {
             ResponseHelper::error('Forbidden', 403);
         }
         
-        $list = $this->endpoints->listByCollection($collectionId);
+        $list = $this->endpoints->listByFolder($folderId);
         ResponseHelper::success($list, 'Endpoints fetched');
     }
 
     /**
-     * POST /collection/{id}/endpoints
+     * POST /folder/{id}/endpoints
      */
-    public function create($collectionId) {
-        if (!$collectionId) { 
-            ResponseHelper::error('Collection ID is required', 400); 
+    public function create($folderId) {
+        if (!$folderId) { 
+            ResponseHelper::error('Folder ID is required', 400); 
         }
         $user = AuthHelper::requireAuth();
         $userId = $user['id'];
         
-        $collection = $this->collections->findById($collectionId);
-        if (!$collection) { 
-            ResponseHelper::error('Collection not found', 404); 
+        $folder = $this->folders->findById($folderId);
+        if (!$folder) { 
+            ResponseHelper::error('Folder not found', 404); 
         }
         
-        if (!$this->projects->isMember($collection['project_id'], $userId)) {
+        if (!$this->projects->isMember($folder['project_id'], $userId)) {
             ResponseHelper::error('Forbidden', 403);
         }
         
@@ -78,7 +78,7 @@ class EndpointHandler {
         }
 
         try {
-            $endpointId = $this->endpoints->createForCollection($collectionId, [
+            $endpointId = $this->endpoints->createForFolder($folderId, [
                 'name' => $name,
                 'method' => $method,
                 'url' => $url,
@@ -217,7 +217,7 @@ class EndpointHandler {
     }
 
     /**
-     * GET /project/{id}/endpoints/grouped - Get endpoints grouped by collection
+     * GET /project/{id}/endpoints/grouped - Get endpoints grouped by folder
      */
     public function getGrouped($projectId) {
         if (!$projectId) { 
@@ -230,7 +230,7 @@ class EndpointHandler {
             ResponseHelper::error('Forbidden', 403);
         }
         
-        $grouped = $this->endpoints->listGroupedByCollection($projectId);
+        $grouped = $this->endpoints->listGroupedByFolder($projectId);
         ResponseHelper::success($grouped, 'Grouped endpoints fetched');
     }
 }

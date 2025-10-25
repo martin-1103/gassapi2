@@ -19,14 +19,14 @@ Content-Type: application/json
 ```json
 {
   "name": "User Registration Flow - Test Environment",
-  "collection_id": "col_test_environment",
+  "folder_id": "fld_test_environment",
   "description": "Modified version for testing with sandbox environment"
 }
 ```
 
 ### Fields
 - `name` (optional): Nama untuk flow yang diduplikasi. Jika tidak diberikan, akan menggunakan nama asli + " (Copy)"
-- `collection_id` (optional): Pindahkan ke collection berbeda
+- `folder_id` (optional): Pindahkan ke folder berbeda
 - `description` (optional): Custom description untuk duplicated flow
 
 ## Response
@@ -44,8 +44,8 @@ Content-Type: application/json
     "name": "User Registration Flow - Test Environment",
     "description": "Modified version for testing with sandbox environment",
     "project_id": "proj_123",
-    "collection_id": "col_test_environment",
-    "collection_name": "Test Environment",
+    "folder_id": "fld_test_environment",
+    "folder_name": "Test Environment",
     "flow_inputs": "[{\"name\":\"username\",\"type\":\"string\",\"required\":true}]",
     "flow_data": "{\"version\":\"1.0\",\"steps\":[...]}",
     "ui_data": "{\"nodes\":[...],\"edges\":[...]}",
@@ -74,18 +74,18 @@ Content-Type: application/json
 }
 ```
 
-### Error (409) - Collection Access
+### Error (409) - Folder Access
 ```json
 {
   "status": "error",
-  "message": "Cannot duplicate to collection: User does not have access to target collection"
+  "message": "Cannot duplicate to folder: User does not have access to target folder"
 }
 ```
 
 ## Duplication Process
 
 ### What Gets Duplicated
-1. **Flow Metadata**: Name, description, collection
+1. **Flow Metadata**: Name, description, folder
 2. **Flow Inputs**: Semua definisi input dinamis
 3. **Flow Data**: `flow_data` (Steps format)
 4. **UI Data**: `ui_data` (React Flow format)
@@ -128,7 +128,7 @@ const createEnvironmentFlows = async (baseFlowId) => {
   for (const env of environments) {
     await duplicateFlow(baseFlowId, {
       name: `Registration Flow - ${env.toUpperCase()}`,
-      collection_id: `col_${env}`,
+      folder_id: `fld_${env}`,
       description: `Registration flow for ${env} environment`
     });
   }
@@ -141,13 +141,13 @@ const createEnvironmentFlows = async (baseFlowId) => {
 POST /gassapi2/backend/?act=flow_duplicate&id=flow_base
 {
   "name": "Registration Flow - Variant A",
-  "collection_id": "col_test_variants"
+  "folder_id": "fld_test_variants"
 }
 
 POST /gassapi2/backend/?act=flow_duplicate&id=flow_base
 {
   "name": "Registration Flow - Variant B",
-  "collection_id": "col_test_variants"
+  "folder_id": "fld_test_variants"
 }
 ```
 
@@ -157,7 +157,7 @@ POST /gassapi2/backend/?act=flow_duplicate&id=flow_base
 const createTemplate = async (workingFlowId, templateName) => {
   const duplicate = await duplicateFlow(workingFlowId, {
     name: templateName,
-    collection_id: 'col_templates',
+    folder_id: 'fld_templates',
     description: `Template flow based on ${workingFlowId}`
   });
 
@@ -183,7 +183,7 @@ const createTemplate = async (workingFlowId, templateName) => {
 POST /gassapi2/backend/?act=flow_duplicate&id=flow_critical
 {
   "name": "CRITICAL FLOW BACKUP - DO NOT DELETE",
-  "collection_id": "col_backups",
+  "folder_id": "fld_backups",
   "description": "Backup before major refactoring on 2025-10-25"
 }
 ```
@@ -239,7 +239,7 @@ const batchDuplicate = async (baseFlowId, variants) => {
   const promises = variants.map(variant =>
     duplicateFlow(baseFlowId, {
       name: variant.name,
-      collection_id: variant.collection_id,
+      folder_id: variant.folder_id,
       description: variant.description
     }).then(response => ({
       ...response,
@@ -253,11 +253,11 @@ const batchDuplicate = async (baseFlowId, variants) => {
 
 // Create 5 test variants
 const variants = [
-  { name: 'Test Variant 1', collection_id: 'col_tests' },
-  { name: 'Test Variant 2', collection_id: 'col_tests' },
-  { name: 'Test Variant 3', collection_id: 'col_tests' },
-  { name: 'Test Variant 4', collection_id: 'col_tests' },
-  { name: 'Test Variant 5', collection_id: 'col_tests' }
+  { name: 'Test Variant 1', folder_id: 'fld_tests' },
+  { name: 'Test Variant 2', folder_id: 'fld_tests' },
+  { name: 'Test Variant 3', folder_id: 'fld_tests' },
+  { name: 'Test Variant 4', folder_id: 'fld_tests' },
+  { name: 'Test Variant 5', folder_id: 'fld_tests' }
 ];
 
 const duplicates = await batchDuplicate('flow_base', variants);
@@ -289,9 +289,9 @@ const trackFlowHierarchy = (flowId) => {
 
 ### 1. **Before Duplicating**
 - Verify original flow is working correctly
-- Choose appropriate target collection
+- Choose appropriate target folder
 - Plan naming convention
-- Check permissions for target collection
+- Check permissions for target folder
 
 ### 2. **After Duplicating**
 - Test duplicated flow immediately
@@ -305,16 +305,16 @@ const trackFlowHierarchy = (flowId) => {
 - Avoid generic "(Copy)" when possible
 - Follow team naming conventions
 
-### 4. **Collection Organization**
-- Use dedicated collections for test flows
+### 4. **Folder Organization**
+- Use dedicated folders for test flows
 - Separate production from development
 - Archive old duplicates when no longer needed
-- Maintain collection permissions
+- Maintain folder permissions
 
 ## Authorization
 - User harus menjadi member dari project yang memiliki flow ini
-- User harus memiliki akses ke target collection (jika specified)
-- Duplicated flow akan mewarisi permissions dari target collection
+- User harus memiliki akses ke target folder (jika specified)
+- Duplicated flow akan mewarisi permissions dari target folder
 
 ## Example
 ```bash
@@ -341,7 +341,7 @@ Content-Type: application/json
 
 {
   "name": "Registration Flow - Development",
-  "collection_id": "col_dev",
+  "folder_id": "fld_dev",
   "description": "Development version with debug endpoints"
 }
 
@@ -352,8 +352,8 @@ Content-Type: application/json
   "data": {
     "id": "flow_new123",
     "name": "Registration Flow - Development",
-    "collection_id": "col_dev",
-    "collection_name": "Development",
+    "folder_id": "fld_dev",
+    "folder_name": "Development",
     "duplicated_from": "flow_a1b2c3d4e5f6g7h8"
   }
 }
@@ -367,7 +367,7 @@ const FlowDuplicateButton = ({ flowId, onDuplicate }) => {
   const [loading, setLoading] = useState(false);
   const [showModal, setShowModal] = useState(false);
 
-  const handleDuplicate = async (customName, targetCollection) => {
+  const handleDuplicate = async (customName, targetFolder) => {
     setLoading(true);
     try {
       const response = await fetch(`/gassapi2/backend/?act=flow_duplicate&id=${flowId}`, {
@@ -378,7 +378,7 @@ const FlowDuplicateButton = ({ flowId, onDuplicate }) => {
         },
         body: JSON.stringify({
           name: customName,
-          collection_id: targetCollection
+          folder_id: targetFolder
         })
       });
 
@@ -421,7 +421,7 @@ const trackDuplicationUsage = async () => {
   const analytics = {
     total_duplicates: duplicates.length,
     most_duplicated_flow: findMostDuplicatedFlow(),
-    duplicate_collections: getDuplicateCollections(),
+    duplicate_folders: getDuplicateFolders(),
     average_duplicates_per_flow: duplicates.length / getOriginalFlowCount()
   };
 

@@ -16,7 +16,7 @@ interface EndpointListResponse {
   success: boolean;
   data?: Array<{
     id: string;
-    collection_id: string;
+    folder_id: string;
     name: string;
     method: HttpMethod;
     url: string;
@@ -33,7 +33,7 @@ interface EndpointDetailsResponse {
   success: boolean;
   data?: {
     id: string;
-    collection_id: string;
+    folder_id: string;
     name: string;
     method: HttpMethod;
     url: string;
@@ -42,7 +42,7 @@ interface EndpointDetailsResponse {
     body?: string;
     created_at: string;
     updated_at: string;
-    collection?: {
+    folder?: {
       id: string;
       name: string;
       description?: string;
@@ -61,7 +61,7 @@ interface EndpointCreateResponse {
     description?: string;
     headers?: string;
     body?: string;
-    collection_id: string;
+    folder_id: string;
     created_at: string;
     updated_at: string;
   };
@@ -78,7 +78,7 @@ interface EndpointUpdateResponse {
     description?: string;
     headers?: string;
     body?: string;
-    collection_id: string;
+    folder_id: string;
     created_at: string;
     updated_at: string;
   };
@@ -123,7 +123,7 @@ function formatHeaders(headers: Record<string, string>): string {
   if (!headers || Object.keys(headers).length === 0) {
     return '{}';
   }
-  return JSON.stringify(headers, null, 2);
+  return JSON.stringify(headers); // Remove formatting for backend compatibility
 }
 
 /**
@@ -157,17 +157,13 @@ function formatBody(body?: any): string {
 // Tool: list_endpoints
 export const listEndpointsTool: McpTool = {
   name: 'list_endpoints',
-  description: 'List all endpoints with optional filtering by project or collection',
+  description: 'List all endpoints with optional filtering by folder',
   inputSchema: {
     type: 'object',
     properties: {
-      project_id: {
+      folder_id: {
         type: 'string',
-        description: 'Optional project ID (uses project from config if not provided)'
-      },
-      collection_id: {
-        type: 'string',
-        description: 'Optional collection ID to filter endpoints'
+        description: 'Optional folder ID to filter endpoints'
       },
       method: {
         type: 'string',
@@ -181,7 +177,7 @@ export const listEndpointsTool: McpTool = {
 // Tool: get_endpoint_details
 export const getEndpointDetailsTool: McpTool = {
   name: 'get_endpoint_details',
-  description: 'Get detailed endpoint configuration with collection information',
+  description: 'Get detailed endpoint configuration with folder information',
   inputSchema: {
     type: 'object',
     properties: {
@@ -197,7 +193,7 @@ export const getEndpointDetailsTool: McpTool = {
 // Tool: create_endpoint
 export const createEndpointTool: McpTool = {
   name: 'create_endpoint',
-  description: 'Create a new endpoint in a collection',
+  description: 'Create a new endpoint in a folder',
   inputSchema: {
     type: 'object',
     properties: {
@@ -214,9 +210,9 @@ export const createEndpointTool: McpTool = {
         type: 'string',
         description: 'Endpoint URL (required)'
       },
-      collection_id: {
+      folder_id: {
         type: 'string',
-        description: 'Collection ID to create endpoint in (required)'
+        description: 'Folder ID to create endpoint in (required)'
       },
       description: {
         type: 'string',
@@ -235,7 +231,7 @@ export const createEndpointTool: McpTool = {
         description: 'Request body (JSON string)'
       }
     },
-    required: ['name', 'method', 'url', 'collection_id']
+    required: ['name', 'method', 'url', 'folder_id']
   }
 };
 
@@ -287,7 +283,7 @@ export const updateEndpointTool: McpTool = {
 // Tool: move_endpoint
 export const moveEndpointTool: McpTool = {
   name: 'move_endpoint',
-  description: 'Move endpoint to a different collection',
+  description: 'Move endpoint to a different folder',
   inputSchema: {
     type: 'object',
     properties: {
@@ -295,12 +291,12 @@ export const moveEndpointTool: McpTool = {
         type: 'string',
         description: 'Endpoint ID to move (required)'
       },
-      new_collection_id: {
+      new_folder_id: {
         type: 'string',
-        description: 'Target collection ID (required)'
+        description: 'Target folder ID (required)'
       }
     },
-    required: ['endpoint_id', 'new_collection_id']
+    required: ['endpoint_id', 'new_folder_id']
   }
 };
 
@@ -323,31 +319,57 @@ export function createEndpointToolHandlers(): Record<string, (args: any) => Prom
           }
         }
 
-        const collectionId = args.collection_id as string | undefined;
+        const folderId = args.folder_id as string | undefined;
         const method = args.method as HttpMethod | undefined;
 
         // Build query parameters for endpoint_list
         const apiEndpoints = getApiEndpoints();
-        const endpoint = collectionId
-          ? apiEndpoints.getEndpoint('endpointList', { collection_id: collectionId })
-          : '/gassapi2/backend/?act=endpoints'; // Fallback for project-wide listing
+        let endpoint: string;
+
+        if (folderId) {
+          // List endpoints for a specific folder
+          endpoint = apiEndpoints.getEndpoint('endpointList', { id: folderId });
+        } else {
+          // List all endpoints for the project
+          endpoint = apiEndpoints.getEndpoint('projectEndpointsList', { project_id: projectId });
+        }
+
         const fullUrl = `${backendClient.getBaseUrl()}${endpoint}`;
 
         console.error(`[EndpointTools] Requesting endpoints from: ${fullUrl}`);
 
-        const result = await fetch(fullUrl, {
-          method: 'GET',
-          headers: {
-            'Authorization': `Bearer ${backendClient.getToken()}`,
-            'Content-Type': 'application/json'
-          }
+        // Use BackendClient.makeRequest for consistent authentication like get_project_context
+        const response = await backendClient.makeRequest(endpoint, {
+          method: 'GET'
         });
 
-        if (!result.ok) {
-          throw new Error(`HTTP ${result.status}: ${result.statusText}`);
+        if (!response.success) {
+          let errorMessage = `Failed to list endpoints: ${response.error || response.message || 'Unknown error'}`;
+
+          // Provide helpful error messages for common scenarios
+          if (response.status === 404) {
+            if (folderId) {
+              errorMessage = `Folder with ID '${folderId}' not found. Please check:\n`;
+              errorMessage += `• Folder ID is correct\n`;
+              errorMessage += `• You have access to this folder\n`;
+              errorMessage += `• Folder exists in the project\n\n`;
+              errorMessage += `Try using project-wide listing by omitting folder_id parameter, or use get_folders to see available folders.`;
+            } else {
+              errorMessage = `Endpoints not found. This might indicate:\n`;
+              errorMessage += `• No endpoints exist in this project\n`;
+              errorMessage += `• Project ID is invalid or you don't have access\n`;
+              errorMessage += `• Use create_endpoint to add your first endpoint`;
+            }
+          } else if (response.status === 403) {
+            errorMessage = `Access denied. You don't have permission to view endpoints in this project. Please check:\n`;
+            errorMessage += `• You are a member of the project\n`;
+            errorMessage += `• Your account has proper permissions`;
+          }
+
+          throw new Error(errorMessage);
         }
 
-        const data = await result.json() as EndpointListResponse;
+        const data = response.data as EndpointListResponse;
 
         if (data.success && data.data) {
           const endpoints = Array.isArray(data.data) ? data.data : [];
@@ -356,23 +378,23 @@ export function createEndpointToolHandlers(): Record<string, (args: any) => Prom
 
           if (endpoints.length === 0) {
             endpointText += 'No endpoints found';
-            if (collectionId) endpointText += ' in this collection';
+            if (folderId) endpointText += ' in this folder';
             if (method) endpointText += ` with method ${method}`;
             endpointText += '.\n';
             endpointText += 'Use create_endpoint tool to add your first endpoint.\n';
           } else {
-            // Group by collection if no collection filter
-            if (!collectionId) {
-              const byCollection: Record<string, typeof endpoints> = {};
+            // Group by folder if no folder filter
+            if (!folderId) {
+              const byFolder: Record<string, typeof endpoints> = {};
               endpoints.forEach(endpoint => {
-                const collId = endpoint.collection_id || 'unknown';
-                if (!byCollection[collId]) byCollection[collId] = [];
-                byCollection[collId].push(endpoint);
+                const folderId = endpoint.folder_id || 'unknown';
+                if (!byFolder[folderId]) byFolder[folderId] = [];
+                byFolder[folderId].push(endpoint);
               });
 
-              Object.entries(byCollection).forEach(([collId, collEndpoints]) => {
-                endpointText += `📁 Collection ${collId}:\n`;
-                collEndpoints.forEach((endpoint, index) => {
+              Object.entries(byFolder).forEach(([folderId, folderEndpoints]) => {
+                endpointText += `📁 Folder ${folderId}:\n`;
+                folderEndpoints.forEach((endpoint: any, index: number) => {
                   endpointText += `  ${index + 1}. ${endpoint.method} ${endpoint.name} (${endpoint.id})\n`;
                   endpointText += `     ${endpoint.url}\n`;
                   if (endpoint.description) {
@@ -382,7 +404,7 @@ export function createEndpointToolHandlers(): Record<string, (args: any) => Prom
                 });
               });
             } else {
-              // Simple list when collection is specified
+              // Simple list when folder is specified
               endpoints.forEach((endpoint, index) => {
                 endpointText += `${index + 1}. ${endpoint.method} ${endpoint.name} (${endpoint.id})\n`;
                 endpointText += `   ${endpoint.url}\n`;
@@ -444,19 +466,27 @@ export function createEndpointToolHandlers(): Record<string, (args: any) => Prom
 
         console.error(`[EndpointTools] Requesting endpoint details from: ${fullUrl}`);
 
-        const result = await fetch(fullUrl, {
-          method: 'GET',
-          headers: {
-            'Authorization': `Bearer ${backendClient.getToken()}`,
-            'Content-Type': 'application/json'
+        // Create AbortController for timeout
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+
+        try {
+          const result = await fetch(fullUrl, {
+            method: 'GET',
+            headers: {
+              'Authorization': `Bearer ${backendClient.getToken()}`,
+              'Content-Type': 'application/json'
+            },
+            signal: controller.signal
+          });
+
+          clearTimeout(timeoutId); // Clear timeout if request succeeds
+
+          if (!result.ok) {
+            throw new Error(`HTTP ${result.status}: ${result.statusText}`);
           }
-        });
 
-        if (!result.ok) {
-          throw new Error(`HTTP ${result.status}: ${result.statusText}`);
-        }
-
-        const data = await result.json() as EndpointDetailsResponse;
+          const data = await result.json() as EndpointDetailsResponse;
 
         if (data.success && data.data) {
           const endpoint = data.data;
@@ -472,8 +502,8 @@ export function createEndpointToolHandlers(): Record<string, (args: any) => Prom
           detailsText += `🌐 URL: ${endpoint.url}\n`;
           detailsText += `📝 Description: ${endpoint.description || 'No description'}\n`;
 
-          if (endpoint.collection) {
-            detailsText += `📁 Collection: ${endpoint.collection.name} (${endpoint.collection.id})\n`;
+          if (endpoint.folder) {
+            detailsText += `📁 Folder: ${endpoint.folder.name} (${endpoint.folder.id})\n`;
           }
 
           if (Object.keys(headers).length > 0) {
@@ -510,7 +540,31 @@ export function createEndpointToolHandlers(): Record<string, (args: any) => Prom
             isError: true
           };
         }
+      // Handle network and timeout errors specifically
+        } catch (networkError) {
+          clearTimeout(timeoutId); // Ensure timeout is cleared on error
+
+          let errorMessage = 'Network error occurred';
+          if (networkError instanceof Error) {
+            if (networkError.name === 'AbortError') {
+              errorMessage = 'Request timeout (30 seconds)';
+            } else {
+              errorMessage = `Network error: ${networkError.message}`;
+            }
+          }
+
+          return {
+            content: [
+              {
+                type: 'text',
+                text: `❌ ${errorMessage}`
+              }
+            ],
+            isError: true
+          };
+        }
       } catch (error) {
+
         return {
           content: [
             {
@@ -530,7 +584,7 @@ export function createEndpointToolHandlers(): Record<string, (args: any) => Prom
         const name = args.name as string;
         const method = args.method as HttpMethod;
         const url = args.url as string;
-        const collectionId = args.collection_id as string;
+        const folderId = args.folder_id as string;
         const description = args.description as string | undefined;
         const headers = args.headers as Record<string, string> | undefined;
         const body = args.body as string | undefined;
@@ -544,41 +598,94 @@ export function createEndpointToolHandlers(): Record<string, (args: any) => Prom
         if (!url || url.trim() === '') {
           throw new Error('URL is required');
         }
-        if (!collectionId) {
-          throw new Error('Collection ID is required');
+        if (!folderId) {
+          throw new Error('Folder ID is required');
         }
 
         // Create endpoint
         const apiEndpoints = getApiEndpoints();
-        const endpoint = apiEndpoints.getEndpoint('endpointCreate', { id: collectionId });
+        const endpoint = apiEndpoints.getEndpoint('endpointCreate', { id: folderId });
         const fullUrl = `${backendClient.getBaseUrl()}${endpoint}`;
 
-        console.error(`[EndpointTools] Creating endpoint at: ${fullUrl}`);
-
-        const result = await fetch(fullUrl, {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${backendClient.getToken()}`,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
+        const requestBody = JSON.stringify({
             name: name.trim(),
             method,
             url: url.trim(),
             description: description?.trim() || null,
             headers: formatHeaders(headers || {}),
             body: formatBody(body) || null
-          })
         });
 
-        if (!result.ok) {
-          throw new Error(`Failed to create endpoint: HTTP ${result.status}`);
+        console.error(`[EndpointTools] Creating endpoint at: ${endpoint}`);
+        console.error(`[EndpointTools] Folder ID: ${folderId}`);
+        console.error(`[EndpointTools] Base URL: ${backendClient.getBaseUrl()}`);
+        console.error(`[EndpointTools] Token: ${backendClient.getToken().substring(0, 20)}...`);
+        console.error(`[EndpointTools] Request Body: ${requestBody}`);
+
+        // Create AbortController for timeout
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+
+        let apiResponse;
+        try {
+          const result = await fetch(`${backendClient.getBaseUrl()}${endpoint}`, {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${backendClient.getToken()}`,
+              'Content-Type': 'application/json'
+            },
+            body: requestBody,
+            signal: controller.signal
+          });
+
+          clearTimeout(timeoutId);
+
+          if (!result.ok) {
+            throw new Error(`HTTP ${result.status}: ${result.statusText}`);
+          }
+
+          const data = await result.json() as EndpointCreateResponse;
+
+          apiResponse = {
+            success: data.success,
+            data: data.data,
+            message: data.message,
+            status: result.status
+          };
+        } catch (networkError) {
+          clearTimeout(timeoutId);
+          throw networkError;
         }
 
-        const data = await result.json() as EndpointCreateResponse;
+        if (!apiResponse.success) {
+          let errorMessage = `Failed to create endpoint: ${apiResponse.message || 'Unknown error'}`;
 
-        if (data.success && data.data) {
-          const endpoint = data.data;
+          // Provide helpful error messages for common scenarios
+          if (apiResponse.status === 404) {
+            errorMessage = `Folder with ID '${folderId}' not found. Cannot create endpoint.\n\n`;
+            errorMessage += `Please check:\n`;
+            errorMessage += `• Folder ID '${folderId}' is correct\n`;
+            errorMessage += `• You have access to this folder\n`;
+            errorMessage += `• Folder exists in the project\n\n`;
+            errorMessage += `Use get_folders to see available folders, or create a new folder first.`;
+          } else if (apiResponse.status === 403) {
+            errorMessage = `Access denied. You don't have permission to create endpoints in this folder.\n\n`;
+            errorMessage += `Please check:\n`;
+            errorMessage += `• You are a member of the project\n`;
+            errorMessage += `• Your account has write permissions for this folder`;
+          } else if (apiResponse.status === 400) {
+            errorMessage = `Invalid endpoint data. Please check:\n`;
+            errorMessage += `• Endpoint name is not empty\n`;
+            errorMessage += `• URL is valid and properly formatted\n`;
+            errorMessage += `• HTTP method is valid (GET, POST, PUT, DELETE, PATCH)\n`;
+            errorMessage += `• Headers are valid JSON if provided`;
+          }
+
+          throw new Error(errorMessage);
+        }
+
+        if (apiResponse.success && apiResponse.data) {
+          const endpoint = apiResponse.data;
 
           let createText = `✅ Endpoint Created Successfully\n\n`;
           createText += `🏷️  Name: ${endpoint.name}\n`;
@@ -586,7 +693,7 @@ export function createEndpointToolHandlers(): Record<string, (args: any) => Prom
           createText += `📡 Method: ${endpoint.method}\n`;
           createText += `🌐 URL: ${endpoint.url}\n`;
           createText += `📝 Description: ${endpoint.description || 'No description'}\n`;
-          createText += `📁 Collection: ${endpoint.collection_id}\n`;
+          createText += `📁 Folder: ${endpoint.folder_id}\n`;
           createText += `📅 Created: ${endpoint.created_at}\n`;
 
           return {
@@ -602,7 +709,7 @@ export function createEndpointToolHandlers(): Record<string, (args: any) => Prom
             content: [
               {
                 type: 'text',
-                text: `❌ Failed to create endpoint: ${data.message || 'Unknown error'}`
+                text: `❌ Failed to create endpoint: ${apiResponse.message || 'Unknown error'}`
               }
             ],
             isError: true
@@ -681,7 +788,7 @@ export function createEndpointToolHandlers(): Record<string, (args: any) => Prom
           updateText += `📡 Method: ${endpoint.method}\n`;
           updateText += `🌐 URL: ${endpoint.url}\n`;
           updateText += `📝 Description: ${endpoint.description || 'No description'}\n`;
-          updateText += `📁 Collection: ${endpoint.collection_id}\n`;
+          updateText += `📁 Folder: ${endpoint.folder_id}\n`;
           updateText += `🔄 Updated: ${endpoint.updated_at}\n`;
 
           return {
@@ -721,16 +828,16 @@ export function createEndpointToolHandlers(): Record<string, (args: any) => Prom
         const { configManager, backendClient } = await getEndpointDependencies();
 
         const endpointId = args.endpoint_id as string;
-        const newCollectionId = args.new_collection_id as string;
+        const newFolderId = args.new_folder_id as string;
 
         if (!endpointId) {
           throw new Error('Endpoint ID is required');
         }
-        if (!newCollectionId) {
-          throw new Error('New collection ID is required');
+        if (!newFolderId) {
+          throw new Error('New folder ID is required');
         }
 
-        // Move endpoint (using update endpoint with collection_id)
+        // Move endpoint (using update endpoint with folder_id)
         const apiEndpoints = getApiEndpoints();
         const endpoint = apiEndpoints.getEndpoint('endpointUpdate', { id: endpointId });
         const fullUrl = `${backendClient.getBaseUrl()}${endpoint}`;
@@ -744,7 +851,7 @@ export function createEndpointToolHandlers(): Record<string, (args: any) => Prom
             'Content-Type': 'application/json'
           },
           body: JSON.stringify({
-            collection_id: newCollectionId
+            folder_id: newFolderId
           })
         });
 
@@ -760,7 +867,7 @@ export function createEndpointToolHandlers(): Record<string, (args: any) => Prom
           let moveText = `✅ Endpoint Moved Successfully\n\n`;
           moveText += `🏷️  Name: ${endpoint.name}\n`;
           moveText += `🆔 ID: ${endpoint.id}\n`;
-          moveText += `📁 New Collection: ${endpoint.collection_id}\n`;
+          moveText += `📁 New Folder: ${endpoint.folder_id}\n`;
           moveText += `📡 Method: ${endpoint.method}\n`;
           moveText += `🌐 URL: ${endpoint.url}\n`;
 
@@ -812,7 +919,7 @@ export const TOOLS: McpTool[] = ENDPOINT_TOOLS;
 export class ToolHandlers {
   static async handleListEndpoints(args?: {
     project_id?: string;
-    collection_id?: string;
+    folder_id?: string;
     method?: HttpMethod;
   }): Promise<McpToolResponse> {
     const handlers = createEndpointToolHandlers();
@@ -828,7 +935,7 @@ export class ToolHandlers {
     name: string;
     method: HttpMethod;
     url: string;
-    collection_id: string;
+    folder_id: string;
     description?: string;
     headers?: Record<string, string>;
     body?: string;
@@ -852,7 +959,7 @@ export class ToolHandlers {
 
   static async handleMoveEndpoint(args: {
     endpoint_id: string;
-    new_collection_id: string;
+    new_folder_id: string;
   }): Promise<McpToolResponse> {
     const handlers = createEndpointToolHandlers();
     return handlers.move_endpoint(args);

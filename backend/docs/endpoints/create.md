@@ -1,10 +1,10 @@
 # Create Endpoint
 
 ## Endpoint
-`POST /collection/{id}/endpoints`
+`POST /folder/{id}/endpoints`
 
 ## Description
-Membuat endpoint baru dalam collection. Endpoint merepresentasikan single API call.
+Membuat endpoint baru dalam folder. Endpoint merepresentasikan single API call.
 
 ## Headers
 ```
@@ -13,7 +13,7 @@ Content-Type: application/json
 ```
 
 ## Path Parameters
-- `id`: ID collection
+- `id`: ID folder
 
 ## Request Body
 ```json
@@ -49,7 +49,7 @@ Content-Type: application/json
     "url": "{{base_url}}/users/{{user_id}}",
     "headers": "{\"Authorization\":\"Bearer {{token}}\"}",
     "body": null,
-    "collection_id": "col_123",
+    "folder_id": "fld_123",
     "created_by": "user_xyz",
     "created_at": "2025-10-23 10:30:00",
     "updated_at": "2025-10-23 10:30:00"
@@ -77,16 +77,16 @@ Content-Type: application/json
 ```json
 {
   "status": "error",
-  "message": "Collection not found"
+  "message": "Folder not found"
 }
 ```
 
 ## Authorization
-- User harus menjadi member dari project yang memiliki collection ini
+- User harus menjadi member dari project yang memiliki folder ini
 
 ## Example
 ```bash
-POST /gassapi2/backend/?act=endpoint_create&id=col_123
+POST /gassapi2/backend/?act=endpoint_create&id=fld_123
 Authorization: Bearer eyJhbGc...
 
 {

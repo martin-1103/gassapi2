@@ -36,15 +36,10 @@ async function getAuthDependencies() {
 // Tool: get_project_context - Single auth tool that validates token and returns context
 export const getProjectContextTool: McpTool = {
   name: 'get_project_context',
-  description: 'Get project context including environments and collections. Validates MCP token and returns enriched project data.',
+  description: 'Get project context including environments and folders. Validates MCP token and returns enriched project data.',
   inputSchema: {
     type: 'object',
-    properties: {
-      project_id: {
-        type: 'string',
-        description: 'Project ID to get context for (uses project from config if not provided)'
-      }
-    }
+    properties: {}
   }
 };
 
@@ -57,33 +52,34 @@ export function createAuthToolHandlers(): Record<string, (args: any) => Promise<
       try {
         const { configManager, backendClient } = await getAuthDependencies();
 
-        // Get project ID from args or config
-        let projectId = args.project_id as string | undefined;
+        // Get project ID from config
+        const config = await configManager.detectProjectConfig();
+        console.error('[AUTH] Config loaded:', JSON.stringify(config, null, 2));
+        if (!config) {
+          throw new Error('No configuration found - make sure gassapi.json exists');
+        }
+        const projectId = config?.project?.id;
         if (!projectId) {
-          const config = await configManager.detectProjectConfig();
-          projectId = config?.project?.id;
-          if (!projectId) {
-            throw new Error('Project ID not found in config and not provided in arguments');
-          }
+          throw new Error('Project ID not found in gassapi.json configuration');
         }
 
         const result = await backendClient.getProjectContext(projectId);
 
         if (result.success && result.data) {
           // Handle different response formats from backend
-          let project: any, environments: any[], collections: any[], user: any;
+          let project: any, environments: any[], folders: any[], user: any;
 
           if (result.data.project) {
             // Full context response (what we want from project_context endpoint)
             project = result.data.project;
             environments = result.data.environments || [];
-            collections = result.data.collections || [];
+            folders = result.data.folders || [];
             user = result.data.user;
           } else {
             // Basic project response (what we get from project endpoint)
             project = result.data;
             environments = [];
-            collections = [];
+            folders = [];
             user = {
               id: project.owner_id,
               token_type: 'mcp',
@@ -108,12 +104,12 @@ export function createAuthToolHandlers(): Record<string, (args: any) => Promise<
             });
           }
 
-          if (collections && collections.length > 0) {
-            contextText += `\n📚 Collections (${collections.length}):\n`;
-            collections.forEach((collection: any) => {
-              contextText += `- ${collection.name} (${collection.id})`;
-              if (collection.endpoint_count) {
-                contextText += ` - ${collection.endpoint_count} endpoints`;
+          if (folders && folders.length > 0) {
+            contextText += `\n📚 Folders (${folders.length}):\n`;
+            folders.forEach((folder: any) => {
+              contextText += `- ${folder.name} (${folder.id})`;
+              if (folder.endpoint_count) {
+                contextText += ` - ${folder.endpoint_count} endpoints`;
               }
               contextText += '\n';
             });
@@ -161,9 +157,9 @@ export const AUTH_TOOLS: McpTool[] = [
 // Legacy compatibility
 export const TOOLS: McpTool[] = AUTH_TOOLS;
 export class ToolHandlers {
-  static async handleGetProjectContext(args?: { project_id?: string }): Promise<McpToolResponse> {
+  static async handleGetProjectContext(): Promise<McpToolResponse> {
     const handlers = createAuthToolHandlers();
-    return handlers.get_project_context(args || {});
+    return handlers.get_project_context({});
   }
 }
 

@@ -1,0 +1,34 @@
+{
+  "mcpServers": {
+    "gassapi-mcp2": {
+      "command": "node",
+      "args": [
+        "D:/xampp82/htdocs/gassapi2/mcp2/dist/index.js"
+      ],
+      "cwd": "D:/xampp82/htdocs/gassapi2/mcp2",
+      "alwaysAllow": [
+        "health_check",
+        "get_project_context",
+        "list_environments",
+        "get_environment_details",
+        "update_environment_variables",
+        "get_collections",
+        "get_folders",
+        "list_endpoints",
+        "get_endpoint_details",
+        "list_flows",
+        "get_session_state",
+        "clear_session_state",
+        "create_folder",
+        "move_folder",
+        "delete_folder",
+        "create_endpoint",
+        "test_endpoint",
+        "create_flow",
+        "set_environment_variables",
+        "set_flow_inputs",
+        "set_runtime_variables"
+      ]
+    }
+  }
+}

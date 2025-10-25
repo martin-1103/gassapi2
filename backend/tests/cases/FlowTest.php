@@ -13,7 +13,7 @@ class FlowTest extends BaseTest {
     private $authToken = null;
     private $testUserId = null;
     private $projectId = null;
-    private $testCollection = null;
+    private $testFolder = null;
     private $testFlows = [];
 
     protected function setUp() {
@@ -24,7 +24,7 @@ class FlowTest extends BaseTest {
     }
 
     /**
-     * Setup test user, project, and collection
+     * Setup test user, project, and folder
      */
     private function setupTestUser() {
         // Register user
@@ -64,34 +64,34 @@ class FlowTest extends BaseTest {
                 }
             }
 
-            // Create collection
+            // Create folder
             if ($this->projectId) {
-                $collectionData = [
-                    'name' => 'Flow Test Collection',
-                    'description' => 'Collection for flow testing',
+                $folderData = [
+                    'name' => 'Flow Test Folder',
+                    'description' => 'Folder for flow testing',
                     'variables' => [
                         'base_url' => 'https://api.example.com',
                         'api_key' => 'test_api_key_123'
                     ]
                 ];
 
-                $collectionResult = $this->testHelper->post('collection_create', $collectionData, [], $this->projectId);
-                if ($collectionResult['status'] === 201) {
-                    $collectionId = null;
-                    if (isset($collectionResult['data']['data']['id'])) {
-                        $collectionId = $collectionResult['data']['data']['id'];
-                    } elseif (isset($collectionResult['data']['id'])) {
-                        $collectionId = $collectionResult['data']['id'];
-                    } elseif (isset($collectionResult['data']['collection']['id'])) {
-                        $collectionId = $collectionResult['data']['collection']['id'];
+                $folderResult = $this->testHelper->post('folder_create', $folderData, [], $this->projectId);
+                if ($folderResult['status'] === 201) {
+                    $folderId = null;
+                    if (isset($folderResult['data']['data']['id'])) {
+                        $folderId = $folderResult['data']['data']['id'];
+                    } elseif (isset($folderResult['data']['id'])) {
+                        $folderId = $folderResult['data']['id'];
+                    } elseif (isset($folderResult['data']['folder']['id'])) {
+                        $folderId = $folderResult['data']['folder']['id'];
                     }
 
-                    if ($collectionId) {
-                        $this->testCollection = [
-                            'id' => $collectionId,
+                    if ($folderId) {
+                        $this->testFolder = [
+                            'id' => $folderId,
                             'project_id' => $this->projectId
                         ];
-                        echo "[INFO] Collection created with ID: {$collectionId}\n";
+                        echo "[INFO] Folder created with ID: {$folderId}\n";
                     }
                 }
             }
@@ -111,7 +111,7 @@ class FlowTest extends BaseTest {
         $flowData = [
             'name' => 'User Registration Flow',
             'description' => 'Complete user registration and verification flow',
-            'collection_id' => $this->testCollection ? $this->testCollection['id'] : null,
+            'folder_id' => $this->testFolder ? $this->testFolder['id'] : null,
             'flow_inputs' => [
                 [
                     'name' => 'username',
@@ -197,7 +197,7 @@ class FlowTest extends BaseTest {
             $this->testFlows[] = [
                 'id' => $result['data']['data']['id'],
                 'project_id' => $this->projectId,
-                'collection_id' => $this->testCollection ? $this->testCollection['id'] : null,
+                'folder_id' => $this->testFolder ? $this->testFolder['id'] : null,
                 'flow_inputs' => $flowData['flow_inputs'],
                 'flow_data' => $flowData['flow_data']
             ];
@@ -219,7 +219,7 @@ class FlowTest extends BaseTest {
         $flowData = [
             'name' => 'API Testing Flow (React Flow)',
             'description' => 'API testing flow created with React Flow format',
-            'collection_id' => $this->testCollection ? $this->testCollection['id'] : null,
+            'folder_id' => $this->testFolder ? $this->testFolder['id'] : null,
             'flow_data' => [
                 'nodes' => [
                     [
@@ -305,7 +305,7 @@ class FlowTest extends BaseTest {
             $this->testFlows[] = [
                 'id' => $result['data']['data']['id'],
                 'project_id' => $this->projectId,
-                'collection_id' => $this->testCollection ? $this->testCollection['id'] : null,
+                'folder_id' => $this->testFolder ? $this->testFolder['id'] : null,
                 'flow_inputs' => $flowData['flow_inputs'],
                 'flow_data' => $flowData['flow_data']
             ];
@@ -716,7 +716,7 @@ class FlowTest extends BaseTest {
 
         $flow = $this->testFlows[0];
         $result = $this->testHelper->delete('flow_delete', [], $flow['id']);
-        $success = $testHelper->printResult("Delete Flow", $result, 200);
+        $success = $this->testHelper->printResult("Delete Flow", $result, 200);
 
         if ($success) {
             // Verify flow was actually deleted
@@ -755,8 +755,8 @@ class FlowTest extends BaseTest {
             $this->testHelper->assertEquals($result['data']['is_active'], 0);
 
             // Check that original flow data is preserved
-            $this->testHelper->assertHasKey($result['data'], 'collection_id');
-            $this->testHelper->assertEquals($result['data']['collection_id'], $flow['collection_id']);
+            $this->testHelper->assertHasKey($result['data'], 'folder_id');
+            $this->testHelper->assertEquals($result['data']['folder_id'], $flow['folder_id']);
         }
 
         return $success;

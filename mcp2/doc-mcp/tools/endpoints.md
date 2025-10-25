@@ -9,18 +9,18 @@
 
 ## list_endpoints
 
-**Purpose:** List all endpoints with optional filtering by project or collection
+**Purpose:** List all endpoints with optional filtering by project or folder
 
 ### Parameters
 - **Required:** None
-- **Optional:** project_id, collection_id, method
+- **Optional:** project_id, folder_id, method
 
 ### Usage Example
 ```
 list_endpoints()
 
 list_endpoints(
-  collection_id: "col_123"
+  folder_id: "fld_123"
 )
 
 list_endpoints(
@@ -30,15 +30,15 @@ list_endpoints(
 ```
 
 ### Common Mistakes
-- ❌ Invalid collection_id
+- ❌ Invalid folder_id
 - ❌ Invalid method (must be HTTP method)
-- ✅ Filter by collection for better organization
+- ✅ Filter by folder for better organization
 
 ---
 
 ## get_endpoint_details
 
-**Purpose:** Get detailed endpoint configuration with collection information
+**Purpose:** Get detailed endpoint configuration with folder information
 
 ### Parameters
 - **Required:** endpoint_id
@@ -59,10 +59,10 @@ get_endpoint_details(
 
 ## create_endpoint
 
-**Purpose:** Create a new endpoint in a collection
+**Purpose:** Create a new endpoint in a folder
 
 ### Parameters
-- **Required:** name, method, url, collection_id
+- **Required:** name, method, url, folder_id
 - **Optional:** description, headers, body
 
 ### Usage Example
@@ -71,14 +71,14 @@ create_endpoint(
   name: "Get Users",
   method: "GET",
   url: "{{baseUrl}}/api/users",
-  collection_id: "col_123"
+  folder_id: "fld_123"
 )
 
 create_endpoint(
   name: "Create User",
   method: "POST",
   url: "{{baseUrl}}/api/users",
-  collection_id: "col_123",
+  folder_id: "fld_123",
   headers: {
     "Content-Type": "application/json",
     "Authorization": "Bearer {{apiKey}}"
@@ -89,7 +89,7 @@ create_endpoint(
 
 ### Common Mistakes
 - ❌ Invalid HTTP method
-- ❌ Missing collection_id
+- ❌ Missing folder_id
 - ❌ Body as object instead of JSON string
 - ✅ Use {{variables}} in URL and body
 
@@ -123,21 +123,21 @@ update_endpoint(
 
 ## move_endpoint
 
-**Purpose:** Move endpoint to a different collection
+**Purpose:** Move endpoint to a different folder
 
 ### Parameters
-- **Required:** endpoint_id, new_collection_id
+- **Required:** endpoint_id, new_folder_id
 - **Optional:** None
 
 ### Usage Example
 ```
 move_endpoint(
   endpoint_id: "ep_789",
-  new_collection_id: "col_456"
+  new_folder_id: "fld_456"
 )
 ```
 
 ### Common Mistakes
 - ❌ Invalid endpoint_id
-- ❌ Invalid new_collection_id
-- ❌ Moving to same collection
+- ❌ Invalid new_folder_id
+- ❌ Moving to same folder

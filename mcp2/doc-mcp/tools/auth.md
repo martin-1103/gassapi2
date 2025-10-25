@@ -5,7 +5,7 @@
 
 ## get_project_context
 
-**Purpose:** Get project context including environments and collections
+**Purpose:** Get project context including environments and folders
 
 ### Parameters
 - **Required:** None
@@ -23,7 +23,7 @@ get_project_context(
 ### Returns
 - Project information
 - Available environments
-- Available collections
+- Available folders
 - Authentication status
 
 ### Common Mistakes

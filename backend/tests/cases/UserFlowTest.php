@@ -629,7 +629,7 @@ class UserFlowTest extends BaseTest {
 
     /**
      * Flow 6: Complete API Testing Workflow
-     * Login → Create Project → Create Collection → Add Endpoints → Create Flow → Test Flow Execution
+     * Login → Create Project → Create Folder → Add Endpoints → Create Flow → Test Flow Execution
      */
     protected function testCompleteApiTestingWorkflow() {
         $this->printHeader("Complete API Testing Workflow");
@@ -683,16 +683,16 @@ class UserFlowTest extends BaseTest {
             return false;
         }
 
-        // Step 3: Create Collection
-        echo "[STEP 3/7] Create collection for endpoints...\n";
+        // Step 3: Create Folder
+        echo "[STEP 3/7] Create folder for endpoints...\n";
         if (!isset($flow['project_id']) || !$flow['project_id']) {
             echo "[FAILED] Cannot continue API workflow - no project ID\n";
             return false;
         }
 
-        $collectionData = [
-            'name' => 'User API Collection',
-            'description' => 'Collection for user management APIs',
+        $folderData = [
+            'name' => 'User API Folder',
+            'description' => 'Folder for user management APIs',
             'variables' => [
                 'base_url' => 'https://jsonplaceholder.typicode.com',
                 'api_version' => 'v1'
@@ -703,21 +703,21 @@ class UserFlowTest extends BaseTest {
             ]
         ];
 
-        $collectionResult = $this->testHelper->post('collection_create', $collectionData, [], $flow['project_id']);
-        $collectionSuccess = $this->testHelper->printResult("API Workflow Create Collection", $collectionResult, 201);
-        $results[] = $collectionSuccess;
+        $folderResult = $this->testHelper->post('folder_create', $folderData, [], $flow['project_id']);
+        $folderSuccess = $this->testHelper->printResult("API Workflow Create Folder", $folderResult, 201);
+        $results[] = $folderSuccess;
 
-        if ($collectionSuccess && isset($collectionResult['data']['id'])) {
-            $flow['collection_id'] = $collectionResult['data']['id'];
+        if ($folderSuccess && isset($folderResult['data']['id'])) {
+            $flow['folder_id'] = $folderResult['data']['id'];
         } else {
-            echo "[FAILED] Cannot continue API workflow - collection creation failed\n";
+            echo "[FAILED] Cannot continue API workflow - folder creation failed\n";
             return false;
         }
 
         // Step 4: Create Endpoints
         echo "[STEP 4/7] Create multiple endpoints...\n";
-        if (!isset($flow['collection_id']) || !$flow['collection_id']) {
-            echo "[FAILED] Cannot continue API workflow - no collection ID\n";
+        if (!isset($flow['folder_id']) || !$flow['folder_id']) {
+            echo "[FAILED] Cannot continue API workflow - no folder ID\n";
             return false;
         }
 
@@ -747,7 +747,7 @@ class UserFlowTest extends BaseTest {
 
         $endpointIds = [];
         foreach ($endpoints as $index => $endpointData) {
-            $endpointResult = $this->testHelper->post('endpoint_create', $endpointData, [], $flow['collection_id']);
+            $endpointResult = $this->testHelper->post('endpoint_create', $endpointData, [], $flow['folder_id']);
             $endpointSuccess = $this->testHelper->printResult("API Workflow Create Endpoint #" . ($index + 1), $endpointResult, 201);
             $results[] = $endpointSuccess;
 
@@ -766,7 +766,7 @@ class UserFlowTest extends BaseTest {
         $flowData = [
             'name' => 'User Management Automation Flow',
             'description' => 'Complete user management workflow',
-            'collection_id' => $flow['collection_id'],
+            'folder_id' => $flow['folder_id'],
             'flow_data' => [
                 'nodes' => [
                     [
@@ -865,9 +865,9 @@ class UserFlowTest extends BaseTest {
         $verifyProject = $this->testHelper->get('project', [], $flow['project_id']);
         $verifyResults[] = $this->testHelper->printResult("Verify Project", $verifyProject, 200);
 
-        // Verify collection exists
-        $verifyCollection = $this->testHelper->get('collection_get', [], $flow['collection_id']);
-        $verifyResults[] = $this->testHelper->printResult("Verify Collection", $verifyCollection, 200);
+        // Verify folder exists
+        $verifyFolder = $this->testHelper->get('folder_get', [], $flow['folder_id']);
+        $verifyResults[] = $this->testHelper->printResult("Verify Folder", $verifyFolder, 200);
 
         // Verify endpoints exist
         foreach ($endpointIds as $index => $endpointId) {
@@ -891,7 +891,7 @@ class UserFlowTest extends BaseTest {
         foreach ($endpointIds as $endpointId) {
             $this->testHelper->delete('endpoint_delete', [], $endpointId);
         }
-        $this->testHelper->delete('collection_delete', [], $flow['collection_id']);
+        $this->testHelper->delete('folder_delete', [], $flow['folder_id']);
         $this->testHelper->delete('project_delete', [], $flow['project_id']);
 
         if (isset($flow['token'])) {
@@ -905,11 +905,11 @@ class UserFlowTest extends BaseTest {
     }
 
     /**
-     * Flow 7: Collection-Endpoint Integration Flow
-     * Login → Create Project → Create Collection → Test Headers/Variables → Create Endpoints → Test Variable Substitution
+     * Flow 7: Folder-Endpoint Integration Flow
+     * Login → Create Project → Create Folder → Test Headers/Variables → Create Endpoints → Test Variable Substitution
      */
-    protected function testCollectionEndpointIntegrationFlow() {
-        $this->printHeader("Collection-Endpoint Integration Flow");
+    protected function testFolderEndpointIntegrationFlow() {
+        $this->printHeader("Folder-Endpoint Integration Flow");
 
         $flowId = 'integration_' . time();
         $this->userFlows[$flowId] = [
@@ -947,7 +947,7 @@ class UserFlowTest extends BaseTest {
         echo "[STEP 2/6] Create project...\n";
         $projectResult = $this->testHelper->post('projects', [
             'name' => 'Integration Test Project ' . $flowId,
-            'description' => 'Testing collection-endpoint integration'
+            'description' => 'Testing folder-endpoint integration'
         ]);
 
         $projectSuccess = $this->testHelper->printResult("Integration Create Project", $projectResult, 201);
@@ -957,17 +957,17 @@ class UserFlowTest extends BaseTest {
             $flow['project_id'] = $projectResult['data']['id'];
         }
 
-        // Step 3: Create Collection with Variables and Headers
-        echo "[STEP 3/6] Create collection with variables and headers...\n";
+        // Step 3: Create Folder with Variables and Headers
+        echo "[STEP 3/6] Create folder with variables and headers...\n";
 
         if (!isset($flow['project_id'])) {
-            return $this->skip("Collection creation - no project ID available");
+            return $this->skip("Folder creation - no project ID available");
             $results[] = true;
-            $flow['collection_id'] = null;
+            $flow['folder_id'] = null;
         } else {
-            $collectionData = [
-                'name' => 'Integration Test Collection',
-                'description' => 'Collection with variables and headers',
+            $folderData = [
+                'name' => 'Integration Test Folder',
+                'description' => 'Folder with variables and headers',
                 'variables' => [
                     'api_base_url' => 'https://api.example.com',
                     'api_key' => 'integration_key_123',
@@ -982,20 +982,20 @@ class UserFlowTest extends BaseTest {
                 ]
             ];
 
-            $collectionResult = $this->testHelper->post('collection_create', $collectionData, [], $flow['project_id']);
-            $collectionSuccess = $this->testHelper->printResult("Integration Create Collection", $collectionResult, 201);
-            $results[] = $collectionSuccess;
+            $folderResult = $this->testHelper->post('folder_create', $folderData, [], $flow['project_id']);
+            $folderSuccess = $this->testHelper->printResult("Integration Create Folder", $folderResult, 201);
+            $results[] = $folderSuccess;
 
-            if ($collectionSuccess && isset($collectionResult['data']['id'])) {
-                $flow['collection_id'] = $collectionResult['data']['id'];
+            if ($folderSuccess && isset($folderResult['data']['id'])) {
+                $flow['folder_id'] = $folderResult['data']['id'];
             }
         }
 
         // Step 4: Create Endpoints with Variable Substitution
         echo "[STEP 4/6] Create endpoints with variable substitution...\n";
 
-        if (!isset($flow['collection_id'])) {
-            return $this->skip("Endpoint creation - no collection ID available");
+        if (!isset($flow['folder_id'])) {
+            return $this->skip("Endpoint creation - no folder ID available");
             $results[] = true;
         } else {
             $endpointData = [
@@ -1009,7 +1009,7 @@ class UserFlowTest extends BaseTest {
                 'body' => null
             ];
 
-        $endpointResult = $this->testHelper->post('endpoint_create', $endpointData, [], $flow['collection_id']);
+        $endpointResult = $this->testHelper->post('endpoint_create', $endpointData, [], $flow['folder_id']);
             $endpointSuccess = $this->testHelper->printResult("Integration Create Endpoint", $endpointResult, 201);
             $results[] = $endpointSuccess;
 
@@ -1034,9 +1034,9 @@ class UserFlowTest extends BaseTest {
                     echo "[INFO] Variables preserved in endpoint URL ✓\n";
                 }
 
-                // Check if headers contain collection-level variables
+                // Check if headers contain folder-level variables
                 if (strpos($headers, 'Bearer {{api_key}}') !== false) {
-                    echo "[INFO] Collection headers inherited ✓\n";
+                    echo "[INFO] Folder headers inherited ✓\n";
                 }
             }
             $results[] = $verifySuccess;
@@ -1045,31 +1045,31 @@ class UserFlowTest extends BaseTest {
             $results[] = true;
         }
 
-        // Step 6: Test Nested Collection Structure
-        echo "[STEP 6/6] Test nested collection structure...\n";
-        if (isset($flow['collection_id'])) {
-            $nestedCollectionData = [
-                'name' => 'Nested Integration Collection',
-                'description' => 'Child collection for testing',
-                'parent_id' => $flow['collection_id'],
+        // Step 6: Test Nested Folder Structure
+        echo "[STEP 6/6] Test nested folder structure...\n";
+        if (isset($flow['folder_id'])) {
+            $nestedFolderData = [
+                'name' => 'Nested Integration Folder',
+                'description' => 'Child folder for testing',
+                'parent_id' => $flow['folder_id'],
                 'variables' => [
                     'nested_var' => 'nested_value_789',
                     'environment' => 'testing'
                 ]
             ];
 
-            $nestedResult = $this->testHelper->post('collection_create', $nestedCollectionData, [], $flow['project_id']);
-            $nestedSuccess = $this->testHelper->printResult("Create Nested Collection", $nestedResult, 201);
+            $nestedResult = $this->testHelper->post('folder_create', $nestedFolderData, [], $flow['project_id']);
+            $nestedSuccess = $this->testHelper->printResult("Create Nested Folder", $nestedResult, 201);
             $results[] = $nestedSuccess;
 
             if ($nestedSuccess && isset($nestedResult['data']['id'])) {
-                echo "[INFO] Nested collection structure working ✓\n";
+                echo "[INFO] Nested folder structure working ✓\n";
 
-                // Cleanup nested collection
-                $this->testHelper->delete('collection_delete', [], $nestedResult['data']['id']);
+                // Cleanup nested folder
+                $this->testHelper->delete('folder_delete', [], $nestedResult['data']['id']);
             }
         } else {
-            return $this->skip("Nested collection test - no parent collection");
+            return $this->skip("Nested folder test - no parent folder");
             $results[] = true;
         }
 
@@ -1077,8 +1077,8 @@ class UserFlowTest extends BaseTest {
         if (isset($flow['endpoint_id'])) {
             $this->testHelper->delete('endpoint_delete', [], $flow['endpoint_id']);
         }
-        if (isset($flow['collection_id'])) {
-            $this->testHelper->delete('collection_delete', [], $flow['collection_id']);
+        if (isset($flow['folder_id'])) {
+            $this->testHelper->delete('folder_delete', [], $flow['folder_id']);
         }
         if (isset($flow['project_id'])) {
             $this->testHelper->delete('project_delete', [], $flow['project_id']);
@@ -1090,7 +1090,7 @@ class UserFlowTest extends BaseTest {
         $this->testHelper->clearAuthToken();
 
         $success = !in_array(false, $results);
-        echo "[INFO] Collection-Endpoint Integration Flow " . ($success ? "COMPLETED ✓" : "FAILED ✗") . "\n";
+        echo "[INFO] Folder-Endpoint Integration Flow " . ($success ? "COMPLETED ✓" : "FAILED ✗") . "\n";
         return $success;
     }
 

@@ -57,8 +57,8 @@ $allowedActions = [
     'projects', 'project', 'project_context', 'project_update', 'project_delete', 'project_add_member',
     // Environments
     'project_environments', 'environment', 'environment_update', 'environment_delete', 'environment_create',
-    // Collections
-    'project_collections', 'collections_list', 'collection', 'collection_detail', 'collection_update', 'collection_delete', 'collection_create',
+    // Folders
+    'project_folders', 'folders_list', 'folder', 'folder_detail', 'folder_update', 'folder_delete', 'folder_create',
     // Endpoints
     'endpoints', 'endpoint', 'endpoint_update', 'endpoint_delete', 'endpoint_create',
     'endpoint_list', 'endpoint_get',
@@ -120,22 +120,22 @@ function resolveRoutePath($action, $id = null) {
         'environment_update' => $id ? "/environment/$id" : '/environment',
         'environment_delete' => $id ? "/environment/$id" : '/environment',
         'environment_create' => $id ? "/project/$id/environments" : '/project/environments',
-        // Collections
-        'project_collections' => $id ? "/project/$id/collections" : '/project/collections',
-        'collections_list' => $id ? "/project/$id/collections" : '/project/collections',
-        'collection' => $id ? "/collection/$id" : '/collection',
-        'collection_detail' => $id ? "/collection/$id" : '/collection',
-        'collection_update' => $id ? "/collection/$id" : '/collection',
-        'collection_delete' => $id ? "/collection/$id" : '/collection',
-        'collection_create' => $id ? "/project/$id/collections" : '/project/collections',
+        // Folders
+        'project_folders' => $id ? "/project/$id/folders" : '/project/folders',
+        'folders_list' => $id ? "/project/$id/folders" : '/project/folders',
+        'folder' => $id ? "/folder/$id" : '/folder',
+        'folder_detail' => $id ? "/folder/$id" : '/folder',
+        'folder_update' => $id ? "/folder/$id" : '/folder',
+        'folder_delete' => $id ? "/folder/$id" : '/folder',
+        'folder_create' => $id ? "/project/$id/folders" : '/project/folders',
         // Endpoints
-        'endpoints' => $id ? "/collection/$id/endpoints" : '/collection/endpoints',
-        'endpoint_list' => $id ? "/collection/$id/endpoints/list" : '/collection/endpoints',
+        'endpoints' => $id ? "/folder/$id/endpoints" : '/folder/endpoints',
+        'endpoint_list' => $id ? "/folder/$id/endpoints/list" : '/folder/endpoints',
         'endpoint' => $id ? "/endpoint/$id" : '/endpoint',
         'endpoint_get' => $id ? "/endpoint/$id/get" : '/endpoint/get',
         'endpoint_update' => $id ? "/endpoint/$id" : '/endpoint',
         'endpoint_delete' => $id ? "/endpoint/$id" : '/endpoint',
-        'endpoint_create' => $id ? "/collection/$id/endpoints" : '/collection/endpoints',
+        'endpoint_create' => $id ? "/folder/$id/endpoints" : '/folder/endpoints',
         'project_endpoints' => $id ? "/project/$id/endpoints" : '/project/endpoints',
         'project_endpoints_grouped' => $id ? "/project/$id/endpoints/grouped" : '/project/endpoints/grouped',
         // Flows

@@ -163,7 +163,7 @@ npm test
 ### Core Categories
 - **Authentication** - Project context & validation
 - **Environment** - Environment management
-- **Collection** - Collection management
+- **Folder** - Folder management
 - **Endpoint** - Endpoint management
 - **Testing** - Endpoint testing
 - **Flow** - Flow creation & execution
@@ -173,7 +173,7 @@ npm test
 |------|---------|----------|
 | `get_project_context` | Get project info | - |
 | `list_environments` | List environments | - |
-| `create_endpoint` | Create endpoint | name, method, url, collection_id |
+| `create_endpoint` | Create endpoint | name, method, url, folder_id |
 | `test_endpoint` | Test endpoint | endpoint_id, environment_id |
 | `create_flow` | Create flow | project_id, name |
 | `execute_flow` | Run flow | flow_id, environment_id |

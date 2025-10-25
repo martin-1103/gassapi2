@@ -94,14 +94,14 @@ src/
 - **refresh_tokens**: Persistent refresh token storage
 - **projects**: API project management
 - **project_members**: Team membership with role-based access
-- **collections, endpoints, flows**: API organization
+- **folders, endpoints, flows**: API organization
 - **environments**: Development/staging/production configs
 - **audit_logs**: Activity tracking
 
 ### Sample Data
 - **5 Test Users**: Various states (active/inactive, verified/unverified)
 - **5 Sample Projects**: E-commerce, weather, user management, file storage, analytics
-- **Complete API Collections**: Organized endpoints for each project
+- **Complete API Folders**: Organized endpoints for each project
 - **Test Flows**: Automated API testing scenarios
 
 ## API Endpoints

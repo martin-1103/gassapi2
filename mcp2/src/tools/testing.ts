@@ -16,14 +16,14 @@ interface EndpointDetailsResponse {
   success: boolean;
   data?: {
     id: string;
-    collection_id: string;
+    folder_id: string;
     name: string;
     method: HttpMethod;
     url: string;
     headers?: string;
     body?: string;
     description?: string;
-    collection?: {
+    folder?: {
       id: string;
       name: string;
     };

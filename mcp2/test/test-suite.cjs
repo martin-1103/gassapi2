@@ -231,7 +231,7 @@ class TestSuite {
         id: 3,
         method: 'tools/call',
         params: {
-          name: 'gassapi_list_collections',
+          name: 'gassapi_list_folders',
           arguments: { token: 'test-token-12345' }
         }
       }
@@ -242,10 +242,10 @@ class TestSuite {
     this.assert(tokenResponse, 'Should receive token validation response');
     this.assert(tokenResponse.result.content[0].text.includes('Hasil Validasi Token'), 'Should return validation result');
 
-    // Check collections list (should work with test token)
-    const collectionsResponse = responses.find(r => r.id === 3);
-    this.assert(collectionsResponse, 'Should receive collections response');
-    this.assert(collectionsResponse.result.content[0].text.includes('Koleksi GASSAPI'), 'Should return collections list');
+    // Check folders list (should work with test token)
+    const foldersResponse = responses.find(r => r.id === 3);
+    this.assert(foldersResponse, 'Should receive folders response');
+    this.assert(foldersResponse.result.content[0].text.includes('Folder GASSAPI'), 'Should return folders list');
   }
 
   /**

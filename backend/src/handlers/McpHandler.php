@@ -100,12 +100,23 @@ class McpHandler {
         // Update last_validated_at
         $this->tokens->setLastValidatedNow($rec['id']);
 
-        // Return project context
+        // Return project context with user context for flow permissions
         $project = $this->projects->findById($rec['project_id']);
         $envs = $this->envs->listByProject($rec['project_id']);
+
+        // Create user context using project owner for MCP tokens
+        $userContext = [
+            'id' => $project['owner_id'], // Project owner sebagai user context
+            'email' => null,
+            'project_id' => $rec['project_id'],
+            'token_type' => 'mcp',
+            'mcp_token_id' => $rec['id']
+        ];
+
         ResponseHelper::success([
             'project' => $project,
-            'environments' => $envs
+            'environments' => $envs,
+            'user' => $userContext
         ], 'Token valid');
     }
 }

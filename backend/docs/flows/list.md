@@ -30,8 +30,8 @@ Authorization: Bearer {access_token}
       "name": "User Registration Flow",
       "description": "Complete user registration and verification flow",
       "project_id": "proj_123",
-      "collection_id": "col_123",
-      "collection_name": "User API",
+      "folder_id": "fld_123",
+      "folder_name": "User API",
       "flow_inputs": "[{\"name\":\"username\",\"type\":\"string\",\"required\":true},{\"name\":\"email\",\"type\":\"email\",\"required\":true},{\"name\":\"password\",\"type\":\"password\",\"required\":true}]",
       "step_count": 2,
       "format_type": "steps",
@@ -45,8 +45,8 @@ Authorization: Bearer {access_token}
       "name": "Login Flow",
       "description": "User authentication flow with token refresh",
       "project_id": "proj_123",
-      "collection_id": "col_456",
-      "collection_name": "Auth API",
+      "folder_id": "fld_456",
+      "folder_name": "Auth API",
       "flow_inputs": "[{\"name\":\"username\",\"type\":\"string\",\"required\":true},{\"name\":\"password\",\"type\":\"password\",\"required\":true}]",
       "step_count": 3,
       "format_type": "steps",
@@ -90,8 +90,8 @@ Authorization: Bearer {access_token}
 - **`name`**: Flow name
 - **`description`**: Flow description
 - **`project_id`**: Parent project ID
-- **`collection_id`**: Associated collection ID
-- **`collection_name`**: Collection name for display
+- **`folder_id`**: Associated folder ID
+- **`folder_name`**: Folder name for display
 - **`flow_inputs`**: JSON string of input definitions (summary only, needs parsing)
 - **`step_count`**: Total number of steps in flow
 - **`format_type`**: Storage format (`steps` atau `react_flow`)
@@ -114,8 +114,8 @@ Authorization: Bearer {access_token}
 # Filter by active status
 GET /project/{id}/flows?active=true
 
-# Filter by collection
-GET /project/{id}/flows?collection=col_123
+# Filter by folder
+GET /project/{id}/flows?folder=fld_123
 
 # Search by name/description
 GET /project/{id}/flows?search=registration
@@ -171,7 +171,7 @@ Mengambil statistik flows dalam project.
     "total_flows": 2,
     "active_flows": 1,
     "inactive_flows": 1,
-    "collections_with_flows": 2,
+    "folders_with_flows": 2,
     "avg_steps_per_flow": 2.5,
     "recently_updated": [
       {

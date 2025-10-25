@@ -216,7 +216,7 @@
             "duration": 13163.8
         },
         {
-            "test": "CollectionTest",
+            "test": "FolderTest",
             "results": [
                 true,
                 true,
@@ -349,7 +349,7 @@
             "duration": 7455.78
         },
         {
-            "test": "CollectionTest",
+            "test": "FolderTest",
             "results": [
                 true,
                 true,

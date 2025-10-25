@@ -309,8 +309,8 @@ function getToolCategory(toolName) {
   if (toolName.startsWith('get_project_context')) return 'Auth';
   if (toolName.startsWith('list_environments')) return 'Environment';
   if (toolName.startsWith('get_environment') || toolName.startsWith('update_environment')) return 'Environment';
-  if (toolName.startsWith('get_collection') || toolName.startsWith('create_collection') ||
-      toolName.startsWith('move_collection') || toolName.startsWith('delete_collection')) return 'Collections';
+  if (toolName.startsWith('get_folder') || toolName.startsWith('create_folder') ||
+      toolName.startsWith('move_folder') || toolName.startsWith('delete_folder')) return 'Folders';
   if (toolName.startsWith('list_endpoint') || toolName.startsWith('get_endpoint') ||
       toolName.startsWith('create_endpoint') || toolName.startsWith('update_endpoint') ||
       toolName.startsWith('move_endpoint')) return 'Endpoints';

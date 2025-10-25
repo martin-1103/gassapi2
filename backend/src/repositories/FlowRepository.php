@@ -39,15 +39,15 @@ class FlowRepository extends BaseRepository {
     }
 
     /**
-     * List flows by collection ID
+     * List flows by folder ID
      */
-    public function listByCollection($collectionId, $limit = 100) {
+    public function listByFolder($folderId, $limit = 100) {
         $db = self::getConnection();
-        $db->where('collection_id', $collectionId);
+        $db->where('folder_id', $folderId);
         $db->orderBy('created_at', 'DESC');
         $result = $db->get($this->getTableName(), $limit);
         if ($db->getLastErrno()) {
-            throw new RepositoryException('List flows by collection failed: ' . $db->getLastError());
+            throw new RepositoryException('List flows by folder failed: ' . $db->getLastError());
         }
         return $result;
     }
@@ -119,13 +119,13 @@ class FlowRepository extends BaseRepository {
     }
 
     /**
-     * Get flow with collection info
+     * Get flow with folder info
      */
     public function findWithDetails($flowId) {
         $db = self::getConnection();
-        $sql = "SELECT f.*, c.name as collection_name 
+        $sql = "SELECT f.*, c.name as folder_name 
                 FROM flows f 
-                LEFT JOIN collections c ON f.collection_id = c.id 
+                LEFT JOIN folders c ON f.folder_id = c.id 
                 WHERE f.id = ?";
         $result = $db->rawQueryOne($sql, [$flowId]);
         if ($db->getLastErrno()) {
@@ -177,7 +177,7 @@ class FlowRepository extends BaseRepository {
             'name' => $newName ?? ($flow['name'] . ' (Copy)'),
             'description' => $flow['description'],
             'project_id' => $flow['project_id'],
-            'collection_id' => $flow['collection_id'],
+            'folder_id' => $flow['folder_id'],
             'flow_data' => $flow['flow_data'],
             'created_by' => $flow['created_by'],
             'is_active' => 0 // Start as inactive

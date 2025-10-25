@@ -4,21 +4,22 @@ namespace App\Handlers;
 use App\Helpers\ResponseHelper;
 use App\Helpers\ValidationHelper;
 use App\Helpers\JwtHelper;
+use App\Helpers\AuthHelper;
 use App\Helpers\FlowConverter;
 use App\Helpers\FlowValidator;
 use App\Repositories\ProjectRepository;
 use App\Repositories\FlowRepository;
-use App\Repositories\CollectionRepository;
+use App\Repositories\FolderRepository;
 
 class FlowHandler {
     private $projects;
     private $flows;
-    private $collections;
+    private $folders;
 
     public function __construct() {
         $this->projects = new ProjectRepository();
         $this->flows = new FlowRepository();
-        $this->collections = new CollectionRepository();
+        $this->folders = new FolderRepository();
     }
 
     /**
@@ -28,7 +29,8 @@ class FlowHandler {
         if (!$projectId) { 
             ResponseHelper::error('Project ID is required', 400); 
         }
-        $userId = $this->requireUserId();
+        $user = AuthHelper::requireAuth();
+        $userId = $user['id'];
         
         if (!$this->projects->isMember($projectId, $userId)) {
             ResponseHelper::error('Forbidden', 403);
@@ -45,7 +47,8 @@ class FlowHandler {
         if (!$projectId) { 
             ResponseHelper::error('Project ID is required', 400); 
         }
-        $userId = $this->requireUserId();
+        $user = AuthHelper::requireAuth();
+        $userId = $user['id'];
         
         if (!$this->projects->isMember($projectId, $userId)) {
             ResponseHelper::error('Forbidden', 403);
@@ -62,7 +65,8 @@ class FlowHandler {
         if (!$projectId) { 
             ResponseHelper::error('Project ID is required', 400); 
         }
-        $userId = $this->requireUserId();
+        $user = AuthHelper::requireAuth();
+        $userId = $user['id'];
         
         if (!$this->projects->isMember($projectId, $userId)) {
             ResponseHelper::error('Forbidden', 403);
@@ -73,7 +77,7 @@ class FlowHandler {
         
         $name = ValidationHelper::sanitize($input['name']);
         $description = isset($input['description']) ? ValidationHelper::sanitize($input['description']) : null;
-        $collectionId = isset($input['collection_id']) ? ValidationHelper::sanitize($input['collection_id']) : null;
+        $folderId = isset($input['folder_id']) ? ValidationHelper::sanitize($input['folder_id']) : null;
         $flowInputs = isset($input['flow_inputs']) ? $input['flow_inputs'] : [];
         $flowData = $input['flow_data'] ?? ['version' => '1.0', 'steps' => [], 'config' => ['delay' => 0, 'retryCount' => 1, 'parallel' => false]];
         $isActive = isset($input['is_active']) ? (int)!!$input['is_active'] : 1;
@@ -86,10 +90,10 @@ class FlowHandler {
             }
         }
 
-        // Validate collection belongs to project if provided
-        if ($collectionId) {
-            if (!$this->collections->belongsToProject($collectionId, $projectId)) {
-                ResponseHelper::error('Collection does not belong to this project', 400);
+        // Validate folder belongs to project if provided
+        if ($folderId) {
+            if (!$this->folders->belongsToProject($folderId, $projectId)) {
+                ResponseHelper::error('Folder does not belong to this project', 400);
             }
         }
 
@@ -129,7 +133,7 @@ class FlowHandler {
             $flowId = $this->flows->createForProject($projectId, [
                 'name' => $name,
                 'description' => $description,
-                'collection_id' => $collectionId,
+                'folder_id' => $folderId,
                 'flow_inputs' => json_encode($flowInputs),
                 'flow_data' => json_encode($flowDataSteps),
                 'ui_data' => json_encode($flowDataUI),
@@ -152,7 +156,8 @@ class FlowHandler {
         if (!$id) { 
             ResponseHelper::error('Flow ID is required', 400); 
         }
-        $userId = $this->requireUserId();
+        $user = AuthHelper::requireAuth();
+        $userId = $user['id'];
         
         $flow = $this->flows->findWithDetails($id);
         if (!$flow) { 
@@ -173,7 +178,8 @@ class FlowHandler {
         if (!$id) { 
             ResponseHelper::error('Flow ID is required', 400); 
         }
-        $userId = $this->requireUserId();
+        $user = AuthHelper::requireAuth();
+        $userId = $user['id'];
         
         $flow = $this->flows->findById($id);
         if (!$flow) { 
@@ -193,13 +199,13 @@ class FlowHandler {
         if (isset($input['description'])) { 
             $data['description'] = ValidationHelper::sanitize($input['description']); 
         }
-        if (isset($input['collection_id'])) { 
-            $collectionId = ValidationHelper::sanitize($input['collection_id']);
-            // Validate collection belongs to project if provided
-            if ($collectionId && !$this->collections->belongsToProject($collectionId, $flow['project_id'])) {
-                ResponseHelper::error('Collection does not belong to this project', 400);
+        if (isset($input['folder_id'])) { 
+            $folderId = ValidationHelper::sanitize($input['folder_id']);
+            // Validate folder belongs to project if provided
+            if ($folderId && !$this->folders->belongsToProject($folderId, $flow['project_id'])) {
+                ResponseHelper::error('Folder does not belong to this project', 400);
             }
-            $data['collection_id'] = $collectionId;
+            $data['folder_id'] = $folderId;
         }
         if (isset($input['flow_data'])) {
             // Handle dual format conversion for update
@@ -263,7 +269,8 @@ class FlowHandler {
         if (!$id) { 
             ResponseHelper::error('Flow ID is required', 400); 
         }
-        $userId = $this->requireUserId();
+        $user = AuthHelper::requireAuth();
+        $userId = $user['id'];
         
         $flow = $this->flows->findById($id);
         if (!$flow) { 
@@ -290,7 +297,8 @@ class FlowHandler {
         if (!$id) { 
             ResponseHelper::error('Flow ID is required', 400); 
         }
-        $userId = $this->requireUserId();
+        $user = AuthHelper::requireAuth();
+        $userId = $user['id'];
         
         $flow = $this->flows->findById($id);
         if (!$flow) { 
@@ -319,7 +327,8 @@ class FlowHandler {
         if (!$id) { 
             ResponseHelper::error('Flow ID is required', 400); 
         }
-        $userId = $this->requireUserId();
+        $user = AuthHelper::requireAuth();
+        $userId = $user['id'];
         
         $flow = $this->flows->findById($id);
         if (!$flow) { 
@@ -350,7 +359,8 @@ class FlowHandler {
         if (!$id) {
             ResponseHelper::error('Flow ID is required', 400);
         }
-        $userId = $this->requireUserId();
+        $user = AuthHelper::requireAuth();
+        $userId = $user['id'];
 
         $flow = $this->flows->findById($id);
         if (!$flow) {
@@ -378,7 +388,8 @@ class FlowHandler {
         if (!$id) {
             ResponseHelper::error('Flow ID is required', 400);
         }
-        $userId = $this->requireUserId();
+        $user = AuthHelper::requireAuth();
+        $userId = $user['id'];
 
         $flow = $this->flows->findById($id);
         if (!$flow) {
@@ -406,7 +417,8 @@ class FlowHandler {
         if (!$id) {
             ResponseHelper::error('Flow ID is required', 400);
         }
-        $userId = $this->requireUserId();
+        $user = AuthHelper::requireAuth();
+        $userId = $user['id'];
 
         $flow = $this->flows->findById($id);
         if (!$flow) {
@@ -446,7 +458,8 @@ class FlowHandler {
         if (!$id) {
             ResponseHelper::error('Flow ID is required', 400);
         }
-        $userId = $this->requireUserId();
+        $user = AuthHelper::requireAuth();
+        $userId = $user['id'];
 
         $flow = $this->flows->findById($id);
         if (!$flow) {
@@ -465,7 +478,7 @@ class FlowHandler {
             'name' => $flow['name'],
             'description' => $flow['description'],
             'project_id' => $flow['project_id'],
-            'collection_id' => $flow['collection_id'],
+            'folder_id' => $flow['folder_id'],
             'flow_inputs' => $flow['flow_inputs'] ? json_decode($flow['flow_inputs'], true) : [],
             'flow_data' => $uiData, // React Flow format for UI
             'is_active' => $flow['is_active'],
@@ -484,7 +497,8 @@ class FlowHandler {
         if (!$id) {
             ResponseHelper::error('Flow ID is required', 400);
         }
-        $userId = $this->requireUserId();
+        $user = AuthHelper::requireAuth();
+        $userId = $user['id'];
 
         $flow = $this->flows->findById($id);
         if (!$flow) {
@@ -515,13 +529,13 @@ class FlowHandler {
             'updated_at' => date('Y-m-d H:i:s')
         ];
 
-        // Handle collection update
-        if (isset($input['collection_id'])) {
-            $collectionId = ValidationHelper::sanitize($input['collection_id']);
-            if ($collectionId && !$this->collections->belongsToProject($collectionId, $flow['project_id'])) {
-                ResponseHelper::error('Collection does not belong to this project', 400);
+        // Handle folder update
+        if (isset($input['folder_id'])) {
+            $folderId = ValidationHelper::sanitize($input['folder_id']);
+            if ($folderId && !$this->folders->belongsToProject($folderId, $flow['project_id'])) {
+                ResponseHelper::error('Folder does not belong to this project', 400);
             }
-            $updateData['collection_id'] = $collectionId;
+            $updateData['folder_id'] = $folderId;
         }
 
         // Handle active status
@@ -539,12 +553,4 @@ class FlowHandler {
         }
     }
 
-    private function requireUserId() {
-        $token = JwtHelper::getTokenFromRequest();
-        $payload = JwtHelper::validateAccessToken($token);
-        if (!$payload) {
-            ResponseHelper::error('Unauthorized', 401);
-        }
-        return $payload['sub'];
-    }
-}
+  }

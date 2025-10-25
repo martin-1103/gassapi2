@@ -31,8 +31,8 @@ Authorization: Bearer {access_token}
     "name": "User Registration Flow",
     "description": "Complete user registration and verification flow",
     "project_id": "proj_123",
-    "collection_id": "col_123",
-    "collection_name": "User API",
+    "folder_id": "fld_123",
+    "folder_name": "User API",
     "flow_inputs": "[{\"name\":\"username\",\"type\":\"string\",\"required\":true,\"validation\":{\"min_length\":3,\"max_length\":50},\"description\":\"Username untuk registrasi\"},{\"name\":\"email\",\"type\":\"email\",\"required\":true,\"description\":\"Email address user\"},{\"name\":\"password\",\"type\":\"password\",\"required\":true,\"validation\":{\"min_length\":8},\"description\":\"Password user\"}]",
     "flow_data": {
       "version": "1.0",

@@ -24,7 +24,7 @@ Content-Type: application/json
 {
   "name": "Updated User Registration Flow",
   "description": "Updated description with additional verification step",
-  "collection_id": "col_456",
+  "folder_id": "fld_456",
   "flow_inputs": [
     {
       "name": "username",
@@ -121,7 +121,7 @@ Content-Type: application/json
 ### Fields (All Optional)
 - `name`: Nama flow baru
 - `description`: Deskripsi baru
-- `collection_id`: ID collection baru (harus dalam project yang sama)
+- `folder_id`: ID folder baru (harus dalam project yang sama)
 - `flow_inputs`: Array definisi input dinamis baru
 - `flow_data`: Flow configuration dalam Steps format
 - `is_active`: Status aktif baru
@@ -148,7 +148,7 @@ Sistem akan otomatis:
     "name": "Updated User Registration Flow",
     "description": "Updated description with additional verification step",
     "project_id": "proj_123",
-    "collection_id": "col_456",
+    "folder_id": "fld_456",
     "flow_inputs": "[{\"name\":\"username\",\"type\":\"string\",\"required\":true}]",
     "flow_data": "{\"version\":\"1.0\",\"steps\":[...]}",
     "ui_data": "{\"nodes\":[...],\"edges\":[...]}",
@@ -319,7 +319,7 @@ System akan validasi:
 
 ## Authorization
 - User harus menjadi member dari project yang memiliki flow ini
-- Collection harus berada dalam project yang sama
+- Folder harus berada dalam project yang sama
 
 ## Example
 ```bash

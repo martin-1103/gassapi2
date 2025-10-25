@@ -8,19 +8,19 @@ use App\Helpers\AuthHelper;
 use App\Helpers\JwtHelper;
 use App\Repositories\ProjectRepository;
 use App\Repositories\EnvironmentRepository;
-use App\Repositories\CollectionRepository;
+use App\Repositories\FolderRepository;
 use App\Services\AuthService;
 
 class ProjectHandler {
     private $projects;
     private $envs;
-    private $collections;
+    private $folders;
     private $authService;
 
     public function __construct() {
         $this->projects = new ProjectRepository();
         $this->envs = new EnvironmentRepository();
-        $this->collections = new CollectionRepository();
+        $this->folders = new FolderRepository();
         $this->authService = new AuthService();
     }
 
@@ -86,7 +86,7 @@ class ProjectHandler {
     }
 
     /**
-     * GET /project/{id}/context - Get project context with environments and collections
+     * GET /project/{id}/context - Get project context with environments and folders
      * Supports both JWT and MCP tokens
      */
     public function getContext($id) {
@@ -112,18 +112,18 @@ class ProjectHandler {
             ];
         }, $environments);
 
-        // Get collections
-        $collections = $this->collections->listByProject($id);
-        $collections = array_map(function($collection) {
+        // Get folders
+        $folders = $this->folders->listByProject($id);
+        $folders = array_map(function($folder) {
             return [
-                'id' => $collection['id'],
-                'name' => $collection['name'],
-                'description' => $collection['description'],
-                'endpoint_count' => $collection['endpoint_count'] ?? 0,
-                'created_at' => $collection['created_at'],
-                'updated_at' => $collection['updated_at']
+                'id' => $folder['id'],
+                'name' => $folder['name'],
+                'description' => $folder['description'],
+                'endpoint_count' => $folder['endpoint_count'] ?? 0,
+                'created_at' => $folder['created_at'],
+                'updated_at' => $folder['updated_at']
             ];
-        }, $collections);
+        }, $folders);
 
         $context = [
             'project' => [
@@ -134,7 +134,7 @@ class ProjectHandler {
                 'updated_at' => $project['updated_at']
             ],
             'environments' => $environments,
-            'collections' => $collections,
+            'folders' => $folders,
             'user' => [
                 'id' => $user['id'],
                 'token_type' => $user['token_type'],

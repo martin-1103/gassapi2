@@ -10,6 +10,7 @@ import {
   ListToolsRequestSchema,
   CallToolRequestSchema
 } from '@modelcontextprotocol/sdk/types.js';
+import { ALL_TOOLS, createAllToolHandlers } from './tools/index.js';
 
 // Simple logger (migrated from original pattern)
 class SimpleLogger {
@@ -41,6 +42,16 @@ class SimpleLogger {
     };
     console.error(`[GASSAPI-MCP] [ERROR] ${message}`, context ? logData : '');
   }
+
+  warn(message: string, context?: any, module?: string): void {
+    const logData = {
+      timestamp: new Date().toISOString(),
+      message,
+      ...context,
+      module: module || 'McpServer'
+    };
+    console.error(`[GASSAPI-MCP] [WARN] ${message}`, context ? logData : '');
+  }
 }
 
 const logger = SimpleLogger.getInstance();
@@ -53,6 +64,9 @@ export class McpServer {
   private server: Server;
   private tools: Map<string, any> = new Map();
   private startTime: number;
+  private toolHandlers: Record<string, (args: any) => Promise<any>>;
+  private availableTools: any[] = [];
+  private toolsLoaded = false;
 
   constructor() {
     this.startTime = Date.now();
@@ -72,35 +86,46 @@ export class McpServer {
       }
     );
 
-    // Register tools (will be populated during migration)
-    this.registerAllTools();
+    // Register handlers and tools
+    this.toolHandlers = createAllToolHandlers();
 
+    // Initialize tools immediately for consistency
+    ALL_TOOLS.forEach(tool => {
+      this.tools.set(tool.name, tool);
+    });
+    this.availableTools = ALL_TOOLS;
+    this.toolsLoaded = true;
+    
     logger.info('GASSAPI MCP Server initialized', {
       toolsCount: this.tools.size,
+      availableTools: this.availableTools.length,
       module: 'McpServer'
     });
   }
 
   /**
-   * Register all available tools
-   * Pattern from original MCP
+   * Register all available tools with consistency
+   * Simplified version using static imports for reliability
    */
-  private registerAllTools(): void {
-    // Import tools dynamically for migration
-    import('./tools/index.js').then(({ ALL_TOOLS }) => {
+  private async registerAllTools(): Promise<void> {
+    try {
+      // Clear existing tools
       this.tools.clear();
 
+      // Use statically imported ALL_TOOLS for consistency
       ALL_TOOLS.forEach(tool => {
         this.tools.set(tool.name, tool);
       });
 
-      logger.info(`Registered ${this.tools.size} tools`, {
+      this.toolsLoaded = true;
+
+      logger.info(`Successfully registered ${this.tools.size} tools`, {
         toolsCount: this.tools.size,
         tools: Array.from(this.tools.keys()),
         module: 'McpServer'
       });
-    }).catch(error => {
-      logger.error('Failed to load tools', {
+    } catch (error) {
+      logger.error('Failed to register tools', {
         error: error instanceof Error ? error.message : String(error),
         module: 'McpServer'
       });
@@ -114,8 +139,27 @@ export class McpServer {
           properties: {}
         }
       };
+
+      this.tools.clear();
       this.tools.set(healthCheckTool.name, healthCheckTool);
-    });
+      this.availableTools = [healthCheckTool];
+      this.toolsLoaded = true;
+
+      logger.warn('Using fallback tool registration', {
+        toolsCount: this.tools.size,
+        tools: Array.from(this.tools.keys()),
+        module: 'McpServer'
+      });
+    }
+  }
+
+  /**
+   * Ensure tools are loaded before proceeding
+   */
+  private async ensureToolsLoaded(): Promise<void> {
+    if (!this.toolsLoaded) {
+      await this.registerAllTools();
+    }
   }
 
   /**
@@ -124,6 +168,9 @@ export class McpServer {
    */
   async start(): Promise<void> {
     try {
+      // Register tools first
+      await this.registerAllTools();
+
       // Register MCP request handlers (original pattern)
       this.server.setRequestHandler(InitializeRequestSchema, this.handleInitialize.bind(this));
       this.server.setRequestHandler(ListToolsRequestSchema, this.handleListTools.bind(this));
@@ -195,14 +242,19 @@ export class McpServer {
 
   /**
    * Handle tools/list request
-   * Migrated from original implementation
+   * Fixed to ensure consistency with tool registration
    */
   private async handleListTools(): Promise<any> {
     try {
+      // Ensure tools are loaded
+      await this.ensureToolsLoaded();
+      
+      // Use the same tools that are registered for execution
       const toolList = Array.from(this.tools.values());
 
       logger.info(`Tools list requested: ${toolList.length} tools available`, {
         toolsCount: toolList.length,
+        availableTools: this.availableTools.length,
         module: 'McpServer'
       });
 
@@ -225,10 +277,13 @@ export class McpServer {
 
   /**
    * Handle tools/call request
-   * Migrated from original implementation
+   * Fixed to ensure consistency with tool registration
    */
   private async handleToolCall(request: any): Promise<any> {
     try {
+      // Ensure tools are loaded
+      await this.ensureToolsLoaded();
+      
       const { name, arguments: args } = request.params;
 
       logger.info(`Tool call: ${name}`, {
@@ -237,17 +292,15 @@ export class McpServer {
         module: 'McpServer'
       });
 
+      // Check if tool exists in registered tools (not just availableTools)
       if (!this.tools.has(name)) {
         throw new Error(`Unknown tool: ${name}`);
       }
 
-      // Route to appropriate tool handler using dynamic import
+      // Route to appropriate tool handler using pre-imported handlers
       try {
-        const { createAllToolHandlers } = await import('./tools/index.js');
-        const handlers = createAllToolHandlers();
-
-        if (handlers[name]) {
-          return await handlers[name](args || {});
+        if (this.toolHandlers[name]) {
+          return await this.toolHandlers[name](args || {});
         } else {
           throw new Error(`Tool handler not found: ${name}`);
         }
@@ -276,11 +329,15 @@ export class McpServer {
 
   /**
    * Handle health_check tool
+   * Fixed to use registered tools
    */
   private async handleHealthCheck(args: Record<string, any>): Promise<any> {
     try {
       const uptime = (Date.now() - this.startTime) / 1000;
       const memory = process.memoryUsage();
+
+      // Ensure tools are loaded
+      await this.ensureToolsLoaded();
 
       const status = {
         server: 'GASSAPI MCP Client',
@@ -318,12 +375,12 @@ export class McpServer {
    * Check if protocol version is supported
    */
   private isProtocolVersionSupported(version: string): boolean {
-    const supportedVersions = ['2024-11-05', '2025-06-18'];
+    const supportedVersions = ['2024-11-05', '2025-03-26', '2025-06-18'];
     return supportedVersions.includes(version);
   }
 
   /**
-   * Stop the MCP server
+   * Stop MCP server
    */
   async shutdown(): Promise<void> {
     try {
@@ -352,6 +409,7 @@ export class McpServer {
           uptime: uptime,
           toolsCount: this.tools.size,
           tools: Array.from(this.tools.keys()),
+          toolsLoaded: this.toolsLoaded,
           migrationStatus: 'Step 1 - Core Framework Migrated'
         },
         timestamp: Date.now()
@@ -370,6 +428,8 @@ export class McpServer {
    */
   addTool(tool: any): void {
     this.tools.set(tool.name, tool);
+    // Also add to available tools to maintain consistency
+    this.availableTools.push(tool);
     logger.info(`Tool added: ${tool.name}`, {
       toolName: tool.name,
       totalTools: this.tools.size,

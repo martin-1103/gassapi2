@@ -60,14 +60,14 @@ class TestConfig {
         'mcp_generate_config' => '?act=mcp_generate_config&id=',
         'mcp_validate' => '?act=mcp_validate',
 
-        // Collections API
-        'collection_create' => '?act=collection_create&id=',
-        'collection_list' => '?act=collection_list&id=',
-        'collections_list' => '?act=collections_list&id=',
-        'collection_get' => '?act=collection_detail&id=',
-        'collection_detail' => '?act=collection_detail&id=',
-        'collection_update' => '?act=collection_update&id=',
-        'collection_delete' => '?act=collection_delete&id=',
+        // Folders API
+        'folder_create' => '?act=folder_create&id=',
+        'folder_list' => '?act=folder_list&id=',
+        'folders_list' => '?act=folders_list&id=',
+        'folder_get' => '?act=folder_detail&id=',
+        'folder_detail' => '?act=folder_detail&id=',
+        'folder_update' => '?act=folder_update&id=',
+        'folder_delete' => '?act=folder_delete&id=',
 
         // Endpoints API
         'endpoint_create' => '?act=endpoint_create&id=',
@@ -143,8 +143,8 @@ class TestConfig {
                 $url .= $id;
             }
 
-            // Collection endpoints
-            if (in_array($endpoint, ['collection_create', 'collection_list', 'collections_list', 'collection_get', 'collection_detail', 'collection_update', 'collection_delete'])) {
+            // Folder endpoints
+            if (in_array($endpoint, ['folder_create', 'folder_list', 'folders_list', 'folder_get', 'folder_detail', 'folder_update', 'folder_delete'])) {
                 $url .= $id;
             }
 

@@ -143,7 +143,7 @@ async function runFlowLifecycleTest(scenarioConfig, startTime) {
  */
 async function runEndToEndTest(scenarioConfig, startTime) {
   // TODO: Implement actual end-to-end test
-  // This would test: create_collection → create_endpoint → create_flow → execute_flow → cleanup
+  // This would test: create_folder → create_endpoint → create_flow → execute_flow → cleanup
 
   return {
     name: scenarioConfig.name,

@@ -24,11 +24,11 @@ const TEST_CONFIG = {
     }
   },
 
-  // Collection configuration
-  collections: {
+  // Folder configuration
+  folders: {
     test: {
-      id: process.env.TEST_COLLECTION_ID || null,
-      name: 'Test Collection',
+      id: process.env.TEST_FOLDER_ID || null,
+      name: 'Test Folder',
       createIfNotExists: true
     }
   },
@@ -108,15 +108,15 @@ const TEST_CONFIG = {
       ]
     },
 
-    collections: {
-      name: 'Collection Tests',
-      description: 'Test collection management functionality',
+    folders: {
+      name: 'Folder Tests',
+      description: 'Test folder management functionality',
       required: true,
       tests: [
-        'get_collections',
-        'create_collection',
-        'move_collection',
-        'delete_collection'
+        'get_folders',
+        'create_folder',
+        'move_folder',
+        'delete_folder'
       ]
     },
 
@@ -193,7 +193,7 @@ const TEST_CONFIG = {
       description: 'Test complete workflow with multiple tools',
       enabled: true,
       steps: [
-        'create_collection',
+        'create_folder',
         'create_endpoint',
         'create_flow',
         'execute_flow',
@@ -216,7 +216,7 @@ const TEST_CONFIG = {
     requiredFields: {
       project: ['id', 'name'],
       environment: ['id', 'name'],
-      collection: ['id', 'name'],
+      folder: ['id', 'name'],
       endpoint: ['id', 'name', 'method', 'url'],
       flow: ['id', 'name', 'flow_data']
     }

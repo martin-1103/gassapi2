@@ -10,12 +10,12 @@ export interface ApiEndpoints {
   environmentUpdate: string;
   environmentVariables: string;
 
-  // Collection endpoints
-  projectCollections: string;
-  collectionDetails: string;
-  collectionCreate: string;
-  collectionUpdate: string;
-  collectionDelete: string;
+  // Folder endpoints
+  projectFolders: string;
+  folderDetails: string;
+  folderCreate: string;
+  folderUpdate: string;
+  folderDelete: string;
 
   // Endpoint endpoints
   endpointDetails: string;
@@ -24,6 +24,7 @@ export interface ApiEndpoints {
   endpointDelete: string;
   endpointTest: string;
   endpointList: string;
+  projectEndpointsList: string;
 
   // Flow endpoints
   flowDetails: string;
@@ -54,28 +55,29 @@ export const DEFAULT_API_ENDPOINTS: ApiEndpoints = {
   environmentUpdate: '/gassapi2/backend/?act=environment_update&id={id}',
   environmentVariables: '/gassapi2/backend/?act=environment_variables&id={id}',
 
-  // Collection endpoints
-  projectCollections: '/gassapi2/backend/?act=project_collections&id={id}',
-  collectionDetails: '/gassapi2/backend/?act=collection&id={id}',
-  collectionCreate: '/gassapi2/backend/?act=collection_create',
-  collectionUpdate: '/gassapi2/backend/?act=collection_update&id={id}',
-  collectionDelete: '/gassapi2/backend/?act=collection_delete&id={id}',
+  // Folder endpoints
+  projectFolders: '/gassapi2/backend/?act=project_folders&id={id}',
+  folderDetails: '/gassapi2/backend/?act=folder&id={id}',
+  folderCreate: '/gassapi2/backend/?act=folder_create&id={project_id}',
+  folderUpdate: '/gassapi2/backend/?act=folder_update&id={id}',
+  folderDelete: '/gassapi2/backend/?act=folder_delete&id={id}',
 
   // Endpoint endpoints
   endpointDetails: '/gassapi2/backend/?act=endpoint&id={id}',
-  endpointCreate: '/gassapi2/backend/?act=endpoint_create',
+  endpointCreate: '/gassapi2/backend/?act=endpoint_create&id={id}',
   endpointUpdate: '/gassapi2/backend/?act=endpoint_update&id={id}',
   endpointDelete: '/gassapi2/backend/?act=endpoint_delete&id={id}',
   endpointTest: '/gassapi2/backend/?act=endpoint_test',
-  endpointList: '/gassapi2/backend/?act=endpoints&collection_id={collection_id}',
+  endpointList: '/gassapi2/backend/?act=endpoints_list&id={id}',
+  projectEndpointsList: '/gassapi2/backend/?act=project_endpoints_list&id={project_id}',
 
   // Flow endpoints
   flowDetails: '/gassapi2/backend/?act=flow&id={id}',
-  flowCreate: '/gassapi2/backend/?act=flow_create',
+  flowCreate: '/gassapi2/backend/?act=flow_create&id={project_id}',
   flowUpdate: '/gassapi2/backend/?act=flow_update&id={id}',
   flowDelete: '/gassapi2/backend/?act=flow_delete&id={id}',
   flowExecute: '/gassapi2/backend/?act=flow_execute',
-  flowList: '/gassapi2/backend/?act=flows&collection_id={collection_id}',
+  flowList: '/gassapi2/backend/?act=flows&id={project_id}',
   flowTest: '/gassapi2/backend/?act=flow_test',
   flowValidate: '/gassapi2/backend/?act=flow_validate',
 

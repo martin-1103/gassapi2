@@ -236,7 +236,7 @@ class SecuritySanitizer {
                 'is_active' => 'bool',
                 'user_id' => 'int'
             ],
-            'collections' => [
+            'folders' => [
                 'name' => 'text',
                 'description' => 'text',
                 'variables' => 'json',
@@ -250,7 +250,7 @@ class SecuritySanitizer {
                 'url' => 'text',
                 'headers' => 'json',
                 'body' => 'json',
-                'collection_id' => 'int'
+                'folder_id' => 'int'
             ],
             'environments' => [
                 'name' => 'text',

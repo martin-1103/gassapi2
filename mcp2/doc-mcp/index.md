@@ -8,15 +8,15 @@
 | **Environment** | `list_environments` | project_id (optional) |
 | | `get_environment_details` | environment_id |
 | | `update_environment_variables` | environment_id, variables |
-| **Collection** | `get_collections` | project_id (optional) |
-| | `create_collection` | name |
-| | `move_collection` | collection_id, new_parent_id |
-| | `delete_collection` | collection_id |
+| **Folder** | `get_folders` | project_id (optional) |
+| | `create_folder` | name |
+| | `move_folder` | folder_id, new_parent_id |
+| | `delete_folder` | folder_id |
 | **Endpoint** | `list_endpoints` | project_id (optional) |
 | | `get_endpoint_details` | endpoint_id |
-| | `create_endpoint` | name, method, url, collection_id |
+| | `create_endpoint` | name, method, url, folder_id |
 | | `update_endpoint` | endpoint_id |
-| | `move_endpoint` | endpoint_id, new_collection_id |
+| | `move_endpoint` | endpoint_id, new_folder_id |
 | **Testing** | `test_endpoint` | endpoint_id, environment_id |
 | **Flow** | `create_flow` | project_id, name |
 | | `list_flows` | project_id |
@@ -31,8 +31,8 @@
 |--------------|------------|
 | "Show my project" | `get_project_context` |
 | "List environments" | `list_environments` |
-| "Show collections" | `get_collections` |
-| "Create collection" | `create_collection` |
+| "Show folders" | `get_folders` |
+| "Create folder" | `create_folder` |
 | "Create endpoint" | `create_endpoint` |
 | "Test endpoint" | `test_endpoint` |
 | "Create flow" | `create_flow` |
@@ -44,7 +44,7 @@
 
 - **[Auth Tools](tools/auth.md)** - Authentication & project context
 - **[Environment Tools](tools/environment.md)** - Environment management
-- **[Collection Tools](tools/collections.md)** - Collection management
+- **[Folder Tools](tools/folders.md)** - Folder management
 - **[Endpoint Tools](tools/endpoints.md)** - Endpoint management
 - **[Testing Tools](tools/testing.md)** - Endpoint testing
 - **[Flow Tools](tools/flows.md)** - Flow creation & execution

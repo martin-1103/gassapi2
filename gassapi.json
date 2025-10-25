@@ -1,13 +1,13 @@
 {
   "project": {
-    "id": "proj_1761288753_1587448b",
-    "name": "gassapi",
-    "description": "Project GASSAPI untuk pengembangan MCP client"
+    "id": "proj_1761385246_5ec798d9",
+    "name": "Test Project",
+    "description": "Project for MCP testing"
   },
   "mcpClient": {
-    "token": "d6890689ef87e09ef90f9d5ce0e4a827add938ed100ba791e18b93f994707eeb"
+    "token": "2032781cbb63ea282749778091b2170a5a18d0491a519bad4ab488ab463e885d"
   },
   "api": {
-    "baseURL": "http://localhost:8000"
+    "baseURL": "http://localhost:8080"
   }
 }

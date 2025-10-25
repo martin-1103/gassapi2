@@ -1,13 +1,13 @@
 <?php
 
 require_once __DIR__ . '/BaseTest.php';
-require_once __DIR__ . '/../cases/CollectionTest.php';
+require_once __DIR__ . '/../cases/FolderTest.php';
 require_once __DIR__ . '/../cases/EndpointTest.php';
 require_once __DIR__ . '/../cases/FlowTest.php';
 
 /**
  * Composite test class for all API testing modules
- * - Collections, Endpoints, and Flows
+ * - Folders, Endpoints, and Flows
  */
 class AllApiTests extends BaseTest {
     private $apiTests = [];
@@ -15,30 +15,30 @@ class AllApiTests extends BaseTest {
 
     protected function setUp() {
         parent::setUp();
-        echo "\n=== Starting All API Tests (Collections, Endpoints, Flows) ===\n";
+        echo "\n=== Starting All API Tests (Folders, Endpoints, Flows) ===\n";
 
         // Initialize API test modules
         $this->apiTests = [
-            'collections' => new CollectionTest(),
+            'folders' => new FolderTest(),
             'endpoints' => new EndpointTest(),
             'flows' => new FlowTest()
         ];
     }
 
     /**
-     * Test Collections API module
+     * Test Folders API module
      */
-    protected function testCollectionsModule() {
-        $this->printHeader("Collections API Module");
+    protected function testFoldersModule() {
+        $this->printHeader("Folders API Module");
 
-        if (!class_exists('CollectionTest')) {
-            echo "[SKIP] Collection tests not available\n";
+        if (!class_exists('FolderTest')) {
+            echo "[SKIP] Folder tests not available\n";
             return true;
         }
 
-        $collectionTest = new CollectionTest();
-        $result = $collectionTest->run();
-        $this->moduleResults['collections'] = $collectionTest->getResults();
+        $folderTest = new FolderTest();
+        $result = $folderTest->run();
+        $this->moduleResults['folders'] = $folderTest->getResults();
 
         return $result;
     }

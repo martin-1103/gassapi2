@@ -38,9 +38,9 @@ async function runCategoryTests(category, options = {}) {
         console.log('⏭️  Environment tests not yet implemented');
         return { success: true, summary: { total: 0, passed: 0, failed: 0, skipped: 0, errors: 0 } };
 
-      case 'collections':
-        // TODO: Implement when collection tests are ready
-        console.log('⏭️  Collection tests not yet implemented');
+      case 'folders':
+        // TODO: Implement when folder tests are ready
+        console.log('⏭️  Folder tests not yet implemented');
         return { success: true, summary: { total: 0, passed: 0, failed: 0, skipped: 0, errors: 0 } };
 
       case 'endpoints':
@@ -146,9 +146,9 @@ async function runAllTests(options = {}) {
           result = await runEnvironmentTests({ verbose, json, html });
           break;
 
-        case 'collections':
-          const { runCollectionsTests } = require('../unit/collections/collections-test-runner.js');
-          result = await runCollectionsTests({ verbose, json, html });
+        case 'folders':
+          const { runFoldersTests } = require('../unit/folders/folders-test-runner.js');
+          result = await runFoldersTests({ verbose, json, html });
           break;
 
         case 'endpoints':
