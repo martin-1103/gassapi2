@@ -146,4 +146,4 @@ logs
 # Backup files
 *.bak
 *.backup
-mcp.zip
+*.zip
