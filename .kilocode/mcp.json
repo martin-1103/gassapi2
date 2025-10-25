@@ -27,7 +27,9 @@
         "create_flow",
         "set_environment_variables",
         "set_flow_inputs",
-        "set_runtime_variables"
+        "set_runtime_variables",
+        "update_endpoint",
+        "move_endpoint"
       ]
     }
   }
