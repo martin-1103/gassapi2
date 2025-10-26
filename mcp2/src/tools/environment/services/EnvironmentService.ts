@@ -151,7 +151,7 @@ export class EnvironmentService {
         variables: JSON.stringify(updatedVariables)
       };
 
-      const response = await this.httpClient.patch(url, updateData);
+      const response = await this.httpClient.put(url, updateData);
 
       if (response.success) {
         // Calculate updated variables
@@ -198,13 +198,12 @@ export class EnvironmentService {
         };
       }
 
-      const url = `${this.baseUrl}/?act=create_environment`;
+      const url = `${this.baseUrl}/?act=environment_create&id=${request.projectId}`;
       const createData = {
         name: request.name.trim(),
         description: request.description?.trim(),
         variables: JSON.stringify(request.variables || {}),
-        is_default: request.isDefault || false,
-        project_id: request.projectId
+        is_default: request.isDefault || false
       };
 
       const response = await this.httpClient.post(url, createData);

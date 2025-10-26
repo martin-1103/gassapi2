@@ -106,7 +106,7 @@ function validateFlowRequest(request: FlowCreateRequest): { valid: boolean; erro
  */
 export async function handleCreateFlow(args: any): Promise<McpToolResponse> {
   try {
-    const { name, description, folderId, steps, config, inputs } = args;
+    const { name, description, folderId, flow_data, flow_inputs, is_active } = args;
 
     if (!name) {
       return {
@@ -122,14 +122,27 @@ export async function handleCreateFlow(args: any): Promise<McpToolResponse> {
       };
     }
 
-    if (!steps || !Array.isArray(steps) || steps.length === 0) {
+    // Check if flow_data exists and has steps
+    if (!flow_data || !flow_data.steps || !Array.isArray(flow_data.steps) || flow_data.steps.length === 0) {
       return {
         content: [
           {
             type: 'text',
             text: JSON.stringify({
               success: false,
-              error: 'Flow steps are required and must be a non-empty array'
+              error: 'Flow steps are required and must be a non-empty array in flow_data',
+              example: {
+                name: "Example Flow",
+                flow_data: {
+                  version: "1.0",
+                  steps: [{
+                    id: "step1",
+                    name: "Get Data",
+                    method: "GET",
+                    url: "{{baseUrl}}/api/data"
+                  }]
+                }
+              }
             }, null, 2)
           }
         ]
@@ -138,46 +151,16 @@ export async function handleCreateFlow(args: any): Promise<McpToolResponse> {
 
     const instances = await getInstances();
 
-    // Parse and validate steps
-    let parsedSteps: any[] = [];
-
-    if (typeof steps === 'string') {
-      try {
-        parsedSteps = JSON.parse(steps);
-      } catch (e) {
-        return {
-          content: [
-            {
-              type: 'text',
-              text: JSON.stringify({
-                success: false,
-                error: 'Invalid steps format - must be valid JSON'
-              }, null, 2)
-            }
-          ]
-        };
-      }
-    } else {
-      parsedSteps = steps;
-    }
-
-    // Build flow request
-    const request: FlowCreateRequest = {
-      name: name.trim(),
-      description: description?.trim(),
+    // Validate steps in flow_data
+    const validation = validateFlowRequest({
+      name,
+      description,
       folderId,
-      steps: parsedSteps,
-      config: config ? {
-        timeout: config.timeout,
-        stopOnError: config.stopOnError,
-        parallel: config.parallel,
-        maxConcurrency: config.maxConcurrency
-      } : undefined,
-      inputs: inputs
-    };
+      steps: flow_data.steps,
+      config: flow_data.config,
+      inputs: flow_inputs
+    });
 
-    // Validate request
-    const validation = validateFlowRequest(request);
     if (!validation.valid) {
       return {
         content: [
@@ -186,7 +169,24 @@ export async function handleCreateFlow(args: any): Promise<McpToolResponse> {
             text: JSON.stringify({
               success: false,
               error: 'Validation failed',
-              details: validation.errors
+              details: validation.errors,
+              example: {
+                name: "Valid Flow Example",
+                flow_data: {
+                  version: "1.0",
+                  steps: [{
+                    id: "step1",
+                    name: "API Call",
+                    method: "GET",
+                    url: "{{baseUrl}}/api/data"
+                  }],
+                  config: {
+                    delay: 0,
+                    retryCount: 1,
+                    parallel: false
+                  }
+                }
+              }
             }, null, 2)
           }
         ]
@@ -198,7 +198,6 @@ export async function handleCreateFlow(args: any): Promise<McpToolResponse> {
     const projectConfig = await instancesResolved.configManager.detectProjectConfig();
     const projectId = projectConfig?.project?.id;
 
-    // Debug: Check if we have valid config
     if (!projectConfig || !projectId) {
       return {
         content: [
@@ -206,70 +205,34 @@ export async function handleCreateFlow(args: any): Promise<McpToolResponse> {
             type: 'text',
             text: JSON.stringify({
               success: false,
-              error: 'Configuration error',
-              debug: {
-                config: projectConfig,
-                projectId: projectId
-              }
+              error: 'Configuration error - could not detect project configuration'
             }, null, 2)
           }
         ]
       };
     }
 
-    const projectResponse = await instancesResolved.backendClient.getProjectContext(projectId);
-    if (!projectResponse.success || !projectResponse.data) {
-      return {
-        content: [
-          {
-            type: 'text',
-            text: JSON.stringify({
-              success: false,
-              error: 'Failed to get current project',
-              debug: {
-                projectId: projectId,
-                configProjectId: projectConfig?.project?.id,
-                projectResponse: projectResponse
-              }
-            }, null, 2)
-          }
-        ]
-      };
-    }
-
-    // Prepare flow data for API
-    const flowData = {
-      name: request.name,
-      description: request.description,
-      folder_id: request.folderId,
+    // Prepare flow data for API (following backend documentation)
+    const backendFlowData = {
+      name: name.trim(),
+      description: description?.trim(),
+      folder_id: folderId || null,
       flow_data: {
-        version: '1.0',
-        steps: request.steps.map(step => ({
-          id: step.id,
-          name: step.name,
-          endpointId: step.endpointId,
-          method: step.method,
-          url: step.url,
-          headers: step.headers,
-          body: step.body,
-          timeout: step.timeout,
-          expectedStatus: step.expectedStatus,
-          description: step.description
-        })),
-        config: request.config || {
-          timeout: 30000,
-          stopOnError: true,
-          parallel: false,
-          maxConcurrency: 5
+        version: flow_data.version || '1.0',
+        steps: flow_data.steps,
+        config: flow_data.config || {
+          delay: 0,
+          retryCount: 1,
+          parallel: false
         }
       },
-      flow_inputs: request.inputs,
+      flow_inputs: flow_inputs || [],
       project_id: projectId,
-      is_active: true
+      is_active: is_active !== undefined ? is_active : true
     };
 
     // Create flow via API
-    const createResponse = await instancesResolved.backendClient.createFlow(flowData);
+    const createResponse = await instancesResolved.backendClient.createFlow(backendFlowData);
 
     if (!createResponse.success || !createResponse.data) {
       return {

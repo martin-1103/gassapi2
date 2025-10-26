@@ -17,6 +17,104 @@ import {
 import { getApiEndpoints } from '../../../lib/api/endpoints.js';
 
 /**
+ * Get folder suggestions with hierarchy and create instructions
+ */
+async function getFolderSuggestions(configManager: any, backendClient: any): Promise<string> {
+  try {
+    // Get project ID
+    const projectConfig = await configManager.detectProjectConfig();
+    const projectId = projectConfig?.project?.id;
+
+    if (!projectId) {
+      return `⚠️  Tidak bisa mendapatkan project ID. Pastikan MCP config sudah diatur dengan benar.
+
+💡 Solusi:
+1. Pastikan file .gassapi/mcp-config.json ada dan valid
+2. Gunakan get_project_context untuk cek project config
+3. Jika masih error, create ulang project config`;
+    }
+
+    // Get folders with tree structure
+    const foldersResponse = await backendClient.makeRequest(`/?act=project_folders&id=${projectId}&is_active=true`, {
+      method: 'GET'
+    });
+
+    if (!foldersResponse.success || !foldersResponse.data) {
+      return `📁 **Cara dapatkan Folder ID:**
+
+🔧 **Option 1: List folders yang ada**
+   Gunakan tool: list_folders
+   Parameter:
+   - projectId: "${projectId}"
+   - parentId: null (untuk root folders)
+   - activeOnly: true
+
+🆕 **Option 2: Create folder baru**
+   Gunakan tool: create_folder
+   Parameter:
+   - projectId: "${projectId}"
+   - name: "Nama Folder Baru"
+   - description: "Deskripsi folder"
+
+📋 **Contoh penggunaan:**
+   list_folders → dapatkan folder ID → create_endpoint dengan folder_id tersebut`;
+    }
+
+    // Build folder hierarchy
+    const folders = foldersResponse.data.data || foldersResponse.data || [];
+
+    if (folders.length === 0) {
+      return `📂 **Project ini belum punya folder**
+
+🆕 **Buat folder dulu:**
+   create_folder dengan parameter:
+   - projectId: "${projectId}"
+   - name: "API Endpoints"
+   - description: "Folder untuk menyimpan API endpoints"
+
+📋 **Setelah punya folder:**
+   Gunakan folder_id dari hasil create_folder untuk membuat endpoint`;
+    }
+
+    // Format folder list
+    let folderMessage = `📁 **Folder yang tersedia:**\n\n`;
+
+    folders.forEach((folder: any, index: number) => {
+      const indent = '  ';
+      folderMessage += `${index + 1}. ${folder.name}\n`;
+      folderMessage += `${indent}🆔 ID: ${folder.id}\n`;
+      if (folder.description) {
+        folderMessage += `${indent}📝 Deskripsi: ${folder.description}\n`;
+      }
+      folderMessage += `${indent}📊 Endpoint: ${folder.endpoint_count || 0} endpoint\n`;
+      folderMessage += `${indent}📅 Dibuat: ${new Date(folder.created_at).toLocaleDateString('id-ID')}\n\n`;
+    });
+
+    folderMessage += `💡 **Cara pakai:**\n`;
+    folderMessage += `Pilih salah satu folder_id di atas, atau:\n\n`;
+    folderMessage += `🆕 **Buat folder baru:** create_folder\n`;
+    folderMessage += `📋 **List ulang:** list_folders (untuk refresh)\n`;
+    folderMessage += `🔍 **Detail folder:** get_folder_details dengan folder_id pilihan`;
+
+    return folderMessage;
+
+  } catch (error: any) {
+    return `⚠️  Error mendapatkan folder: ${error.message}
+
+📁 **Cara manual dapatkan folder:**\n\n
+🔧 **Gunakan list_folders:**
+   - projectId: "dapatkan dari get_project_context"
+   - parentId: null
+   - activeOnly: true
+
+🆕 **Atau create folder baru:**
+   - create_folder dengan projectId yang valid
+
+💬 **Tip:** Gunakan get_project_context dulu untuk dapatkan projectId yang valid`;
+  }
+}
+
+/**
  * Handle create endpoint request
  */
 export async function handleCreateEndpoint(args: Record<string, any>): Promise<McpToolResponse> {
@@ -34,6 +132,11 @@ export async function handleCreateEndpoint(args: Record<string, any>): Promise<M
     // Validate input
     const validationErrors = validateEndpointData({ name, method, url, folder_id: folderId });
     if (validationErrors.length > 0) {
+      // Check if folder_id is the only error and provide helpful suggestions
+      if (validationErrors.length === 1 && validationErrors[0] === 'Folder ID is required') {
+        const foldersMessage = await getFolderSuggestions(configManager, backendClient);
+        throw new Error(`Folder ID is required\n\n${foldersMessage}`);
+      }
       throw new Error(validationErrors.join('\n'));
     }
 

@@ -146,7 +146,9 @@ export class FolderService {
         name: request.name.trim(),
         description: request.description?.trim(),
         parent_id: request.parentId,
-        project_id: request.projectId
+        headers: {},           // Required by backend (empty object if not provided)
+        variables: {},         // Required by backend (empty object if not provided)
+        is_default: 0          // Required by backend (0 = not default)
       };
 
       const response = await this.httpClient.post(url, createData);
@@ -203,7 +205,7 @@ export class FolderService {
         updateData.parent_id = request.parentId;
       }
 
-      const response = await this.httpClient.patch(url, updateData);
+      const response = await this.httpClient.put(url, updateData);
 
       if (response.success && response.data) {
         return {
@@ -263,7 +265,7 @@ export class FolderService {
    */
   async deleteFolder(folderId: string): Promise<DeleteFolderResponse> {
     try {
-      const url = `${this.baseUrl}/?act=folder&id=${folderId}`;
+      const url = `${this.baseUrl}/?act=folder_delete&id=${folderId}`;
       const response = await this.httpClient.delete(url);
 
       if (response.success) {
