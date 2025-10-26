@@ -1,78 +1,68 @@
 {
-  "suite": "Endpoint Tests - Test endpoint management functionality",
-  "startTime": "2025-10-25T11:24:53.644Z",
-  "endTime": "2025-10-25T11:25:02.454Z",
-  "duration": 8810,
+  "suite": "Folder Tests - Test folder management functionality",
+  "startTime": "2025-10-25T15:59:27.401Z",
+  "endTime": "2025-10-25T15:59:34.016Z",
+  "duration": 6615,
   "tests": [
     {
-      "name": "testListEndpointsSuccess",
-      "category": "endpoints",
-      "status": "passed",
-      "duration": 1379,
-      "message": "Successfully listed endpoints",
-      "details": null,
-      "error": null,
-      "timestamp": "2025-10-25T11:24:55.024Z"
-    },
-    {
-      "name": "testCreateEndpoint",
-      "category": "endpoints",
-      "status": "passed",
-      "duration": 1526,
-      "message": "Successfully created endpoint: Test Endpoint 1761391495024",
-      "details": null,
-      "error": null,
-      "timestamp": "2025-10-25T11:24:56.550Z"
-    },
-    {
-      "name": "testGetEndpointDetails",
-      "category": "endpoints",
+      "name": "testGetFoldersSuccess",
+      "category": "folders",
       "status": "error",
-      "duration": 1483,
+      "duration": 1292,
       "message": "",
-      "details": "Error: Response should contain: Details\n    at Assert.isTrue (D:\\xampp82\\htdocs\\gassapi2\\mcp2\\test\\utils\\TestHelpers.js:12:13)\n    at validateMcpResponse (D:\\xampp82\\htdocs\\gassapi2\\mcp2\\test\\unit\\endpoints\\test-endpoints.js:20:12)\n    at D:\\xampp82\\htdocs\\gassapi2\\mcp2\\test\\unit\\endpoints\\test-endpoints.js:120:9\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async withTestClient (D:\\xampp82\\htdocs\\gassapi2\\mcp2\\test\\utils\\McpTestClient.js:280:12)\n    at async D:\\xampp82\\htdocs\\gassapi2\\mcp2\\test\\unit\\endpoints\\test-endpoints.js:114:7\n    at async testGetEndpointDetails (D:\\xampp82\\htdocs\\gassapi2\\mcp2\\test\\unit\\endpoints\\test-endpoints.js:112:3)\n    at async runEndpointsTests (D:\\xampp82\\htdocs\\gassapi2\\mcp2\\test\\unit\\endpoints\\endpoints-test-runner.js:49:22)\n    at async runCategoryTests (D:\\xampp82\\htdocs\\gassapi2\\mcp2\\test\\runners\\run-category-tests.js:123:18)\n    at async main (D:\\xampp82\\htdocs\\gassapi2\\mcp2\\test\\runners\\run-category-tests.js:191:20)",
-      "error": "Response should contain: Details",
-      "timestamp": "2025-10-25T11:24:58.034Z"
+      "details": "Error: Response should contain: 📁 Folders List\n    at Assert.isTrue (D:\\xampp82\\htdocs\\gassapi2\\mcp2\\test\\utils\\TestHelpers.js:12:13)\n    at validateMcpResponse (D:\\xampp82\\htdocs\\gassapi2\\mcp2\\test\\unit\\folders\\test-folders.js:20:12)\n    at D:\\xampp82\\htdocs\\gassapi2\\mcp2\\test\\unit\\folders\\test-folders.js:44:11\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async withTestClient (D:\\xampp82\\htdocs\\gassapi2\\mcp2\\test\\utils\\McpTestClient.js:280:12)\n    at async D:\\xampp82\\htdocs\\gassapi2\\mcp2\\test\\unit\\folders\\test-folders.js:35:7\n    at async testGetFoldersSuccess (D:\\xampp82\\htdocs\\gassapi2\\mcp2\\test\\unit\\folders\\test-folders.js:33:3)\n    at async runFoldersTests (D:\\xampp82\\htdocs\\gassapi2\\mcp2\\test\\unit\\folders\\folders-test-runner.js:47:22)",
+      "error": "Response should contain: 📁 Folders List",
+      "timestamp": "2025-10-25T15:59:28.695Z"
     },
     {
-      "name": "testListEndpointsResponseFormat",
-      "category": "endpoints",
+      "name": "testCreateFolder",
+      "category": "folders",
       "status": "passed",
-      "duration": 1377,
-      "message": "Response format validated successfully",
+      "duration": 1411,
+      "message": "Successfully created folder: Test Folder 1761407968696",
       "details": null,
       "error": null,
-      "timestamp": "2025-10-25T11:24:59.412Z"
+      "timestamp": "2025-10-25T15:59:30.107Z"
     },
     {
-      "name": "testEndpointInvalidData",
-      "category": "endpoints",
-      "status": "passed",
-      "duration": 1307,
-      "message": "Correctly handled invalid data: Expected error for missing required fields but got successful response...",
-      "details": null,
-      "error": null,
-      "timestamp": "2025-10-25T11:25:00.720Z"
+      "name": "testGetFoldersResponseFormat",
+      "category": "folders",
+      "status": "error",
+      "duration": 1298,
+      "message": "",
+      "details": "Error: Response should contain: 📁 Folders List\n    at Assert.isTrue (D:\\xampp82\\htdocs\\gassapi2\\mcp2\\test\\utils\\TestHelpers.js:12:13)\n    at validateMcpResponse (D:\\xampp82\\htdocs\\gassapi2\\mcp2\\test\\unit\\folders\\test-folders.js:20:12)\n    at D:\\xampp82\\htdocs\\gassapi2\\mcp2\\test\\unit\\folders\\test-folders.js:117:11\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async withTestClient (D:\\xampp82\\htdocs\\gassapi2\\mcp2\\test\\utils\\McpTestClient.js:280:12)\n    at async D:\\xampp82\\htdocs\\gassapi2\\mcp2\\test\\unit\\folders\\test-folders.js:108:7\n    at async testGetFoldersResponseFormat (D:\\xampp82\\htdocs\\gassapi2\\mcp2\\test\\unit\\folders\\test-folders.js:106:3)\n    at async runFoldersTests (D:\\xampp82\\htdocs\\gassapi2\\mcp2\\test\\unit\\folders\\folders-test-runner.js:47:22)",
+      "error": "Response should contain: 📁 Folders List",
+      "timestamp": "2025-10-25T15:59:31.405Z"
     },
     {
-      "name": "testEndpointsPerformance",
-      "category": "endpoints",
+      "name": "testFolderInvalidData",
+      "category": "folders",
       "status": "passed",
-      "duration": 1733,
-      "message": "Performance test completed - 3 iterations",
+      "duration": 1290,
+      "message": "Correctly handled invalid data: Expected error for missing required field but got successful response...",
       "details": null,
       "error": null,
-      "timestamp": "2025-10-25T11:25:02.454Z"
+      "timestamp": "2025-10-25T15:59:32.696Z"
+    },
+    {
+      "name": "testFoldersPerformance",
+      "category": "folders",
+      "status": "error",
+      "duration": 1319,
+      "message": "",
+      "details": "Error: Response should contain: 📁 Folders List\n    at Assert.isTrue (D:\\xampp82\\htdocs\\gassapi2\\mcp2\\test\\utils\\TestHelpers.js:12:13)\n    at validateMcpResponse (D:\\xampp82\\htdocs\\gassapi2\\mcp2\\test\\unit\\folders\\test-folders.js:20:12)\n    at D:\\xampp82\\htdocs\\gassapi2\\mcp2\\test\\unit\\folders\\test-folders.js:205:11\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async withTestClient (D:\\xampp82\\htdocs\\gassapi2\\mcp2\\test\\utils\\McpTestClient.js:280:12)\n    at async D:\\xampp82\\htdocs\\gassapi2\\mcp2\\test\\unit\\folders\\test-folders.js:195:7\n    at async testFoldersPerformance (D:\\xampp82\\htdocs\\gassapi2\\mcp2\\test\\unit\\folders\\test-folders.js:193:3)\n    at async runFoldersTests (D:\\xampp82\\htdocs\\gassapi2\\mcp2\\test\\unit\\folders\\folders-test-runner.js:47:22)",
+      "error": "Response should contain: 📁 Folders List",
+      "timestamp": "2025-10-25T15:59:34.015Z"
     }
   ],
   "summary": {
-    "total": 6,
-    "passed": 5,
+    "total": 5,
+    "passed": 2,
     "failed": 0,
     "skipped": 0,
-    "errors": 1
+    "errors": 3
   },
-  "generatedAt": "2025-10-25T11:25:02.462Z",
+  "generatedAt": "2025-10-25T15:59:34.016Z",
   "environment": {
     "nodeVersion": "v22.14.0",
     "platform": "win32",

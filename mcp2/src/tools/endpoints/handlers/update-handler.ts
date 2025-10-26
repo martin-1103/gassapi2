@@ -47,30 +47,17 @@ export async function handleUpdateEndpoint(args: Record<string, any>): Promise<M
       throw new Error(validationErrors.join('\n'));
     }
 
-    // Update endpoint
-    const apiEndpoints = getApiEndpoints();
-    const endpoint = apiEndpoints.getEndpoint('endpointUpdate', { id: endpointId });
-    const fullUrl = `${backendClient.getBaseUrl()}${endpoint}`;
+    // Update endpoint using BackendClient
+    console.error(`[EndpointTools] Updating endpoint: ${endpointId}`);
 
-    console.error(`[EndpointTools] Updating endpoint at: ${fullUrl}`);
+    const result = await backendClient.updateEndpoint(endpointId, updateData);
 
-    const result = await fetch(fullUrl, {
-      method: 'PUT',
-      headers: {
-        'Authorization': `Bearer ${backendClient.getToken()}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(updateData)
-    });
-
-    if (!result.ok) {
-      throw new Error(`Failed to update endpoint: HTTP ${result.status}`);
+    if (!result.success) {
+      throw new Error(`Failed to update endpoint: ${result.error || 'Unknown error'}`);
     }
 
-    const data = await result.json() as EndpointUpdateResponse;
-
-    if (data.success && data.data) {
-      const updateText = formatEndpointUpdateText(data.data);
+    if (result.data) {
+      const updateText = formatEndpointUpdateText(result.data);
 
       return {
         content: [
@@ -85,7 +72,7 @@ export async function handleUpdateEndpoint(args: Record<string, any>): Promise<M
         content: [
           {
             type: 'text',
-            text: `❌ Failed to update endpoint: ${data.message || 'Unknown error'}`
+            text: `❌ Failed to update endpoint: No data returned`
           }
         ],
         isError: true

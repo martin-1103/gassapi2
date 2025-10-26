@@ -64,7 +64,7 @@ $allowedActions = [
     'endpoint_list', 'endpoint_get',
     'project_endpoints', 'project_endpoints_grouped',
     // Flows
-    'flows', 'flows_active', 'flow', 'flow_update', 'flow_delete', 'flow_create', 'flow_toggle_active', 'flow_duplicate',
+    'flows', 'flows_active', 'flows_list', 'flow', 'flow_update', 'flow_delete', 'flow_create', 'flow_toggle_active', 'flow_duplicate',
     'flow_list', 'flow_get', 'flow_activate', 'flow_deactivate', 'flow_execute',
     'flow_detail_ui', 'flow_update_ui', // UI endpoints for React Flow format
     // MCP

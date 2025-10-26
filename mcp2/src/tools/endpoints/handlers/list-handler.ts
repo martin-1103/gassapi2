@@ -76,10 +76,11 @@ export async function handleListEndpoints(args: Record<string, any>): Promise<Mc
       throw new Error(errorMessage);
     }
 
-    const data = response.data as EndpointListResponse;
-
-    if (data.success && data.data) {
-      const endpoints = Array.isArray(data.data) ? data.data : [];
+    if (response.success && response.data) {
+      // Handle nested response structure from backend
+      const responseData = response.data as any;
+      const endpointsData = responseData.data || responseData;
+      const endpoints = Array.isArray(endpointsData) ? endpointsData : [];
       const endpointText = formatEndpointListText(endpoints, folderId, method);
 
       return {
@@ -95,7 +96,7 @@ export async function handleListEndpoints(args: Record<string, any>): Promise<Mc
         content: [
           {
             type: 'text',
-            text: `❌ Failed to list endpoints: ${data.message || 'Unknown error'}`
+            text: `❌ Failed to list endpoints: ${response.error || 'Unknown error'}`
           }
         ],
         isError: true

@@ -18,14 +18,12 @@ export {
   getEndpointDetailsTool,
   createEndpointTool,
   updateEndpointTool,
-  moveEndpointTool,
 
   // Handlers
   handleListEndpoints,
   handleGetEndpointDetails,
   handleCreateEndpoint,
   handleUpdateEndpoint,
-  handleMoveEndpoint,
 
   // Types
   type HttpMethod,
@@ -46,7 +44,6 @@ export {
   formatEndpointDetailsText,
   formatEndpointCreateText,
   formatEndpointUpdateText,
-  formatEndpointMoveText,
 
   // Dependencies
   getEndpointDependencies,

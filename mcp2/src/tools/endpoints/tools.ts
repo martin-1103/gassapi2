@@ -131,31 +131,11 @@ export const updateEndpointTool: McpTool = {
   }
 };
 
-// Tool: move_endpoint
-export const moveEndpointTool: McpTool = {
-  name: 'move_endpoint',
-  description: 'Move endpoint to a different folder',
-  inputSchema: {
-    type: 'object',
-    properties: {
-      endpoint_id: {
-        type: 'string',
-        description: 'Endpoint ID to move (required)'
-      },
-      new_folder_id: {
-        type: 'string',
-        description: 'Target folder ID (required)'
-      }
-    },
-    required: ['endpoint_id', 'new_folder_id']
-  }
-};
 
 // Export all tools as array
 export const ENDPOINT_TOOLS: McpTool[] = [
   listEndpointsTool,
   getEndpointDetailsTool,
   createEndpointTool,
-  updateEndpointTool,
-  moveEndpointTool
+  updateEndpointTool
 ];

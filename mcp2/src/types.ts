@@ -8,6 +8,7 @@ export interface McpTool {
   name: string;
   description: string;
   inputSchema: McpToolInputSchema;
+  handler?: (...args: any[]) => Promise<McpToolResponse>;
 }
 
 export interface McpToolInputSchema {
@@ -25,6 +26,7 @@ export interface McpParameter {
   additionalProperties?: boolean | McpParameter;
   properties?: Record<string, McpParameter>;
   required?: string[];
+  oneOf?: McpParameter[];
 }
 
 // MCP Request/Response Types (compatible with original)

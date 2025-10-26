@@ -50,44 +50,44 @@ export interface ApiEndpoints {
  */
 export const DEFAULT_API_ENDPOINTS: ApiEndpoints = {
   // Environment endpoints
-  projectEnvironments: '/gassapi2/backend/?act=project_environments&id={id}',
-  environmentDetails: '/gassapi2/backend/?act=environment&id={id}',
-  environmentUpdate: '/gassapi2/backend/?act=environment_update&id={id}',
-  environmentVariables: '/gassapi2/backend/?act=environment_variables&id={id}',
+  projectEnvironments: '/?act=project_environments&id={id}',
+  environmentDetails: '/?act=environment&id={id}',
+  environmentUpdate: '/?act=environment&id={id}', // Use same endpoint as get
+  environmentVariables: '/?act=environment&id={id}', // Use same endpoint as get
 
   // Folder endpoints
-  projectFolders: '/gassapi2/backend/?act=project_folders&id={id}',
-  folderDetails: '/gassapi2/backend/?act=folder&id={id}',
-  folderCreate: '/gassapi2/backend/?act=folder_create&id={project_id}',
-  folderUpdate: '/gassapi2/backend/?act=folder_update&id={id}',
-  folderDelete: '/gassapi2/backend/?act=folder_delete&id={id}',
+  projectFolders: '/?act=project_folders&id={id}',
+  folderDetails: '/?act=folder&id={id}',
+  folderCreate: '/?act=project_folders&id={id}', // Create via project endpoint
+  folderUpdate: '/?act=folder&id={id}', // Use same endpoint as get
+  folderDelete: '/?act=folder_delete&id={id}',
 
   // Endpoint endpoints
-  endpointDetails: '/gassapi2/backend/?act=endpoint&id={id}',
-  endpointCreate: '/gassapi2/backend/?act=endpoint_create&id={id}',
-  endpointUpdate: '/gassapi2/backend/?act=endpoint_update&id={id}',
-  endpointDelete: '/gassapi2/backend/?act=endpoint_delete&id={id}',
-  endpointTest: '/gassapi2/backend/?act=endpoint_test',
-  endpointList: '/gassapi2/backend/?act=endpoints_list&id={id}',
-  projectEndpointsList: '/gassapi2/backend/?act=project_endpoints_list&id={project_id}',
+  endpointDetails: '/?act=endpoint&id={id}',
+  endpointCreate: '/?act=endpoints&id={id}', // Create via list endpoint
+  endpointUpdate: '/?act=endpoint&id={id}', // Use same endpoint as get
+  endpointDelete: '/?act=endpoint_delete&id={id}',
+  endpointTest: '/?act=endpoint_test',
+  endpointList: '/?act=endpoints&id={id}',
+  projectEndpointsList: '/?act=project_endpoints&id={project_id}',
 
   // Flow endpoints
-  flowDetails: '/gassapi2/backend/?act=flow&id={id}',
-  flowCreate: '/gassapi2/backend/?act=flow_create&id={project_id}',
-  flowUpdate: '/gassapi2/backend/?act=flow_update&id={id}',
-  flowDelete: '/gassapi2/backend/?act=flow_delete&id={id}',
-  flowExecute: '/gassapi2/backend/?act=flow_execute',
-  flowList: '/gassapi2/backend/?act=flows&id={project_id}',
-  flowTest: '/gassapi2/backend/?act=flow_test',
-  flowValidate: '/gassapi2/backend/?act=flow_validate',
+  flowDetails: '/?act=flow&id={id}',
+  flowCreate: '/?act=flows&id={project_id}', // Create via list endpoint
+  flowUpdate: '/?act=flow&id={id}', // Use same endpoint as get
+  flowDelete: '/?act=flow_delete&id={id}',
+  flowExecute: '/?act=flow_execute',
+  flowList: '/?act=flows&id={project_id}',
+  flowTest: '/?act=flow_test',
+  flowValidate: '/?act=flow_validate',
 
   // Testing endpoints
-  endpointTestDirect: '/gassapi2/backend/?act=endpoint&id={id}',
-  environmentVariablesDirect: '/gassapi2/backend/?act=environment_variables&id={id}',
+  endpointTestDirect: '/?act=endpoint&id={id}',
+  environmentVariablesDirect: '/?act=environment_variables&id={id}',
 
   // Auth endpoints
-  tokenValidate: '/api/v1/auth/validate',
-  projectContext: '/gassapi2/backend/?act=project&id={id}'
+  tokenValidate: '/?act=validate_token',
+  projectContext: '/?act=project&id={id}'
 };
 
 /**

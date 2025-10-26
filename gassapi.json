@@ -8,6 +8,6 @@
     "token": "2032781cbb63ea282749778091b2170a5a18d0491a519bad4ab488ab463e885d"
   },
   "api": {
-    "baseURL": "http://localhost:8080"
+    "baseURL": "http://localhost:8080/gassapi2/backend"
   }
 }

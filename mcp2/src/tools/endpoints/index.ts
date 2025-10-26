@@ -21,8 +21,7 @@ export {
   handleListEndpoints,
   handleGetEndpointDetails,
   handleCreateEndpoint,
-  handleUpdateEndpoint,
-  handleMoveEndpoint
+  handleUpdateEndpoint
 } from './handlers.js';
 
 // Export tools individually
@@ -30,8 +29,7 @@ export {
   listEndpointsTool,
   getEndpointDetailsTool,
   createEndpointTool,
-  updateEndpointTool,
-  moveEndpointTool
+  updateEndpointTool
 } from './tools.js';
 
 // Export types

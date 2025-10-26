@@ -29,7 +29,14 @@
         "set_flow_inputs",
         "set_runtime_variables",
         "update_endpoint",
-        "move_endpoint"
+        "move_endpoint",
+        "list_folders",
+        "create_environment",
+        "set_default_environment",
+        "duplicate_environment",
+        "delete_environment",
+        "update_folder",
+        "get_flow_details"
       ]
     }
   }
