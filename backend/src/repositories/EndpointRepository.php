@@ -48,16 +48,27 @@ class EndpointRepository extends BaseRepository {
             $data['id'] = $this->generateId();
         }
         $data['folder_id'] = $folderId;
-        
+
         // Ensure JSON fields
         if (!isset($data['headers'])) {
             $data['headers'] = json_encode(new \stdClass());
         } elseif (is_array($data['headers']) || is_object($data['headers'])) {
             $data['headers'] = json_encode($data['headers']);
         }
-        
+
         if (isset($data['body']) && (is_array($data['body']) || is_object($data['body']))) {
             $data['body'] = json_encode($data['body']);
+        }
+
+        // Handle new semantic fields
+        if (isset($data['request_params']) && (is_array($data['request_params']) || is_object($data['request_params']))) {
+            $data['request_params'] = json_encode($data['request_params']);
+        }
+        if (isset($data['response_schema']) && (is_array($data['response_schema']) || is_object($data['response_schema']))) {
+            $data['response_schema'] = json_encode($data['response_schema']);
+        }
+        if (isset($data['header_docs']) && (is_array($data['header_docs']) || is_object($data['header_docs']))) {
+            $data['header_docs'] = json_encode($data['header_docs']);
         }
 
         return $this->create($data);
@@ -73,6 +84,17 @@ class EndpointRepository extends BaseRepository {
         }
         if (isset($data['body']) && (is_array($data['body']) || is_object($data['body']))) {
             $data['body'] = json_encode($data['body']);
+        }
+
+        // Handle new semantic fields
+        if (isset($data['request_params']) && (is_array($data['request_params']) || is_object($data['request_params']))) {
+            $data['request_params'] = json_encode($data['request_params']);
+        }
+        if (isset($data['response_schema']) && (is_array($data['response_schema']) || is_object($data['response_schema']))) {
+            $data['response_schema'] = json_encode($data['response_schema']);
+        }
+        if (isset($data['header_docs']) && (is_array($data['header_docs']) || is_object($data['header_docs']))) {
+            $data['header_docs'] = json_encode($data['header_docs']);
         }
 
         return $this->update($id, $data);

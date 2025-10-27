@@ -126,8 +126,12 @@ export async function handleCreateEndpoint(args: Record<string, any>): Promise<M
     const url = args.url as string;
     const folderId = args.folder_id as string;
     const description = args.description as string | undefined;
+    const purpose = args.purpose as string | undefined;
     const headers = args.headers as Record<string, string> | undefined;
     const body = args.body as string | undefined;
+    const requestParams = args.request_params as Record<string, string> | undefined;
+    const responseSchema = args.response_schema as Record<string, string> | undefined;
+    const headerDocs = args.header_docs as Record<string, string> | undefined;
 
     // Validate input
     const validationErrors = validateEndpointData({ name, method, url, folder_id: folderId });
@@ -149,8 +153,12 @@ export async function handleCreateEndpoint(args: Record<string, any>): Promise<M
       method,
       url: url.trim(),
       description: description?.trim() || null,
+      purpose: purpose?.trim() || null,
       headers: formatHeaders(headers || {}),
-      body: formatBody(body) || null
+      body: formatBody(body) || null,
+      request_params: requestParams || null,
+      response_schema: responseSchema || null,
+      header_docs: headerDocs || null
     });
 
     console.error(`[EndpointTools] Creating endpoint at: ${endpoint}`);

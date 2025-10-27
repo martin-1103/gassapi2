@@ -68,8 +68,13 @@ class EndpointHandler {
         $name = ValidationHelper::sanitize($input['name']);
         $method = strtoupper(ValidationHelper::sanitize($input['method']));
         $url = ValidationHelper::sanitize($input['url']);
+        $description = $input['description'] ?? null;
+        $purpose = $input['purpose'] ?? null;
         $headers = $input['headers'] ?? new \stdClass();
         $body = $input['body'] ?? null;
+        $requestParams = $input['request_params'] ?? null;
+        $responseSchema = $input['response_schema'] ?? null;
+        $headerDocs = $input['header_docs'] ?? null;
 
         // Validate HTTP method
         $validMethods = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD', 'OPTIONS'];
@@ -82,8 +87,13 @@ class EndpointHandler {
                 'name' => $name,
                 'method' => $method,
                 'url' => $url,
+                'description' => $description,
+                'purpose' => $purpose,
                 'headers' => $headers,
                 'body' => $body,
+                'request_params' => $requestParams,
+                'response_schema' => $responseSchema,
+                'header_docs' => $headerDocs,
                 'created_by' => $userId
             ]);
             
@@ -156,8 +166,23 @@ class EndpointHandler {
         if (isset($input['headers'])) { 
             $data['headers'] = $input['headers']; 
         }
-        if (isset($input['body'])) { 
-            $data['body'] = $input['body']; 
+        if (isset($input['body'])) {
+            $data['body'] = $input['body'];
+        }
+        if (isset($input['description'])) {
+            $data['description'] = ValidationHelper::sanitize($input['description']);
+        }
+        if (isset($input['purpose'])) {
+            $data['purpose'] = ValidationHelper::sanitize($input['purpose']);
+        }
+        if (isset($input['request_params'])) {
+            $data['request_params'] = $input['request_params'];
+        }
+        if (isset($input['response_schema'])) {
+            $data['response_schema'] = $input['response_schema'];
+        }
+        if (isset($input['header_docs'])) {
+            $data['header_docs'] = $input['header_docs'];
         }
 
         try {

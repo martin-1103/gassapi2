@@ -17,8 +17,12 @@ export interface EndpointListResponse {
     method: HttpMethod;
     url: string;
     description?: string;
+    purpose?: string;
     headers?: string;
     body?: string;
+    request_params?: string;
+    response_schema?: string;
+    header_docs?: string;
     created_at: string;
     updated_at: string;
   }>;
@@ -34,8 +38,12 @@ export interface EndpointDetailsResponse {
     method: HttpMethod;
     url: string;
     description?: string;
+    purpose?: string;
     headers?: string;
     body?: string;
+    request_params?: string;
+    response_schema?: string;
+    header_docs?: string;
     created_at: string;
     updated_at: string;
     folder?: {
@@ -55,8 +63,12 @@ export interface EndpointCreateResponse {
     method: HttpMethod;
     url: string;
     description?: string;
+    purpose?: string;
     headers?: string;
     body?: string;
+    request_params?: string;
+    response_schema?: string;
+    header_docs?: string;
     folder_id: string;
     created_at: string;
     updated_at: string;
@@ -72,8 +84,12 @@ export interface EndpointUpdateResponse {
     method: HttpMethod;
     url: string;
     description?: string;
+    purpose?: string;
     headers?: string;
     body?: string;
+    request_params?: string;
+    response_schema?: string;
+    header_docs?: string;
     folder_id: string;
     created_at: string;
     updated_at: string;

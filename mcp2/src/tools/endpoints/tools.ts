@@ -80,6 +80,34 @@ export const createEndpointTool: McpTool = {
       body: {
         type: 'string',
         description: 'Request body (JSON string)'
+      },
+      purpose: {
+        type: 'string',
+        description: 'Business purpose - what this endpoint does (optional)'
+      },
+      request_params: {
+        type: 'object',
+        description: 'Parameter documentation: {param_name: "description"}',
+        additionalProperties: {
+          type: 'string',
+          description: 'Parameter description'
+        }
+      },
+      response_schema: {
+        type: 'object',
+        description: 'Response field documentation: {field_name: "description"}',
+        additionalProperties: {
+          type: 'string',
+          description: 'Response field description'
+        }
+      },
+      header_docs: {
+        type: 'object',
+        description: 'Header documentation: {header_name: "description"}',
+        additionalProperties: {
+          type: 'string',
+          description: 'Header description'
+        }
       }
     },
     required: ['name', 'method', 'url', 'folder_id']
@@ -125,6 +153,34 @@ export const updateEndpointTool: McpTool = {
       body: {
         type: 'string',
         description: 'Updated request body (JSON string)'
+      },
+      purpose: {
+        type: 'string',
+        description: 'Updated business purpose (optional)'
+      },
+      request_params: {
+        type: 'object',
+        description: 'Updated parameter documentation: {param_name: "description"}',
+        additionalProperties: {
+          type: 'string',
+          description: 'Parameter description'
+        }
+      },
+      response_schema: {
+        type: 'object',
+        description: 'Updated response field documentation: {field_name: "description"}',
+        additionalProperties: {
+          type: 'string',
+          description: 'Response field description'
+        }
+      },
+      header_docs: {
+        type: 'object',
+        description: 'Updated header documentation: {header_name: "description"}',
+        additionalProperties: {
+          type: 'string',
+          description: 'Header description'
+        }
       }
     },
     required: ['endpoint_id']
