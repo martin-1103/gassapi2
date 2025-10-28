@@ -1,0 +1,5 @@
+{
+  "dependencies": {
+    "gassapi-mcp2": "github:martin-1103/mcp2"
+  }
+}

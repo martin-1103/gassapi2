@@ -28,12 +28,11 @@ async function getInstances() {
     await configManager.detectProjectConfig();
   }
   if (!backendClient) {
-    const baseUrl = configManager.getServerURL();
     const mcpToken = configManager.getMcpToken();
-    if (!baseUrl || !mcpToken) {
-      throw new Error('Configuration tidak lengkap: perlu baseUrl dan mcpToken');
+    if (!mcpToken) {
+      throw new Error('Configuration tidak lengkap: perlu mcpToken');
     }
-    backendClient = new BackendClient(baseUrl, mcpToken);
+    backendClient = new BackendClient(mcpToken);
   }
   return { configManager, backendClient };
 }

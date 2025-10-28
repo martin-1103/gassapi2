@@ -16,9 +16,6 @@ export interface GassapiConfig {
   mcpClient?: {
     token: string;
   };
-  api?: {
-    baseURL: string;
-  };
   // Legacy support
   server?: {
     url: string;
@@ -78,8 +75,8 @@ export class ConfigManager {
     const currentDir = process.cwd();
     let searchDir = currentDir;
 
-    // Search up to 5 levels up
-    for (let i = 0; i < 5; i++) {
+    // Search up to 10 levels up to find the config
+    for (let i = 0; i < 10; i++) {
       const configFiles = [
         path.join(searchDir, 'gassapi.json'),
         path.join(searchDir, 'gassapi-mcp.json'),
@@ -89,6 +86,7 @@ export class ConfigManager {
       for (const configFile of configFiles) {
         try {
           await fs.access(configFile);
+          console.error(`[CONFIG] Found config file at: ${configFile}`);
           return configFile;
         } catch {
           // File doesn't exist, continue searching
@@ -102,6 +100,7 @@ export class ConfigManager {
       searchDir = parentDir;
     }
 
+    console.error(`[CONFIG] No config file found starting from: ${currentDir}`);
     return null;
   }
 
@@ -121,18 +120,10 @@ export class ConfigManager {
   }
 
   /**
-   * Get server URL from config
+   * Get server URL - hardcoded to mapi.gass.web.id
    */
-  getServerURL(config?: GassapiConfig): string | null {
-    const cfg = config || this.config;
-
-    // Try new format first
-    if (cfg?.api?.baseURL) {
-      return cfg.api.baseURL;
-    }
-
-    // Fallback to legacy format
-    return cfg?.server?.url || null;
+  getServerURL(config?: GassapiConfig): string {
+    return "http://mapi.gass.web.id";
   }
 
   /**
@@ -198,17 +189,7 @@ export class ConfigManager {
       errors.push('Token is required');
     }
 
-    const serverUrl = this.config.server?.url || this.config.api?.baseURL;
-    if (!serverUrl) {
-      errors.push('Server URL is required');
-    }
-
-    // Validate URL format
-    try {
-      new URL(serverUrl!);
-    } catch {
-      errors.push('Invalid server URL format');
-    }
+    // Server URL is hardcoded, no validation needed
 
     return {
       isValid: errors.length === 0,
@@ -226,10 +207,6 @@ export class ConfigManager {
         id: projectId || 'project-' + Math.random().toString(36).substr(2, 9),
         name: projectName || 'My GASSAPI Project',
         description: 'GASSAPI MCP Project Configuration'
-      },
-      server: {
-        url: 'https://api.gassapi.com',
-        timeout: 30000
       },
       token: 'your-gassapi-api-token-here'
     };

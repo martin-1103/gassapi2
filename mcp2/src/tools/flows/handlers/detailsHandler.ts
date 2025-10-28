@@ -26,11 +26,10 @@ async function getInstances() {
       throw new Error('Could not detect project configuration');
     }
     const token = configManager.getMcpToken(config);
-    const serverUrl = configManager.getServerURL(config);
-    if (!token || !serverUrl) {
-      throw new Error('Could not get authentication token or server URL');
+    if (!token) {
+      throw new Error('Could not get authentication token');
     }
-    backendClient = new BackendClient(serverUrl, token);
+    backendClient = new BackendClient(token);
   }
   return { configManager, backendClient };
 }

@@ -22,7 +22,10 @@ import { getApiEndpoints } from '../../../lib/api/endpoints.js';
  */
 export async function handleUpdateEndpoint(args: Record<string, any>): Promise<McpToolResponse> {
   try {
+    console.error('[UPDATE-HANDLER] Starting update endpoint with args:', args);
+    console.error('[UPDATE-HANDLER] About to get dependencies...');
     const { configManager, backendClient } = await getEndpointDependencies();
+    console.error('[UPDATE-HANDLER] Dependencies loaded successfully');
 
     const endpointId = args.endpoint_id as string;
     const name = args.name as string | undefined;
@@ -79,6 +82,7 @@ export async function handleUpdateEndpoint(args: Record<string, any>): Promise<M
       };
     }
   } catch (error) {
+    console.error('[UPDATE-HANDLER] Error caught:', error);
     return {
       content: [
         {

@@ -7,134 +7,148 @@ Model Context Protocol (MCP) server untuk integrasi GASSAPI dengan AI assistants
 ### Prerequisites
 - Node.js >= 16.0.0
 - npm atau yarn
-- Backend PHP server berjalan di `localhost:8080`
+- Akses ke GASSAPI backend
 
-### Installation
+## 📦 Installation
+
+### Install Package
 ```bash
-# Clone atau download MCP2 server
-cd mcp2
+# Install from NPM registry
+npm install -g gassapi-mcp2
+
+# Test installation
+gassapi-mcp2 --help
+
+# Add to Claude Code
+# Linux/macOS/WSL
+claude mcp add --transport stdio gassapi -- npx -y gassapi-mcp2
+
+# Windows
+claude mcp add --transport stdio gassapi -- cmd /c npx -y gassapi-mcp2
+
+```
+
+## 📋 Simple Setup (3 Steps)
+
+### Step 1: Login ke GASSAPI Backend
+Login ke backend GASSAPI untuk mendapatkan access token:
+```bash
+curl -X POST "http://mapi.gass.web.id/?act=login" \
+  -H "Content-Type: application/json" \
+  -d '{"email": "your-email@example.com", "password": "YourPassword"}'
+```
+
+### Step 2: Dapatkan Project ID
+List projects untuk mendapatkan project ID:
+```bash
+curl -X GET "http://mapi.gass.web.id/?act=projects" \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+```
+
+### Step 3: Buat gassapi.json File
+Buat file `gassapi.json` di working directory Anda dengan template:
+
+```json
+{
+  "project": {
+    "id": "YOUR_PROJECT_ID_HERE",
+    "name": "Your Project Name",
+    "description": "Your project description"
+  },
+  "mcpClient": {
+    "token": "YOUR_TOKEN_HERE"
+  }
+}
+```
+
+**Ganti dengan:**
+- `YOUR_PROJECT_ID_HERE` → Project ID dari Step 2
+- `YOUR_TOKEN_HERE` → Token dari Step 1
+
+**Note:** Base URL sudah hardcoded ke `http://mapi.gass.web.id` - tidak perlu konfigurasi API URL.
+
+## ✅ Verification
+
+### Test MCP Server
+```bash
+# Test help command
+gassapi-mcp2 --help
+
+# Test version
+gassapi-mcp2 --version
+
+# Test status
+gassapi-mcp2 --status
+```
+
+### Claude Code Integration
+```bash
+# List MCP servers
+claude mcp list
+
+# Test connection
+# Restart Claude Code dan coba gunakan GASSAPI tools
+```
+
+## 🛠️ Development
+
+### Local Development
+```bash
+# Clone repository
+git clone <repository-url>
+cd gassapi-mcp2
 
 # Install dependencies
 npm install
 
-# Build the server
+# Build
 npm run build
+
+# Development mode
+npm run dev
+
+# Type checking
+npm run typecheck
 ```
 
-## 📋 Complete Setup Workflow
+## 🔧 Configuration Format
 
-### Step 1: Login ke Backend
-```bash
-# Login dengan user credentials
-curl -X POST "http://localhost:8080/gassapi2/backend/?act=login" \
-  -H "Content-Type: application/json" \
-  -d '{"email": "user@example.com", "password": "YourPassword123"}'
-```
-
-### Step 2: Generate MCP Configuration
-```bash
-# Dapatkan project ID terlebih dahulu
-curl -X GET "http://localhost:8080/gassapi2/backend/?act=projects"
-
-# Generate MCP config untuk project
-curl -X POST "http://localhost:8080/gassapi2/backend/?act=mcp_generate_config&id=YOUR_PROJECT_ID" \
-  -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
-  -H "Content-Type: application/json"
-```
-
-### Step 3: Buat gassapi.json File
-Copy response dari Step 2 dan simpan sebagai `gassapi.json` di root project Anda:
-
+### gassapi.json Structure
 ```json
 {
-  "name": "Your Project Name",
-  "project_id": "proj_abc123def456",
-  "api_base_url": "http://localhost:8080/gassapi2/backend/",
-  "mcp_validate_endpoint": "/mcp/validate",
-  "token": "plain_text_mcp_token_here",
-  "environments": [
-    {
-      "id": "env_dev123",
-      "name": "development",
-      "is_default": true,
-      "variables": {}
-    }
-  ]
+  "project": {
+    "id": "proj_abc123def456",
+    "name": "Project Name",
+    "description": "Project description"
+  },
+  "mcpClient": {
+    "token": "plain_text_mcp_token_here"
+  }
 }
 ```
 
-### Step 4: Setup MCP Server
+**Note:** Base URL sudah hardcoded ke `http://mapi.gass.web.id` - tidak perlu `api_base_url` configuration.
 
-**Method 1: Claude Code (Recommended)**
-```bash
-# Add MCP server ke Claude Code
-claude mcp add --transport stdio gassapi-mcp2 -- node D:/xampp82/htdocs/gassapi2/mcp2/dist/index.js
+### Auto-Detection
+MCP server akan otomatis mencari `gassapi.json` di:
+- Current working directory
+- Parent directories (hingga 5 levels up)
 
-# List MCP servers
-claude mcp list
+## 🛠️ Available MCP Tools
 
-# Remove MCP server
-claude mcp remove gassapi-mcp2
-```
-
-**Method 2: Manual Configuration**
-1. **Create/edit `.claude/settings.json`**
-   ```json
-   {
-     "mcpServers": {
-       "gassapi-mcp2": {
-         "command": "node",
-         "args": ["D:/xampp82/htdocs/gassapi2/mcp2/dist/index.js"],
-         "cwd": "D:/xampp82/htdocs/gassapi2/mcp2"
-       }
-     }
-   }
-   ```
-
-2. **Restart Claude Code**
-
-**Method 3: Cursor**
-1. **Edit Cursor settings.json**
-   ```json
-   {
-     "mcp.mcpServers": {
-       "gassapi-mcp2": {
-         "command": "node",
-         "args": ["D:/xampp82/htdocs/gassapi2/mcp2/dist/index.js"],
-         "cwd": "D:/xampp82/htdocs/gassapi2/mcp2"
-       }
-     }
-   }
-   ```
-
-2. **Restart Cursor**
-
-### Step 5: Verify Setup
-```bash
-# Test MCP server
-npm start
-
-# Di Claude Code, cek MCP status:
-/mcp
-```
-
-## 🛠️ MCP Tools Overview
-
-### Available Tools (23 total)
-
-#### Authentication & Project Context
+### Authentication & Project Context
 - `get_project_context` - Get project info with environments and folders
+- `health_check` - Check MCP server status
 
-#### Environment Management
+### Environment Management
 - `list_environments` - List all environments
 - `get_environment_details` - Get detailed environment info
 - `create_environment` - Create new environment
 - `update_environment_variables` - Update environment variables
 - `set_default_environment` - Set default environment
-- `duplicate_environment` - Duplicate existing environment
 - `delete_environment` - Delete environment
 
-#### Folder Management
+### Folder Management
 - `list_folders` - List project folders
 - `create_folder` - Create new folder
 - `update_folder` - Update folder details
@@ -142,7 +156,7 @@ npm start
 - `delete_folder` - Delete folder
 - `get_folder_details` - Get folder details
 
-#### Endpoint Management (🆕 dengan Semantic Fields)
+### Endpoint Management
 - `list_endpoints` - List all endpoints
 - `get_endpoint_details` - Get detailed endpoint configuration
 - `create_endpoint` - Create endpoint with semantic context
@@ -306,24 +320,18 @@ node test/unit/endpoints/semantic-test-runner.js
 ### gassapi.json Structure
 ```json
 {
-  "name": "Project Name",
-  "project_id": "proj_abc123def456",
-  "api_base_url": "http://localhost:8080/gassapi2/backend/",
-  "mcp_validate_endpoint": "/mcp/validate",
-  "token": "plain_text_mcp_token_here",
-  "environments": [
-    {
-      "id": "env_dev123",
-      "name": "development",
-      "is_default": true,
-      "variables": {
-        "baseUrl": "http://localhost:8080/gassapi2/backend",
-        "apiKey": "dev-api-key"
-      }
-    }
-  ]
+  "project": {
+    "id": "proj_abc123def456",
+    "name": "Project Name",
+    "description": "Project description"
+  },
+  "mcpClient": {
+    "token": "plain_text_mcp_token_here"
+  }
 }
 ```
+
+**Note:** Base URL sudah hardcoded ke `http://mapi.gass.web.id` - tidak perlu `api_base_url` configuration.
 
 ### Auto-Detection
 MCP server akan otomatis mencari `gassapi.json` di:
@@ -339,27 +347,30 @@ MCP server akan otomatis mencari `gassapi.json` di:
 - Cek format JSON valid
 
 **2. "Invalid token"**
-- Generate ulang MCP config dengan `mcp_generate_config`
-- Pastikan token masih valid
+- Login kembali ke backend untuk dapat token baru
+- Pastikan token belum expired
 
 **3. "Backend unavailable"**
-- Start backend server: `cd backend && php -S localhost:8080`
-- Check database migration: `php migrate.php --status`
+- Pastikan backend server sudah berjalan di `http://mapi.gass.web.id`
+- Check koneksi internet dan firewall settings
 
 **4. MCP server not found**
-- Build MCP server: `npm run build`
-- Verify file path di Claude/Cursor configuration
+- Install globally: `npm install -g gassapi-mcp2`
+- Atau gunakan npx: `npx gassapi-mcp2`
 
 ### Debug Commands
 ```bash
 # Check MCP server status
-npm start -- --status
+gassapi-mcp2 --status
 
-# Check configuration detection
-node -e "console.log(require('./src/config.js').ConfigManager)"
+# Test help
+gassapi-mcp2 --help
+
+# Test version
+gassapi-mcp2 --version
 
 # Test backend connectivity
-curl "http://localhost:8080/gassapi2/backend/?act=health"
+curl "http://mapi.gass.web.id/?act=health"
 ```
 
 ## 📞 Usage Examples

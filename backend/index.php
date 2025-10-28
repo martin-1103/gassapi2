@@ -29,8 +29,9 @@ App::init();
 // Set API headers
 header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: *');
-header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
-header('Access-Control-Allow-Headers: Content-Type, Authorization');
+header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, PATCH, OPTIONS');
+header('Access-Control-Allow-Headers: Content-Type, Authorization, X-HTTP-Method-Override');
+header('Access-Control-Max-Age: 86400'); // 24 hours cache for preflight
 
 // Handle CORS preflight
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
@@ -45,6 +46,16 @@ use App\Routes\ApiRoutes;
 $action = $_GET['act'] ?? 'help';
 $id = $_GET['id'] ?? null;
 $method = $_SERVER['REQUEST_METHOD'];
+
+// Handle method override for PUT/DELETE requests
+// Some clients/servers don't support PUT/DELETE directly and use POST with override
+if ($method === 'POST') {
+    if (isset($_POST['_method'])) {
+        $method = strtoupper($_POST['_method']);
+    } elseif (isset($_SERVER['HTTP_X_HTTP_METHOD_OVERRIDE'])) {
+        $method = $_SERVER['HTTP_X_HTTP_METHOD_OVERRIDE'];
+    }
+}
 
 // Security: Action whitelist
 $allowedActions = [

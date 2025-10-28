@@ -81,8 +81,8 @@ export class BackendClient {
   private mcpToken: string;
   private defaultHeaders: Record<string, string>;
 
-  constructor(baseUrl: string, mcpToken: string) {
-    this.baseUrl = baseUrl.replace(/\/$/, ''); // Remove trailing slash
+  constructor(mcpToken: string) {
+    this.baseUrl = "http://mapi.gass.web.id"; // Back to original base URL
     this.mcpToken = mcpToken;
 
     this.defaultHeaders = {
@@ -102,7 +102,7 @@ export class BackendClient {
     timeout?: number;
   }): Promise<ApiResponse<T>> {
     try {
-      const url = `${this.baseUrl}${endpoint}`;
+      const url = `${this.baseUrl}/index.php${endpoint}`;
       const method = options.method || 'GET';
 
       const headers = {

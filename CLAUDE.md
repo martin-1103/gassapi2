@@ -127,6 +127,7 @@ mcp2/
 - **Sequential execution**: Numbered files (000-999) with dependency ordering
 - **Fresh start support**: Drop and recreate all tables cleanly
 - **Comprehensive seeding**: Rich sample data for development
+- **Latest Enhancement**: Migration 065 adds semantic documentation fields for AI-assisted development
 
 ## Authentication & Security
 
@@ -151,6 +152,16 @@ mcp2/
 - **Security whitelist**: Allowed actions configuration
 - **RESTful design**: Consistent response structure
 
+### Semantic Documentation Fields
+Endpoints support enhanced semantic documentation for AI-assisted development:
+- **purpose**: Business purpose description (max 250 characters)
+- **request_params**: JSON object documenting input parameters `{param_name: "description"}`
+- **response_schema**: JSON object documenting response fields `{field_name: "description"}`
+- **header_docs**: JSON object documenting important headers `{header_name: "description"}`
+- **description**: General endpoint description and usage notes
+
+These fields enable AI assistants to better understand API context and provide more accurate assistance.
+
 ### Core Endpoints
 ```
 Authentication:
@@ -173,7 +184,7 @@ GET ?act=help          # API documentation
 
 ## MCP Tools Overview
 
-The MCP server provides 22 specialized tools for API management:
+The MCP server provides 25+ specialized tools for API management organized into 6 main domains:
 
 ### Authentication Tools
 - **Project Context**: Validate and manage project access
@@ -187,6 +198,7 @@ The MCP server provides 22 specialized tools for API management:
 - **CRUD Operations**: Complete endpoint lifecycle management
 - **Testing**: Individual endpoint validation and testing
 - **Organization**: Folder-based categorization
+- **Semantic Documentation**: Enhanced AI-assisted development with business purpose, parameter docs, and response schema documentation
 
 ### Environment Management
 - **Multi-environment**: Dev/staging/production configurations
@@ -194,9 +206,10 @@ The MCP server provides 22 specialized tools for API management:
 - **Context switching**: Environment-aware operations
 
 ### Flow Automation
-- **Workflow creation**: Multi-step API testing sequences
-- **Execution engine**: Sequential and parallel flow execution
-- **Result tracking**: Comprehensive flow execution reporting
+- **Workflow creation**: Multi-step API testing sequences with Steps format
+- **Execution engine**: Sequential and parallel flow execution with variable interpolation
+- **Result tracking**: Comprehensive flow execution reporting with timeout and error handling
+- **Dynamic inputs**: Parameterized flows with validation and type checking
 
 ### Testing Tools
 - **Endpoint testing**: Automated API validation
@@ -297,6 +310,58 @@ All test users use password: "password"
 - **File Storage**: File upload/download API
 - **Analytics Dashboard**: Analytics data endpoints
 
+## Flow Steps Format
+
+The flow automation system uses a powerful Steps format for creating API testing workflows:
+
+### Basic Flow Structure
+```json
+{
+  "name": "Flow Name",
+  "description": "Flow description",
+  "folderId": "optional_folder_id",
+  "flow_data": {
+    "version": "1.0",
+    "steps": [
+      {
+        "id": "unique_step_id",
+        "name": "Step Name",
+        "method": "POST",
+        "url": "{{baseUrl}}/api/endpoint",
+        "headers": {"Content-Type": "application/json"},
+        "body": "{\"key\": \"{{input.value}}\"}",
+        "expectedStatus": 200,
+        "outputs": {"result": "response.body.data"}
+      }
+    ],
+    "config": {
+      "delay": 1000,
+      "retryCount": 2,
+      "parallel": false
+    }
+  },
+  "flow_inputs": [
+    {
+      "name": "baseUrl",
+      "type": "string",
+      "required": true,
+      "description": "Base API URL"
+    }
+  ]
+}
+```
+
+### Variable Interpolation
+- `{{input.var}}`: Reference flow input parameters
+- `{{step.output}}`: Chain data between steps (e.g., `{{create_user.userId}}`)
+- Environment variables automatically available during execution
+
+### Execution Features
+- **Sequential vs Parallel**: Choose execution mode
+- **Error Handling**: Stop on error or continue with timeout
+- **Dry Run**: Test flow logic without making HTTP requests
+- **Dynamic Inputs**: Parameterized flows with type validation
+
 ## Important Development Notes
 
 - **Repository Pattern**: All data operations must go through repositories
@@ -311,10 +376,11 @@ All test users use password: "password"
 ## MCP Integration
 
 The MCP server enables AI assistant integration for:
-- **Automated API testing**: Flow creation and execution
+- **Automated API testing**: Flow creation and execution with variable interpolation
 - **Project management**: Organization and context validation
 - **Environment switching**: Multi-environment workflow support
-- **Endpoint management**: CRUD operations with folder organization
+- **Endpoint management**: CRUD operations with folder organization and semantic documentation
 - **Testing automation**: Comprehensive API validation tools
+- **AI-assisted development**: Semantic documentation enables better understanding of API business context and usage patterns
 
-MCP tools are organized by domain and provide complete API lifecycle management capabilities through AI-powered interactions.
+MCP tools are organized by domain and provide complete API lifecycle management capabilities through AI-powered interactions. The semantic documentation fields enhance AI understanding of endpoint purpose, parameters, and expected responses.

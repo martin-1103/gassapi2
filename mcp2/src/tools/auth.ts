@@ -24,11 +24,10 @@ async function getAuthDependencies() {
       throw new Error('No configuration found');
     }
     const token = configManagerInstance.getMcpToken(config);
-    const serverUrl = configManagerInstance.getServerURL(config);
-    if (!token || !serverUrl) {
-      throw new Error('Missing token or server URL in configuration');
+    if (!token) {
+      throw new Error('Missing token in configuration');
     }
-    backendClientInstance = new BackendClient(serverUrl, token);
+    backendClientInstance = new BackendClient(token);
   }
   return { configManager: configManagerInstance, backendClient: backendClientInstance };
 }

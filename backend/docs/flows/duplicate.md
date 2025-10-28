@@ -138,13 +138,19 @@ const createEnvironmentFlows = async (baseFlowId) => {
 ### 2. **A/B Testing Variants**
 ```bash
 # Create flow variants for testing
-POST /gassapi2/backend/?act=flow_duplicate&id=flow_base
+POST http://localhost:8080/?act=flow_duplicate&id=flow_base
+Content-Type: application/json
+Authorization: Bearer eyJhbGc...
+
 {
   "name": "Registration Flow - Variant A",
   "folder_id": "fld_test_variants"
 }
 
-POST /gassapi2/backend/?act=flow_duplicate&id=flow_base
+POST http://localhost:8080/?act=flow_duplicate&id=flow_base
+Content-Type: application/json
+Authorization: Bearer eyJhbGc...
+
 {
   "name": "Registration Flow - Variant B",
   "folder_id": "fld_test_variants"
@@ -180,11 +186,14 @@ const createTemplate = async (workingFlowId, templateName) => {
 ### 4. **Backup Before Major Changes**
 ```bash
 # Create backup before risky modifications
-POST /gassapi2/backend/?act=flow_duplicate&id=flow_critical
+POST http://localhost:8080/?act=flow_duplicate&id=flow_critical
+Content-Type: application/json
+Authorization: Bearer eyJhbGc...
+
 {
   "name": "CRITICAL FLOW BACKUP - DO NOT DELETE",
   "folder_id": "fld_backups",
-  "description": "Backup before major refactoring on 2025-10-25"
+  "description": "Backup before major refactoring on 2025-10-28"
 }
 ```
 
